@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.sql.Date;
+import java.util.List;
 
 @Entity
 @Getter
@@ -21,9 +22,13 @@ public class OrdenDespacho {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id_despacho;
     private Date fecha_despacho;
+    @Enumerated(EnumType.STRING)
     private Estado estado;
     @ManyToOne
     @JoinColumn (name = "id_cliente")
     private Cliente cliente;
+    @OneToMany
+    @JoinColumn(name = "id_detalle_despacho")
+    private List<DetalleDespacho> detalle_despacho;
 
 }
