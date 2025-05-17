@@ -1,5 +1,6 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Modelos;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -20,16 +21,19 @@ public class Usuario {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id_usuario;
     @NotBlank
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     private String nombre;
+    @NotBlank
+    @Column(nullable = false)
     private String contrasenia;
-    @ManyToOne
+
+    @ManyToMany
     @JoinTable(
             name = "usuario_rol",
             joinColumns = @JoinColumn(name = "id_usuario"),
             inverseJoinColumns = @JoinColumn(name = "id_rol"),
             uniqueConstraints = {@UniqueConstraint(columnNames = {"id_usuario", "id_rol"})}
     )
-    private List<Rol> rol;
+    private List<Rol> roles;
 
 }
