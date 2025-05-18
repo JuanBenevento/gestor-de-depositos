@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("GestorDeDepositos/ordenes")
 public class OrdenRecepcionController {
+
     private final OrdenRecepcionServiceImpl ordenRecepcionService;
     @Autowired
     public OrdenRecepcionController(OrdenRecepcionServiceImpl ordenRecepcionService) {

@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/proveedores")
+@RequestMapping("GestorDeDepositos/proveedor")
 public class ProveedorController {
 
     private final ProveedorServiceImpl proveedorService;
@@ -24,7 +24,7 @@ public class ProveedorController {
     }
 
     @GetMapping("/todos")
-    public ResponseEntity<List<ProveedorDTO>> buscarTodos() {
+    public ResponseEntity<?> buscarTodos() {
         List<ProveedorDTO> proveedores = proveedorService.buscarTodos().orElseThrow().stream().
                 map(proveedor -> new ProveedorDTO(
                         proveedor.getId_proveedor(),
@@ -32,11 +32,11 @@ public class ProveedorController {
                         proveedor.getTelefono(),
                         proveedor.getEmail()))
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(proveedores);
+        return new ResponseEntity(proveedores, HttpStatus.OK);
     }
 
     @GetMapping("/buscar")
-    public ResponseEntity<ProveedorDTO> buscar(@RequestParam Long id) {
+    public ResponseEntity<?> buscar(@RequestParam Long id) {
         Proveedor proveedor = proveedorService.buscarPorId(id)
                 .orElseThrow(() -> new RuntimeException("Proveedor no encontrado con ID: " + id));
 
@@ -46,11 +46,11 @@ public class ProveedorController {
                 proveedor.getTelefono(),
                 proveedor.getEmail()
         );
-        return ResponseEntity.ok(proveedorDTO);
+        return new ResponseEntity(proveedorDTO, HttpStatus.OK);
     }
 
     @PostMapping
-    public ResponseEntity<ProveedorDTO> crear(@RequestBody ProveedorDTO dto) {
+    public ResponseEntity<?> crear(@RequestBody ProveedorDTO dto) {
         Proveedor proveedor = new Proveedor();
         proveedor.setNombre(dto.getNombre());
         proveedor.setTelefono(dto.getTelefono());
@@ -61,7 +61,7 @@ public class ProveedorController {
     }
 
     @PutMapping
-    public ResponseEntity<ProveedorDTO> actualizar(@RequestBody ProveedorDTO dto) {
+    public ResponseEntity<?> actualizar(@RequestBody ProveedorDTO dto) {
         Proveedor proveedor = new Proveedor();
         proveedor.setId_proveedor(dto.getId_proveedor());
         proveedor.setNombre(dto.getNombre());
@@ -73,7 +73,7 @@ public class ProveedorController {
     }
 
     @DeleteMapping
-    public ResponseEntity<String> eliminar(@RequestParam Long id) {
+    public ResponseEntity<?> eliminar(@RequestParam Long id) {
         proveedorService.eliminar(id);
         return ResponseEntity.ok("Proveedor eliminado con éxito");
     }
