@@ -24,7 +24,7 @@ public class Inventario {
     @ManyToOne
     @JoinColumn (name = "id_ubicacion")
     private Ubicacion ubicacion;
-    private Integer cantidad;
+    private Double cantidad;
     private Date fecha_actualizacion;
 
 }

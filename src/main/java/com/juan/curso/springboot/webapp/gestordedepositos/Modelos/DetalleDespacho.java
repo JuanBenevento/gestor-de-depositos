@@ -22,5 +22,5 @@ public class DetalleDespacho {
     @OneToOne
     @JoinColumn(name="id_producto")
     private Producto producto;
-    private Integer cantidad;
+    private Double cantidad;
 }

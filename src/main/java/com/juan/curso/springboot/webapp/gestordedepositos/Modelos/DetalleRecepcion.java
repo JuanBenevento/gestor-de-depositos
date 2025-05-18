@@ -16,7 +16,7 @@ import lombok.Setter;
 public class DetalleRecepcion {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long idDetalleRecepcion;
+    private Long id_detalle_recepcion;
 
     @ManyToOne
     @JoinColumn (name = "idOrdenRecepcion")
@@ -27,5 +27,5 @@ public class DetalleRecepcion {
     private Producto producto;
 
     @NotBlank
-    private int cantidad;
+    private Double cantidad;
 }
