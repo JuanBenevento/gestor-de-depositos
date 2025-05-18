@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Calendar;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -63,7 +64,7 @@ public class OrdenRecepcionController {
     @PostMapping
     public ResponseEntity<?> crear(@RequestBody OrdenRecepcionDTO dto) {
         try {
-            OrdenRecepcion producto = new OrdenRecepcion(dto.getProveedor(),dto.getFecha(),dto.getEstado());
+            OrdenRecepcion producto = new OrdenRecepcion(dto.getProveedor(), Calendar.getInstance().getTime(), dto.getEstado());
             ordenRecepcionService.crear(producto);
             return new ResponseEntity<>(dto, HttpStatus.CREATED);
         } catch (Exception e) {
