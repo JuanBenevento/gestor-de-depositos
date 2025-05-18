@@ -17,4 +17,7 @@ public class Zona {
 
     @NotBlank
     private String nombre;
+
+    @NotBlank
+    private String descripcion;
 }
