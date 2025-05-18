@@ -2,11 +2,6 @@ package com.juan.curso.springboot.webapp.gestordedepositos.Dtos;
 
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Enums.EstadosOrdenRecepcion;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Proveedor;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
