@@ -10,83 +10,89 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping(value = "/GestorDeDepositos/producto")
+@RequestMapping("GestorDeDepositos/producto")
 public class ProductoController {
-    @Autowired
-    ProductoService productoService;
-    @GetMapping
-    public ResponseEntity<?> buscarTodos() {
-        List<ProductoDTO> productos = null;
-        HttpStatus status = HttpStatus.OK;
-        try{
-           productos = (List<ProductoDTO>) productoService.buscarTodos().getBody();
-            return new ResponseEntity<>(productos, status);
 
+    private final ProductoService productoService;
+
+    @Autowired
+    public ProductoController(ProductoService productoService) {
+        this.productoService = productoService;
+    }
+
+    @GetMapping("/todos")
+    public ResponseEntity<?> buscarTodos() {
+        try {
+            List<ProductoDTO> productos = productoService.buscarTodos()
+                    .orElseThrow()
+                    .stream()
+                    .map(producto -> new ProductoDTO(
+                            producto.getId_producto(),
+                            producto.getNombre(),
+                            producto.getDescripcion(),
+                            producto.getCodigo_sku(),
+                            producto.getUnidad_medida(),
+                            producto.getFecha_creacion()))
+                    .collect(Collectors.toList());
+
+            return new ResponseEntity<>(productos, HttpStatus.OK);
         } catch (Exception e) {
-            status = HttpStatus.INTERNAL_SERVER_ERROR;
-            return new ResponseEntity<>(e.getMessage(), status);
+            return new ResponseEntity<>("Error al obtener productos", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    @GetMapping
-    public ResponseEntity<Optional<ProductoDTO>> buscar(Long id) {
-        HttpStatus status = HttpStatus.OK;
-        Optional<ProductoDTO> retorno = null;
-        try{
-            Optional<Producto> producto  =  productoService.buscar(id).getBody();
-            if(producto.isPresent()){
-                retorno.get().setId_producto(producto.get().getId_producto());
-                retorno.get().setNombre(producto.get().getNombre());
-                retorno.get().setDescripcion(producto.get().getDescripcion());
-                retorno.get().setCodigo_sku(producto.get().getCodigo_sku());
-                retorno.get().setFecha_creacion(producto.get().getFecha_creacion());
-            }else{
-                status = HttpStatus.NOT_FOUND;
+    @GetMapping("/buscar")
+    public ResponseEntity<?> buscar(@RequestParam Long id) {
+        try {
+            Optional<Producto> producto = productoService.buscarPorId(id);
+            if (producto.isPresent()) {
+                Producto p = producto.get();
+                ProductoDTO dto = new ProductoDTO(p.getId_producto(), p.getNombre(), p.getDescripcion(),
+                        p.getCodigo_sku(), p.getUnidad_medida(), p.getFecha_creacion());
+                return new ResponseEntity<>(dto, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>("Producto no encontrado", HttpStatus.NOT_FOUND);
             }
         } catch (Exception e) {
-            status = HttpStatus.INTERNAL_SERVER_ERROR;
-            e.printStackTrace();
-            return new ResponseEntity<>(status);
+            return new ResponseEntity<>("Error al buscar producto", HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return new ResponseEntity<>(retorno,status);
     }
 
     @PostMapping
-    public ResponseEntity<?> crear(@RequestBody Producto producto) {
-        HttpStatus status = HttpStatus.CREATED;
-        try{
+    public ResponseEntity<?> crear(@RequestBody ProductoDTO dto) {
+        try {
+            Producto producto = new Producto(dto.getId_producto(), dto.getNombre(), dto.getDescripcion(),
+                    dto.getCodigo_sku(), dto.getUnidad_medida(), dto.getFecha_creacion());
+            productoService.crear(producto);
+            return new ResponseEntity<>(dto, HttpStatus.CREATED);
         } catch (Exception e) {
-            status = HttpStatus.INTERNAL_SERVER_ERROR;
-            e.printStackTrace();
-            return new ResponseEntity<>(producto,status);
+            return new ResponseEntity<>("Error al crear producto", HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return new ResponseEntity<>(producto,status);
     }
 
     @PutMapping
-    public ResponseEntity<?> actualizar(@RequestBody Producto producto) {
-        HttpStatus status = HttpStatus.OK;
+    public ResponseEntity<?> actualizar(@RequestBody ProductoDTO dto) {
         try {
+            Producto producto = new Producto(dto.getId_producto(), dto.getNombre(), dto.getDescripcion(),
+                    dto.getCodigo_sku(), dto.getUnidad_medida(), dto.getFecha_creacion());
+            productoService.actualizar(producto);
+            return new ResponseEntity<>(dto, HttpStatus.OK);
         } catch (Exception e) {
-            status = HttpStatus.INTERNAL_SERVER_ERROR;
-            e.printStackTrace();
-            return new ResponseEntity<>(producto,status);
+            return new ResponseEntity<>("Error al actualizar producto", HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return new ResponseEntity<>(producto,status);
     }
 
     @DeleteMapping
-    public ResponseEntity<?> eliminar(Long id) {
-        HttpStatus status = HttpStatus.OK;
-        try{
-        }catch (Exception e) {
-            status = HttpStatus.INTERNAL_SERVER_ERROR;
-            e.printStackTrace();
-            return new ResponseEntity<>(status);
+    public ResponseEntity<?> eliminar(@RequestParam Long id) {
+        try {
+            productoService.eliminar(id);
+            return new ResponseEntity<>("Producto eliminado", HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error al eliminar producto", HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return new ResponseEntity<>(status);
     }
 
 
