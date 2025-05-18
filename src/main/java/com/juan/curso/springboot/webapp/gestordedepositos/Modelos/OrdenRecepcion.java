@@ -25,9 +25,14 @@ public class OrdenRecepcion {
     @JoinColumn (name = "id_proveedor")
     private Proveedor proveedor;
 
-    @NotBlank
     private Date fecha;
 
     @Enumerated(EnumType.STRING)
     private EstadosOrdenRecepcion estado;
+
+    public OrdenRecepcion(Proveedor proveedor, Date fecha, EstadosOrdenRecepcion estado) {
+        this.proveedor = proveedor;
+        this.fecha = fecha;
+        this.estado = estado;
+    }
 }
