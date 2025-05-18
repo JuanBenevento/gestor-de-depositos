@@ -73,6 +73,6 @@ public class ClienteController {
     @DeleteMapping
     public ResponseEntity<?> eliminar(@RequestParam Long id) {
         clienteService.eliminar(id);
-        return ResponseEntity.ok("Proveedor eliminado con éxito");
+        return ResponseEntity.ok("Cliente eliminado con éxito");
     }
 }

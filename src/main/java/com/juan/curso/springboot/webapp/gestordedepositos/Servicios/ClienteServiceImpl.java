@@ -36,7 +36,7 @@ public class ClienteServiceImpl implements GenericService<Cliente, Long>{
     @Override
     public void actualizar(Cliente cliente) {
         if (!clienteRepositorio.existsById(cliente.getId_cliente())) {
-            throw new RecursoNoEncontradoException("Proveedor no encontrado con ID: " + cliente.getId_cliente());
+            throw new RecursoNoEncontradoException("Cliente no encontrado con ID: " + cliente.getId_cliente());
         }
         clienteRepositorio.save(cliente);
     }
@@ -44,7 +44,7 @@ public class ClienteServiceImpl implements GenericService<Cliente, Long>{
     @Override
     public void eliminar(Long id) {
         if (!clienteRepositorio.existsById(id)) {
-            throw new RecursoNoEncontradoException("Proveedor no encontrado con ID: " + id);
+            throw new RecursoNoEncontradoException("Cliente no encontrado con ID: " + id);
         }
         clienteRepositorio.deleteById(id);
     }
