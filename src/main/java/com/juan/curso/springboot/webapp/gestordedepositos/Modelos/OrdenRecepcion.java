@@ -1,6 +1,6 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Modelos;
 
-import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.enums.EstadosOrdenRecepcion;
+import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Enums.EstadosOrdenRecepcion;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -19,7 +19,7 @@ import java.util.Date;
 public class OrdenRecepcion {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long idOrdenRecepcion;
+    private Long id_orden_recepcion;
 
     @ManyToOne
     @JoinColumn (name = "id_proveedor")

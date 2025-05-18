@@ -2,7 +2,8 @@ package com.juan.curso.springboot.webapp.gestordedepositos.Controladores;
 
 import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.ProductoDTO;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Producto;
-import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.ProductoService;
+import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.GenericService;
+import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.ProductoServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,10 +17,10 @@ import java.util.stream.Collectors;
 @RequestMapping("GestorDeDepositos/producto")
 public class ProductoController {
 
-    private final ProductoService productoService;
+    private final ProductoServiceImpl productoService;
 
     @Autowired
-    public ProductoController(ProductoService productoService) {
+    public ProductoController(ProductoServiceImpl productoService) {
         this.productoService = productoService;
     }
 
@@ -94,6 +95,4 @@ public class ProductoController {
             return new ResponseEntity<>("Error al eliminar producto", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
-
 }

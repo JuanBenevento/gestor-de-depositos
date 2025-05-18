@@ -1,6 +1,6 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Modelos;
 
-import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Enums.Estado;
+import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Enums.EstadosOrdenRecepcion;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,7 +23,7 @@ public class OrdenDespacho {
     private Long id_despacho;
     private Date fecha_despacho;
     @Enumerated(EnumType.STRING)
-    private Estado estado;
+    private EstadosOrdenRecepcion estado;
     @ManyToOne
     @JoinColumn (name = "id_cliente")
     private Cliente cliente;
