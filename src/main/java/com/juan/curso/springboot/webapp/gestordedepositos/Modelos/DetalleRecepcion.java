@@ -1,7 +1,6 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Modelos;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,10 +16,11 @@ import lombok.Setter;
 public class DetalleRecepcion {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id_detalle_recepcion;
+    @Column(name="id_detalle_recepcion")
+    private Long idDetalleRecepcion;
 
     @ManyToOne
-    @JoinColumn (name = "idOrdenRecepcion")
+    @JoinColumn (name = "id_orden_recepcion")
     private OrdenRecepcion ordenRecepcion;
 
     @ManyToOne
@@ -29,4 +29,10 @@ public class DetalleRecepcion {
 
     @NotNull
     private Double cantidad;
+
+    public DetalleRecepcion(OrdenRecepcion ordenRecepcion, Producto producto, Double cantidad) {
+        this.ordenRecepcion = ordenRecepcion;
+        this.producto = producto;
+        this.cantidad =cantidad;
+    }
 }

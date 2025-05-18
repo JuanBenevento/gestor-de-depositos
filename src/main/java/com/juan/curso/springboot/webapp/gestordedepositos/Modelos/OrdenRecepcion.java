@@ -19,7 +19,8 @@ import java.util.Date;
 public class OrdenRecepcion {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id_orden_recepcion;
+    @Column(name ="id_orden_recepcion")
+    private Long idOrdenRecepcion;
 
     @ManyToOne
     @JoinColumn (name = "id_proveedor")

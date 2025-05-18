@@ -23,4 +23,7 @@ public class OrdenRecepcionDTO {
     private Proveedor proveedor;
     private Date fecha;
     private EstadosOrdenRecepcion estado;
+
+    public OrdenRecepcionDTO(Proveedor proveedor, Date time, String upperCase) {
+    }
 }

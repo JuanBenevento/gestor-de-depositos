@@ -1,11 +1,8 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Controladores;
 
 import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.OrdenRecepcionDTO;
-import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.ProductoDTO;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.OrdenRecepcion;
-import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Producto;
 import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.OrdenRecepcionServiceImpl;
-import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.ProductoServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,17 +26,17 @@ public class OrdenRecepcionController {
     @GetMapping("/todos")
     public ResponseEntity<?> buscarTodos() {
         try {
-            List<OrdenRecepcionDTO> productos = ordenRecepcionService.buscarTodos()
+            List<OrdenRecepcionDTO> ordenes = ordenRecepcionService.buscarTodos()
                     .orElseThrow()
                     .stream()
                     .map(orden -> new OrdenRecepcionDTO(
-                            orden.getId_orden_recepcion(),
+                            orden.getIdOrdenRecepcion(),
                             orden.getProveedor(),
                             orden.getFecha(),
                             orden.getEstado()))
                     .collect(Collectors.toList());
 
-            return new ResponseEntity<>(productos, HttpStatus.OK);
+            return new ResponseEntity<>(ordenes, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>("Error al obtener ordenes", HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -51,7 +48,7 @@ public class OrdenRecepcionController {
             Optional<OrdenRecepcion> orden = ordenRecepcionService.buscarPorId(id);
             if (orden.isPresent()) {
                 OrdenRecepcion o = orden.get();
-                OrdenRecepcionDTO dto = new OrdenRecepcionDTO(o.getId_orden_recepcion(),o.getProveedor(),
+                OrdenRecepcionDTO dto = new OrdenRecepcionDTO(o.getIdOrdenRecepcion(),o.getProveedor(),
                         o.getFecha(),o.getEstado());
                 return new ResponseEntity<>(dto, HttpStatus.OK);
             } else {
@@ -63,10 +60,10 @@ public class OrdenRecepcionController {
     }
 
     @PostMapping
-    public ResponseEntity<?> crear(@RequestBody OrdenRecepcionDTO dto) {
+    public ResponseEntity<?> crearOrdenRecepcion(@RequestBody OrdenRecepcionDTO dto) {
         try {
-            OrdenRecepcion producto = new OrdenRecepcion(dto.getProveedor(), Calendar.getInstance().getTime(), dto.getEstado());
-            ordenRecepcionService.crear(producto);
+            OrdenRecepcion orden = new OrdenRecepcion(dto.getProveedor(), Calendar.getInstance().getTime(), dto.getEstado());
+            ordenRecepcionService.crear(orden);
             return new ResponseEntity<>(dto, HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>("Error al crear orden", HttpStatus.INTERNAL_SERVER_ERROR);
