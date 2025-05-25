@@ -27,13 +27,14 @@ public class Usuario {
     @Column(nullable = false)
     private String contrasenia;
 
-    @ManyToMany
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinTable(
             name = "usuario_rol",
             joinColumns = @JoinColumn(name = "id_usuario"),
             inverseJoinColumns = @JoinColumn(name = "id_rol"),
             uniqueConstraints = {@UniqueConstraint(columnNames = {"id_usuario", "id_rol"})}
     )
-    private List<Rol> roles;
+    private Rol rol;
+
 
 }
