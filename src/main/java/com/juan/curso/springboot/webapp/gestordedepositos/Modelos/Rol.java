@@ -21,6 +21,6 @@ public class Rol {
     @Column(unique = true, nullable = false)
     private String nombre;
 
-    @ManyToMany(mappedBy = "roles")
-    private List<Usuario> usuarios;
+    @OneToOne
+    private Usuario usuario;
 }
