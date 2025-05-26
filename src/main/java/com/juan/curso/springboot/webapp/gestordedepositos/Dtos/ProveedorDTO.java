@@ -12,6 +12,6 @@ import lombok.Setter;
 public class ProveedorDTO {
     private Long id_proveedor;
     private String nombre;
-    private Long telefono;
+    private String telefono;
     private String email;
 }
