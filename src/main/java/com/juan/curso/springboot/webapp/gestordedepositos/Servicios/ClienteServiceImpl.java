@@ -20,32 +20,54 @@ public class ClienteServiceImpl implements GenericService<Cliente, Long>{
 
     @Override
     public Optional<List<Cliente>> buscarTodos() {
-        return Optional.of(clienteRepositorio.findAll());
+        try {
+            return Optional.of(clienteRepositorio.findAll());
+        }catch (Exception e) {
+            e.printStackTrace();
+            return Optional.empty();
+        }
     }
 
     @Override
-    public Optional<Cliente> buscarPorId(Long id) {
-        return clienteRepositorio.findById(id);
+    public Optional<Cliente> buscarPorId(Long id) throws RecursoNoEncontradoException {
+        try {
+            return clienteRepositorio.findById(id);
+        }catch (RecursoNoEncontradoException e) {
+            throw new RecursoNoEncontradoException("Cliente no encontrado con ID: " + id);
+        }catch (Exception e) {
+            e.printStackTrace();
+            return Optional.empty();
+        }
     }
 
     @Override
     public void crear(Cliente cliente) {
-        clienteRepositorio.save(cliente);
+        try {
+            clienteRepositorio.save(cliente);
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
-    public void actualizar(Cliente cliente) {
-        if (!clienteRepositorio.existsById(cliente.getId_cliente())) {
+    public void actualizar(Cliente cliente) throws RecursoNoEncontradoException {
+        try {
+            clienteRepositorio.save(cliente);
+        }catch (RecursoNoEncontradoException e) {
             throw new RecursoNoEncontradoException("Cliente no encontrado con ID: " + cliente.getId_cliente());
+        }catch (Exception e) {
+            e.printStackTrace();
         }
-        clienteRepositorio.save(cliente);
     }
 
     @Override
-    public void eliminar(Long id) {
-        if (!clienteRepositorio.existsById(id)) {
+    public void eliminar(Long id) throws RecursoNoEncontradoException {
+        try {
+            clienteRepositorio.deleteById(id);
+        }catch (RecursoNoEncontradoException e) {
             throw new RecursoNoEncontradoException("Cliente no encontrado con ID: " + id);
+        }catch (Exception e) {
+            e.printStackTrace();
         }
-        clienteRepositorio.deleteById(id);
     }
 }

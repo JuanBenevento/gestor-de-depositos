@@ -56,8 +56,6 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/GestorDeDepositos/login").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                       // .requestMatchers(HttpMethod.GET, "/GestorDeDepositos/auditorias/**").hasRole("ADMIN")
-                       // .requestMatchers("/GestorDeDepositos/roles/**").hasRole("ADMIN")
                         .requestMatchers("/GestorDeDepositos/usuarios/**").hasRole("ADMIN")
                         .requestMatchers("/GestorDeDepositos/**").hasAnyRole("OPERATIVO", "ADMIN")
                         .requestMatchers("/GestorDeDepositos/producto/todos").hasAnyRole("OPERATIVO", "ADMIN")
