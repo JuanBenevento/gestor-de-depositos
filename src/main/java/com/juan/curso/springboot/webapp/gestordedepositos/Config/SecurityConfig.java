@@ -31,8 +31,8 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     //private final UserDetailsService userDetailsService;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
-      this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilterp) {
+      this.jwtAuthenticationFilter = jwtAuthenticationFilterp;
        // this.userDetailsService = userDetailsService;
     }
    /* @Bean
