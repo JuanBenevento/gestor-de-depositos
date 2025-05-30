@@ -1,0 +1,38 @@
+package com.juan.curso.springboot.webapp.gestordedepositos.Modelos;
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Entity
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Table(name = "detalle_recepcion")
+public class DetalleRecepcion {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name="id_detalle_recepcion")
+    private Long idDetalleRecepcion;
+
+    @ManyToOne
+    @JoinColumn (name = "id_orden_recepcion")
+    private OrdenRecepcion ordenRecepcion;
+
+    @ManyToOne
+    @JoinColumn (name = "id_producto")
+    private Producto producto;
+
+    @NotNull
+    private Double cantidad;
+
+    public DetalleRecepcion(OrdenRecepcion ordenRecepcion, Producto producto, Double cantidad) {
+        this.ordenRecepcion = ordenRecepcion;
+        this.producto = producto;
+        this.cantidad =cantidad;
+    }
+}
