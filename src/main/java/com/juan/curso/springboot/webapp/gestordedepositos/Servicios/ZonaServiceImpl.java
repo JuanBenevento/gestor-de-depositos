@@ -20,32 +20,54 @@ public class ZonaServiceImpl implements GenericService<Zona, Long>{
 
     @Override
     public Optional<List<Zona>> buscarTodos() {
-        return Optional.of(zonaRepositorio.findAll());
+        try {
+            return Optional.of(zonaRepositorio.findAll());
+        }catch (Exception e) {
+            e.printStackTrace();
+            return Optional.empty();
+        }
     }
 
     @Override
-    public Optional<Zona> buscarPorId(Long id) {
-        return zonaRepositorio.findById(id);
+    public Optional<Zona> buscarPorId(Long id) throws RecursoNoEncontradoException{
+        try {
+            return zonaRepositorio.findById(id);
+        }catch (RecursoNoEncontradoException e){
+            throw new RecursoNoEncontradoException("Zona no encontrada con ID: " + id);
+        }catch (Exception e) {
+            e.printStackTrace();
+            return Optional.empty();
+        }
     }
 
     @Override
     public void crear(Zona zona) {
-        zonaRepositorio.save(zona);
+        try {
+            zonaRepositorio.save(zona);
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
-    public void actualizar(Zona zona) {
-        if (!zonaRepositorio.existsById(zona.getIdZona())) {
+    public void actualizar(Zona zona) throws RecursoNoEncontradoException {
+        try {
+            zonaRepositorio.save(zona);
+        }catch (RecursoNoEncontradoException e){
             throw new RecursoNoEncontradoException("Zona no encontrado con ID: " + zona.getIdZona());
+        }catch (Exception e) {
+            e.printStackTrace();
         }
-        zonaRepositorio.save(zona);
     }
 
     @Override
-    public void eliminar(Long id) {
-        if (!zonaRepositorio.existsById(id)) {
+    public void eliminar(Long id) throws RecursoNoEncontradoException {
+        try {
+            zonaRepositorio.deleteById(id);
+        }catch (RecursoNoEncontradoException e){
             throw new RecursoNoEncontradoException("Zona no encontrado con ID: " + id);
+        }catch (Exception e) {
+            e.printStackTrace();
         }
-        zonaRepositorio.deleteById(id);
     }
 }

@@ -21,32 +21,54 @@ public class ProveedorServiceImpl implements GenericService<Proveedor, Long> {
 
     @Override
     public Optional<List<Proveedor>> buscarTodos() {
-        return Optional.of(proveedorRepositorio.findAll());
+        try{
+            return Optional.of(proveedorRepositorio.findAll());
+        }catch(Exception e){
+            e.printStackTrace();
+            return Optional.empty();
+        }
     }
 
     @Override
-    public Optional<Proveedor> buscarPorId(Long id) {
-        return proveedorRepositorio.findById(id);
+    public Optional<Proveedor> buscarPorId(Long id) throws RecursoNoEncontradoException {
+        try {
+            return proveedorRepositorio.findById(id);
+        } catch (RecursoNoEncontradoException e) {
+            throw new RecursoNoEncontradoException("Proveedor no encontrado con ID: " + id);
+        }catch (Exception e) {
+            e.printStackTrace();
+            return Optional.empty();
+        }
     }
 
     @Override
     public void crear(Proveedor proveedor) {
-        proveedorRepositorio.save(proveedor);
+        try {
+            proveedorRepositorio.save(proveedor);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
-    public void actualizar(Proveedor proveedor) {
-        if (!proveedorRepositorio.existsById(proveedor.getId_proveedor())) {
+    public void actualizar(Proveedor proveedor) throws RecursoNoEncontradoException {
+        try {
+            proveedorRepositorio.save(proveedor);
+        }catch (RecursoNoEncontradoException e){
             throw new RecursoNoEncontradoException("Proveedor no encontrado con ID: " + proveedor.getId_proveedor());
+        }catch (Exception e){
+            e.printStackTrace();
         }
-        proveedorRepositorio.save(proveedor);
     }
 
     @Override
     public void eliminar(Long id) {
-        if (!proveedorRepositorio.existsById(id)) {
+        try {
+            proveedorRepositorio.deleteById(id);
+        }catch (RecursoNoEncontradoException e){
             throw new RecursoNoEncontradoException("Proveedor no encontrado con ID: " + id);
+        }catch (Exception e){
+            e.printStackTrace();
         }
-        proveedorRepositorio.deleteById(id);
     }
 }

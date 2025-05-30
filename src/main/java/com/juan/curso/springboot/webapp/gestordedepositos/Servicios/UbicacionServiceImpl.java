@@ -20,12 +20,24 @@ public class UbicacionServiceImpl implements GenericService<Ubicacion, Long> {
 
     @Override
     public Optional<List<Ubicacion>> buscarTodos() {
-        return Optional.of(ubicacionRepositorio.findAll());
+        try {
+            return Optional.of(ubicacionRepositorio.findAll());
+        }catch (Exception e) {
+            e.printStackTrace();
+            return Optional.empty();
+        }
     }
 
     @Override
-    public Optional<Ubicacion> buscarPorId(Long id) {
-        return ubicacionRepositorio.findById(id);
+    public Optional<Ubicacion> buscarPorId(Long id) throws RecursoNoEncontradoException {
+        try {
+            return ubicacionRepositorio.findById(id);
+        }catch (RecursoNoEncontradoException e) {
+            throw new RecursoNoEncontradoException("Ubicacion no encontrada con ID: " + id);
+        }catch (Exception e) {
+            e.printStackTrace();
+            return Optional.empty();
+        }
     }
 
     @Override
@@ -38,18 +50,24 @@ public class UbicacionServiceImpl implements GenericService<Ubicacion, Long> {
     }
 
     @Override
-    public void actualizar(Ubicacion ubicacion) {
-        if (!ubicacionRepositorio.existsById(ubicacion.getId_ubicacion())) {
-            throw new RecursoNoEncontradoException("Proveedor no encontrado con ID: " + ubicacion.getId_ubicacion());
+    public void actualizar(Ubicacion ubicacion) throws RecursoNoEncontradoException {
+        try {
+            ubicacionRepositorio.save(ubicacion);
+        }catch (RecursoNoEncontradoException e) {
+            throw new RecursoNoEncontradoException("Ubicacion no encontrada con ID: " + ubicacion.getId_ubicacion());
+        }catch (Exception e) {
+            e.printStackTrace();
         }
-        ubicacionRepositorio.save(ubicacion);
     }
 
     @Override
-    public void eliminar(Long id) {
-        if (!ubicacionRepositorio.existsById(id)) {
-            throw new RecursoNoEncontradoException("Proveedor no encontrado con ID: " + id);
+    public void eliminar(Long id) throws RecursoNoEncontradoException {
+        try {
+            ubicacionRepositorio.deleteById(id);
+        }catch (RecursoNoEncontradoException e) {
+            throw new RecursoNoEncontradoException("Ubicacion no encontrada con ID: " + id);
+        }catch (Exception e) {
+            e.printStackTrace();
         }
-        ubicacionRepositorio.deleteById(id);
     }
 }
