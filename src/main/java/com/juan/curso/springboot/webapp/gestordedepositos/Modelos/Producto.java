@@ -23,5 +23,4 @@ public class Producto {
     private Long codigo_sku;
     private String unidad_medida;
     private Date fecha_creacion;
-
 }

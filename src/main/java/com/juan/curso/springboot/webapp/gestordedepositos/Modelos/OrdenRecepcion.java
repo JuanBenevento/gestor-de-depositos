@@ -1,6 +1,6 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Modelos;
 
-import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Enums.EstadosOrdenRecepcion;
+import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Enums.EstadosDeOrden;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -28,9 +28,9 @@ public class OrdenRecepcion {
     private Date fecha;
 
     @Enumerated(EnumType.STRING)
-    private EstadosOrdenRecepcion estado;
+    private EstadosDeOrden estado;
 
-    public OrdenRecepcion(Proveedor proveedor, Date fecha, EstadosOrdenRecepcion estado) {
+    public OrdenRecepcion(Proveedor proveedor, Date fecha, EstadosDeOrden estado) {
         this.proveedor = proveedor;
         this.fecha = fecha;
         this.estado = estado;

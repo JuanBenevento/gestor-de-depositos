@@ -1,0 +1,72 @@
+package com.juan.curso.springboot.webapp.gestordedepositos.Servicios;
+
+import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.RecursoNoEncontradoException;
+import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.OrdenDespacho;
+import com.juan.curso.springboot.webapp.gestordedepositos.Repositorios.OrdenDespachoRepositorio;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+
+@Service
+public class OrdenDespachoServiceImpl implements GenericService<OrdenDespacho, Long>{
+    private final OrdenDespachoRepositorio ordenDespachoRepositorio;
+
+    @Autowired
+    public OrdenDespachoServiceImpl(OrdenDespachoRepositorio ordenDespachoRepositorio) {
+        this.ordenDespachoRepositorio = ordenDespachoRepositorio;
+    }
+
+    @Override
+    public Optional<List<OrdenDespacho>> buscarTodos() {
+        try {
+            return Optional.of(ordenDespachoRepositorio.findAll());
+        }catch (Exception e){
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    public Optional<OrdenDespacho> buscarPorId(Long id) throws RecursoNoEncontradoException {
+        try {
+            return ordenDespachoRepositorio.findById(id);
+        }catch (RecursoNoEncontradoException e){
+            throw new RecursoNoEncontradoException("Orden de despacho con id " + id + " no encontrado");
+        }catch (Exception e){
+            e.printStackTrace();
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    public void crear(OrdenDespacho ordenDespacho) {
+        try {
+            ordenDespachoRepositorio.save(ordenDespacho);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void actualizar(OrdenDespacho ordenDespacho) throws RecursoNoEncontradoException{
+        try {
+            ordenDespachoRepositorio.save(ordenDespacho);
+        }catch (RecursoNoEncontradoException e){
+            throw new RecursoNoEncontradoException("Orden de despacho con id " + ordenDespacho.getId_despacho() + " no encontrado");
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void eliminar(Long id) {
+        try {
+            ordenDespachoRepositorio.deleteById(id);
+        }catch (RecursoNoEncontradoException e){
+            throw new RecursoNoEncontradoException("Orden de despacho con id " + id + " no encontrado");
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+}

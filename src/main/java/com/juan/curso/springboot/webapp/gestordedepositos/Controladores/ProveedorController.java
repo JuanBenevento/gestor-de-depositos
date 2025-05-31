@@ -71,7 +71,6 @@ public class ProveedorController {
         proveedorService.actualizar(proveedor);
         return ResponseEntity.ok(dto);
     }
-
     @DeleteMapping
     public ResponseEntity<?> eliminar(@RequestParam Long id) {
         proveedorService.eliminar(id);
