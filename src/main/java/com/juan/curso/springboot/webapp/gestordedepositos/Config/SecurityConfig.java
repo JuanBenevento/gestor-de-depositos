@@ -59,6 +59,7 @@ public class SecurityConfig {
                        // .requestMatchers(HttpMethod.GET, "/GestorDeDepositos/auditorias/**").hasRole("ADMIN")
                        // .requestMatchers("/GestorDeDepositos/roles/**").hasRole("ADMIN")
                         .requestMatchers("/GestorDeDepositos/usuarios/**").hasRole("ADMIN")
+                        .requestMatchers("/GestorDeDepositos/ordenes/crearOrdenRecepcion").hasRole("ADMIN")
                         .requestMatchers("/GestorDeDepositos/**").hasAnyRole("OPERATIVO", "ADMIN")
                         .requestMatchers("/GestorDeDepositos/producto/todos").hasAnyRole("OPERATIVO", "ADMIN")
                         .anyRequest().authenticated()

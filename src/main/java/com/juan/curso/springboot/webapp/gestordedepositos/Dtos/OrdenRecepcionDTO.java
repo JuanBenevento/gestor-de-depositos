@@ -13,6 +13,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.Date;
+import java.util.List;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -20,10 +22,9 @@ import java.util.Date;
 public class OrdenRecepcionDTO {
 
     private Long id_orden_recepcion;
-    private Proveedor proveedor;
+    private Long idProveedor;
     private Date fecha;
     private EstadosOrdenRecepcion estado;
+    private List<DetalleRecepcionDTO> detalleRecepcionDTOList;
 
-    public OrdenRecepcionDTO(Proveedor proveedor, Date time, String upperCase) {
-    }
 }

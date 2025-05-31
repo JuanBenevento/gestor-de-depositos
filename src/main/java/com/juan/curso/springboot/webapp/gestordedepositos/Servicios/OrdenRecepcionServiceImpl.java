@@ -2,6 +2,7 @@ package com.juan.curso.springboot.webapp.gestordedepositos.Servicios;
 
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.OrdenRecepcion;
 import com.juan.curso.springboot.webapp.gestordedepositos.Repositorios.OrdenRecepcionRepositorio;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -57,5 +58,15 @@ public class OrdenRecepcionServiceImpl implements GenericService<OrdenRecepcion,
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+    @Transactional
+    public OrdenRecepcion crearConRetorno(OrdenRecepcion ordenRecepcion) {
+        OrdenRecepcion ordenCreada = new OrdenRecepcion();
+        try {
+             ordenCreada = ordenRecepcionRepositorio.save(ordenRecepcion);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return ordenCreada;
     }
 }
