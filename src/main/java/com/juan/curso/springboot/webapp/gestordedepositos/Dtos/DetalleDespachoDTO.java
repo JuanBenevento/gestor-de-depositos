@@ -13,7 +13,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class DetalleDespachoDTO {
     private Long id_detalle_despacho;
-    private OrdenDespacho Ordendespacho;
+    private OrdenDespacho ordenDespacho;
     private Producto producto;
     private Double cantidad;
 

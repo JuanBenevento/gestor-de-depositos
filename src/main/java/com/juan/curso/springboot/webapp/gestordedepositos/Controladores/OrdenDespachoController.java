@@ -2,24 +2,37 @@ package com.juan.curso.springboot.webapp.gestordedepositos.Controladores;
 
 import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.OrdenDespachoDTO;
 import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.RecursoNoEncontradoException;
+import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Cliente;
+import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.DetalleDespacho;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.OrdenDespacho;
+import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Producto;
+import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.ClienteServiceImpl;
+import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.DetalleDespachoServiceImpl;
 import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.OrdenDespachoServiceImpl;
+import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.ProductoServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("GestorDeDepositos/ordenesDeDespacho")
 public class OrdenDespachoController {
     private final OrdenDespachoServiceImpl ordenDespachoService;
+    private final ClienteServiceImpl clienteServiceImpl;
+    private final DetalleDespachoServiceImpl detalleDespachoService;
+    private final ProductoServiceImpl productoServiceImpl;
 
     @Autowired
-    public OrdenDespachoController(OrdenDespachoServiceImpl ordenDespachoService) {
+    public OrdenDespachoController(OrdenDespachoServiceImpl ordenDespachoService, ClienteServiceImpl clienteServiceImpl, DetalleDespachoServiceImpl detalleDespachoService, ProductoServiceImpl productoServiceImpl) {
         this.ordenDespachoService = ordenDespachoService;
+        this.clienteServiceImpl = clienteServiceImpl;
+        this.detalleDespachoService = detalleDespachoService;
+        this.productoServiceImpl = productoServiceImpl;
     }
 
     @GetMapping("/todos")
@@ -52,8 +65,6 @@ public class OrdenDespachoController {
                     orden.getDetalle_despacho()
             );
             return new ResponseEntity<>(dto, HttpStatus.OK);
-        } catch (RecursoNoEncontradoException e) {
-            return new ResponseEntity<>("Orden no encontrada con ID: " + id, HttpStatus.NOT_FOUND);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
@@ -63,14 +74,46 @@ public class OrdenDespachoController {
 
     @PostMapping
     public ResponseEntity<?> crear(@RequestBody OrdenDespachoDTO dto) {
+        OrdenDespacho orden = new OrdenDespacho();
         try {
-            OrdenDespacho orden = new OrdenDespacho();
+            Optional<Cliente> cliente = clienteServiceImpl.buscarPorId(dto.getCliente().getId_cliente());
+
+            if(cliente.isPresent()) {
+               orden.setCliente(cliente.get());
+            }else {
+                throw new RecursoNoEncontradoException("Cliente no encontrado");
+            }
+
             orden.setFecha_despacho(dto.getFecha_despacho());
             orden.setEstado(dto.getEstado());
-            orden.setCliente(dto.getCliente());
-            orden.setDetalle_despacho(dto.getDetalle_despacho());
-            ordenDespachoService.crear(orden);
-            return new ResponseEntity<>(dto, HttpStatus.CREATED);
+
+            List<DetalleDespacho> detalles = dto.getDetalle_despacho().stream()
+                    .map(detalleDto -> {
+                        Optional<Producto> producto = productoServiceImpl.buscarPorId(detalleDto.getProducto().getId_producto());
+                        if(producto.isPresent()) {
+                            DetalleDespacho detalle = new DetalleDespacho();
+                            detalle.setProducto(producto.get());
+                            detalle.setCantidad(detalleDto.getCantidad());
+                            detalle.setOrdendespacho(orden);
+                            return detalle;
+                        }else {
+                            throw new RecursoNoEncontradoException("Producto no encontrado");
+                        }
+                    })
+                    .collect(Collectors.toList());
+
+            orden.setDetalle_despacho(detalles);
+
+            OrdenDespacho retorno = ordenDespachoService.crearConRetorno(orden);
+
+            OrdenDespachoDTO respuesta = new OrdenDespachoDTO();
+            respuesta.setId_despacho(retorno.getId_despacho());
+            respuesta.setFecha_despacho(retorno.getFecha_despacho());
+            respuesta.setEstado(retorno.getEstado());
+            respuesta.setCliente(retorno.getCliente());
+            respuesta.setDetalle_despacho(retorno.getDetalle_despacho());
+
+            return new ResponseEntity<>(respuesta, HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>("Error al crear orden", HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -90,8 +133,6 @@ public class OrdenDespachoController {
             ordenDespachoService.actualizar(orden);
 
             return new ResponseEntity<>(orden, HttpStatus.OK);
-        } catch (RecursoNoEncontradoException e) {
-            return new ResponseEntity<>("Orden no encontrada con ID: " + id, HttpStatus.NOT_FOUND);
         } catch (Exception e) {
             return new ResponseEntity<>("Error al actualizar orden", HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -105,8 +146,6 @@ public class OrdenDespachoController {
 
             ordenDespachoService.eliminar(id);
             return new ResponseEntity<>("Orden eliminada con éxito", HttpStatus.OK);
-        } catch (RecursoNoEncontradoException e) {
-            return new ResponseEntity<>("Orden no encontrada con ID: " + id, HttpStatus.NOT_FOUND);
         } catch (Exception e) {
             return new ResponseEntity<>("Error al eliminar orden", HttpStatus.INTERNAL_SERVER_ERROR);
         }

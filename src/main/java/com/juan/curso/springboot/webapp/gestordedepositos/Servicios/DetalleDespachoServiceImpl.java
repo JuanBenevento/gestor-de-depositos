@@ -5,6 +5,7 @@ import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.DetalleDespach
 import com.juan.curso.springboot.webapp.gestordedepositos.Repositorios.DetalleDespachoRepositorio;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -68,5 +69,16 @@ public class DetalleDespachoServiceImpl implements GenericService<DetalleDespach
         }catch (Exception e){
             e.printStackTrace();
         }
+    }
+
+    @Transactional
+    public DetalleDespacho crearConRetorno(DetalleDespacho detalleDespacho) {
+        DetalleDespacho retorno = new DetalleDespacho();
+        try {
+            retorno = detalleDespachoRepositorio.save(detalleDespacho);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return retorno;
     }
 }

@@ -5,6 +5,7 @@ import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.OrdenDespacho;
 import com.juan.curso.springboot.webapp.gestordedepositos.Repositorios.OrdenDespachoRepositorio;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -68,5 +69,15 @@ public class OrdenDespachoServiceImpl implements GenericService<OrdenDespacho, L
         }catch (Exception e){
             e.printStackTrace();
         }
+    }
+    @Transactional
+    public OrdenDespacho crearConRetorno(OrdenDespacho ordenDespacho) {
+        OrdenDespacho retorno = new OrdenDespacho();
+        try {
+           retorno = ordenDespachoRepositorio.save(ordenDespacho);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return retorno;
     }
 }

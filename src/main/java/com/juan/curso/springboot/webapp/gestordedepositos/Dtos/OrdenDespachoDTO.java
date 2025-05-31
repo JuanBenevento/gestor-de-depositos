@@ -22,6 +22,4 @@ public class OrdenDespachoDTO {
     private Cliente cliente;
     private List<DetalleDespacho> detalle_despacho;
 
-    //public OrdenDespachoDTO(Long id_despacho, Date fecha_despacho, EstadosOrdenRecepcion estado, Cliente cliente, List<DetalleDespacho> detalle_despacho) {
-    //}
 }
