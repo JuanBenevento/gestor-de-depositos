@@ -35,7 +35,7 @@ public class SecurityConfig {
       this.jwtAuthenticationFilter = jwtAuthenticationFilterp;
        // this.userDetailsService = userDetailsService;
     }
-   /* @Bean
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
@@ -44,10 +44,10 @@ public class SecurityConfig {
                 .logout(logout -> logout.logoutUrl("/logout").permitAll());
 
         return http.build();
-    }*/
+    }
 
 
-    @Bean
+    /*@Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
@@ -57,6 +57,7 @@ public class SecurityConfig {
                         .requestMatchers("/GestorDeDepositos/login").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/GestorDeDepositos/usuarios/**").hasRole("ADMIN")
+                        .requestMatchers("/GestorDeDepositos/ordenes/crearOrdenRecepcion").hasRole("ADMIN")
                         .requestMatchers("/GestorDeDepositos/**").hasAnyRole("OPERATIVO", "ADMIN")
                         .requestMatchers("/GestorDeDepositos/producto/todos").hasAnyRole("OPERATIVO", "ADMIN")
                         .anyRequest().authenticated()
@@ -64,7 +65,7 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
-    }
+    }*/
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {

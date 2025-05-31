@@ -14,7 +14,16 @@ public class ProductoDTO {
     private Long id_producto;
     private String nombre;
     private String descripcion;
-    private Long codigo_sku;
+    private String codigo_sku;
     private String unidad_medida;
     private Date fecha_creacion;
+
+
+    public ProductoDTO(String nombreProducto,String descripcion ,String unidadMedida, String codigoSku, Date time) {
+        this.nombre = nombreProducto;
+        this.descripcion = descripcion;
+        this.codigo_sku = codigoSku;
+        this.unidad_medida = unidadMedida;
+        this.fecha_creacion = time;
+    }
 }

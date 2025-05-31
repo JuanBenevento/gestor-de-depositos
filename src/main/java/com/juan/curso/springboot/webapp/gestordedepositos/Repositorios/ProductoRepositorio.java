@@ -9,4 +9,5 @@ import java.util.Optional;
 
 @Repository
 public interface ProductoRepositorio extends JpaRepository<Producto, Long> {
+    Producto findProductoByCodigoSkuIs(String codigo);
 }

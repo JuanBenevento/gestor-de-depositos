@@ -2,6 +2,7 @@ package com.juan.curso.springboot.webapp.gestordedepositos.Servicios;
 
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Producto;
 import com.juan.curso.springboot.webapp.gestordedepositos.Repositorios.ProductoRepositorio;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -63,5 +64,26 @@ public class ProductoServiceImpl implements GenericService<Producto, Long> {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Transactional
+    public Producto crearConRetorno(Producto producto){
+        Producto retorno = new Producto();
+        try{
+            retorno = productoRepositorio.save(producto);
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        return retorno;
+    }
+
+    public Producto buscarPorCodigoSKU(String codigo){
+        Producto retorno = new Producto();
+        try{
+            retorno = productoRepositorio.findProductoByCodigoSkuIs(codigo);
+        } catch (Exception e) {
+            throw new RuntimeException();
+        }
+        return retorno;
     }
 }
