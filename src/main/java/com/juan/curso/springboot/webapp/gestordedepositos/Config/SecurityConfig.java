@@ -57,6 +57,7 @@ public class SecurityConfig {
                         .requestMatchers("/GestorDeDepositos/login").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/GestorDeDepositos/usuarios/**").hasRole("ADMIN")
+                        .requestMatchers("/GestorDeDepositos/ordenes/crearOrdenRecepcion").hasRole("ADMIN")
                         .requestMatchers("/GestorDeDepositos/**").hasAnyRole("OPERATIVO", "ADMIN")
                         .requestMatchers("/GestorDeDepositos/producto/todos").hasAnyRole("OPERATIVO", "ADMIN")
                         .anyRequest().authenticated()
