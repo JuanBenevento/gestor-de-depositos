@@ -20,7 +20,7 @@ public class DetalleRecepcion {
     private Long idDetalleRecepcion;
 
     @ManyToOne
-    @JoinColumn (name = "id_orden_recepcion")
+    @JoinColumn(name = "id_orden_recepcion")
     private OrdenRecepcion ordenRecepcion;
 
     @ManyToOne
@@ -30,9 +30,10 @@ public class DetalleRecepcion {
     @NotNull
     private Double cantidad;
 
-    public DetalleRecepcion(OrdenRecepcion ordenRecepcion, Producto producto, Double cantidad) {
-        this.ordenRecepcion = ordenRecepcion;
-        this.producto = producto;
-        this.cantidad =cantidad;
+
+    public DetalleRecepcion(Long idProducto, Double cantidad) {
+    }
+
+    public DetalleRecepcion(OrdenRecepcion ordenRecepcion, Long idProducto, Double cantidad) {
     }
 }

@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Getter
@@ -30,9 +31,8 @@ public class OrdenRecepcion {
     @Enumerated(EnumType.STRING)
     private EstadosOrdenRecepcion estado;
 
-    public OrdenRecepcion(Proveedor proveedor, Date fecha, EstadosOrdenRecepcion estado) {
-        this.proveedor = proveedor;
-        this.fecha = fecha;
-        this.estado = estado;
-    }
+    @OneToMany(mappedBy = "ordenRecepcion", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<DetalleRecepcion> detalles;
+
+
 }
