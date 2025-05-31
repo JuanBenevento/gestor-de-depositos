@@ -1,6 +1,7 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Servicios;
 
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Rol;
+import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Usuario;
 import com.juan.curso.springboot.webapp.gestordedepositos.Repositorios.RolRepositorio;
 import org.springframework.stereotype.Service;
 

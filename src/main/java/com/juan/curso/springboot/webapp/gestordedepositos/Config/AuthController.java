@@ -2,7 +2,6 @@ package com.juan.curso.springboot.webapp.gestordedepositos.Config;
 
 import com.juan.curso.springboot.webapp.gestordedepositos.Config.DTOs.LoginRequest;
 import com.juan.curso.springboot.webapp.gestordedepositos.Config.DTOs.LoginResponse;
-import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Usuario;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -42,17 +41,6 @@ public class AuthController {
         response.setRol(usuario.getAuthorities().iterator().next().getAuthority());
         return response;
     }
-    @PostMapping("/crearUsuario")
-    public LoginResponse crearLogin(@RequestBody LoginRequest loginRequest) {
-        String nombre = loginRequest.getNombre();
-        String contrasenia = passwordEncoderConfig.passwordEncoder().encode(loginRequest.getContrasenia());
 
-        Usuario usuario = new Usuario();
-        usuario.setNombre(nombre);
-        usuario.setContrasenia(contrasenia);
-        LoginRequest request = authServicio.crearUsuario(usuario);
-        return this.login(request);
-
-    }
 
 }
