@@ -1,12 +1,12 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Modelos;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.util.List;
 
 @Entity
 @Getter
@@ -14,13 +14,12 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "rol")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class Rol {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id_rol;
-    @Column(unique = true, nullable = false)
-    private String nombre;
+    private Long id;
 
-    @OneToOne
-    private Usuario usuario;
+    @Column(nullable = false)
+    private String nombre;
 }
