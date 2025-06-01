@@ -12,11 +12,10 @@ import java.util.Optional;
 @Service
 public class ProveedorServiceImpl implements GenericService<Proveedor, Long> {
 
-    private final ProveedorRepositorio proveedorRepositorio;
-
     @Autowired
-    public ProveedorServiceImpl(ProveedorRepositorio proveedorRepositorio) {
-        this.proveedorRepositorio = proveedorRepositorio;
+    ProveedorRepositorio proveedorRepositorio;
+
+    public ProveedorServiceImpl() {
     }
 
     @Override
@@ -51,24 +50,19 @@ public class ProveedorServiceImpl implements GenericService<Proveedor, Long> {
     }
 
     @Override
-    public void actualizar(Proveedor proveedor) throws RecursoNoEncontradoException {
-        try {
-            proveedorRepositorio.save(proveedor);
-        }catch (RecursoNoEncontradoException e){
+    public Proveedor actualizar(Proveedor proveedor) {
+        if (!proveedorRepositorio.existsById(proveedor.getId_proveedor())) {
             throw new RecursoNoEncontradoException("Proveedor no encontrado con ID: " + proveedor.getId_proveedor());
-        }catch (Exception e){
-            e.printStackTrace();
         }
+        proveedor = proveedorRepositorio.save(proveedor);
+        return proveedor;
     }
 
     @Override
     public void eliminar(Long id) {
-        try {
-            proveedorRepositorio.deleteById(id);
-        }catch (RecursoNoEncontradoException e){
+        if (!proveedorRepositorio.existsById(id)) {
             throw new RecursoNoEncontradoException("Proveedor no encontrado con ID: " + id);
-        }catch (Exception e){
-            e.printStackTrace();
         }
+        proveedorRepositorio.deleteById(id);
     }
 }

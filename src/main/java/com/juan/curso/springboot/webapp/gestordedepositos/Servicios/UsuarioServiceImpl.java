@@ -11,10 +11,10 @@ import java.util.Optional;
 @Service
 public class UsuarioServiceImpl implements GenericService<Usuario, Long> {
 
-    private final UsuarioRepositorio usuarioRepositorio;
     @Autowired
-    public UsuarioServiceImpl(UsuarioRepositorio usuarioRepositorio) {
-        this.usuarioRepositorio = usuarioRepositorio;
+    UsuarioRepositorio usuarioRepositorio;
+
+    public UsuarioServiceImpl() {
     }
 
     @Override
@@ -34,8 +34,9 @@ public class UsuarioServiceImpl implements GenericService<Usuario, Long> {
     }
 
     @Override
-    public void actualizar(Usuario usuario) {
-        usuarioRepositorio.save(usuario);
+    public Usuario actualizar(Usuario usuario) {
+        usuario = usuarioRepositorio.save(usuario);
+        return usuario;
     }
 
     @Override

@@ -1,7 +1,8 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Modelos;
 
-import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Enums.EstadosOrdenRecepcion;
+import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Enums.EstadosDeOrden;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -29,10 +30,9 @@ public class OrdenRecepcion {
     private Date fecha;
 
     @Enumerated(EnumType.STRING)
-    private EstadosOrdenRecepcion estado;
+    private EstadosDeOrden estado;
 
     @OneToMany(mappedBy = "ordenRecepcion", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DetalleRecepcion> detalles;
-
 
 }

@@ -17,11 +17,10 @@ import java.util.stream.Collectors;
 @RequestMapping("GestorDeDepositos/producto")
 public class ProductoController {
 
-    private final ProductoServiceImpl productoServiceImpl;
-
     @Autowired
-    public ProductoController(ProductoServiceImpl productoServiceImpl) {
-        this.productoServiceImpl = productoServiceImpl;
+    ProductoServiceImpl productoServiceImpl;
+
+    public ProductoController() {
     }
 
     @GetMapping("/todos")
@@ -31,7 +30,7 @@ public class ProductoController {
                     .orElseThrow(() -> new RuntimeException("No se encontraron productos"))
                     .stream()
                     .map(producto -> new ProductoDTO(
-                            producto.getId_producto(),
+                            producto.getIdProducto(),
                             producto.getNombre(),
                             producto.getDescripcion(),
                             String.valueOf(producto.getCodigoSku()), // Convert Long to String
@@ -51,7 +50,7 @@ public class ProductoController {
             Optional<Producto> producto = productoServiceImpl.buscarPorId(id);
             if (producto.isPresent()) {
                 Producto p = producto.get();
-                ProductoDTO dto = new ProductoDTO(p.getId_producto(), p.getNombre(), p.getDescripcion(),
+                ProductoDTO dto = new ProductoDTO(p.getIdProducto(), p.getNombre(), p.getDescripcion(),
                         String.valueOf(p.getCodigoSku()), p.getUnidad_medida(), p.getFecha_creacion());
                 return new ResponseEntity<>(dto, HttpStatus.OK);
             } else {
@@ -128,7 +127,7 @@ public class ProductoController {
         if (producto == null) return null;
 
         ProductoDTO dto = new ProductoDTO();
-        dto.setId_producto(producto.getId_producto());
+        dto.setId_producto(producto.getIdProducto());
         dto.setNombre(producto.getNombre());
         dto.setDescripcion(producto.getDescripcion());
         dto.setCodigo_sku(String.valueOf(producto.getCodigoSku())); // Convert Long to String
@@ -141,7 +140,7 @@ public class ProductoController {
         if (dto == null) return null;
 
         Producto producto = new Producto();
-        producto.setId_producto(dto.getId_producto());
+        producto.setIdProducto(dto.getId_producto());
         producto.setNombre(dto.getNombre());
         producto.setDescripcion(dto.getDescripcion());
         try {

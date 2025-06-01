@@ -9,7 +9,7 @@ public interface GenericService<T, L> {
     public Optional<List<T>> buscarTodos();
     public Optional<T> buscarPorId(Long id);
     public void crear(T t);
-    public void actualizar(T t);
+    public T actualizar(T t);
     public void eliminar(Long id);
 
 

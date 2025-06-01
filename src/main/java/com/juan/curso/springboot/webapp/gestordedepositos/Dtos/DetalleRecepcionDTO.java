@@ -1,5 +1,7 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Dtos;
 
+import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.DetalleRecepcion;
+import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.OrdenRecepcion;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Producto;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -16,21 +18,19 @@ import java.sql.Date;
 public class DetalleRecepcionDTO {
 
     private Long id_detalle_recepcion;
-    private Long ordenRecepcion;
-    private OrdenRecepcionDTO orden;
+    private OrdenRecepcion orden;
     private Producto producto;
-    private Long idProducto; // ID del producto; si no existe, se creará
-    private String nombreProducto; // Nombre del producto para crearlo si no existe
-    private String descripcionProducto;
     private Double cantidad;
-    private String codigoSku;
-    private String unidadMedida;
-    private Date fecha;
 
-    public DetalleRecepcionDTO(Long idDetalleRecepcion, Long ordenRecepcion, Producto producto, @NotNull Double cantidad) {
-        this.id_detalle_recepcion = idDetalleRecepcion;
-        this.ordenRecepcion = ordenRecepcion;
-        this.idProducto =producto.getId_producto();
+
+    public DetalleRecepcionDTO(Producto producto, @NotNull Double cantidad) {
+        this.producto =producto;
         this.cantidad = cantidad;
+    }
+    public DetalleRecepcionDTO(DetalleRecepcion detalle) {
+        this.id_detalle_recepcion = detalle.getIdDetalleRecepcion();
+        this.orden = detalle.getOrdenRecepcion();
+        this.producto = detalle.getProducto();
+        this.cantidad = detalle.getCantidad();
     }
 }
