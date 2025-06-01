@@ -128,7 +128,7 @@ public class ProductoController {
         if (producto == null) return null;
 
         ProductoDTO dto = new ProductoDTO();
-        dto.setId_producto(producto.getId_producto());
+        dto.setIdProducto(producto.getId_producto());
         dto.setNombre(producto.getNombre());
         dto.setDescripcion(producto.getDescripcion());
         dto.setCodigo_sku(String.valueOf(producto.getCodigoSku())); // Convert Long to String
@@ -141,7 +141,7 @@ public class ProductoController {
         if (dto == null) return null;
 
         Producto producto = new Producto();
-        producto.setId_producto(dto.getId_producto());
+        producto.setId_producto(dto.getIdProducto());
         producto.setNombre(dto.getNombre());
         producto.setDescripcion(dto.getDescripcion());
         try {

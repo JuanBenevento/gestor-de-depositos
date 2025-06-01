@@ -2,7 +2,6 @@ package com.juan.curso.springboot.webapp.gestordedepositos.Controladores;
 
 import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.DetalleRecepcionDTO;
 import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.OrdenRecepcionDTO;
-import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.ProductoDTO;
 import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.RecursoNoEncontradoException;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.DetalleRecepcion;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.OrdenRecepcion;

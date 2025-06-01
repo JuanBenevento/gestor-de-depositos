@@ -13,5 +13,5 @@ public interface InventarioRepositorio extends JpaRepository<Inventario, Long> {
     @Query("SELECT i FROM Inventario i WHERE i.producto.id_producto = :idProducto")
     Optional<Inventario> findByProductoId(@Param("idProducto") Long idProducto);
 
-
+    //Optional<Inventario> findInventarioByProducto_IdProducto(Long idProducto);
 }
