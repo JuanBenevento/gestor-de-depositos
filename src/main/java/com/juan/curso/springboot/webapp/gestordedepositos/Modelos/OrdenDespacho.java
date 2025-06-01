@@ -1,5 +1,6 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Modelos;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Enums.EstadosDeOrden;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -34,5 +35,6 @@ public class OrdenDespacho {
     private Cliente cliente;
 
     @OneToMany(mappedBy = "ordenDespacho", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<DetalleDespacho> detalle_despacho = new ArrayList<>();
 }

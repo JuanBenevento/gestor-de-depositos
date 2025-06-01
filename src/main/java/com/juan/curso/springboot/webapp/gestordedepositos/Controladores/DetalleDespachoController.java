@@ -66,7 +66,7 @@ public class DetalleDespachoController {
             return new ResponseEntity<>("Error al buscar detalle", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
+    @PostMapping("/crearDetalle")
     public ResponseEntity<?> crear(@RequestBody DetalleDespachoDTO dto) {
         try {
             Producto producto = productoServiceImpl.buscarPorId(dto.getProducto().getId_producto())
@@ -105,32 +105,41 @@ public class DetalleDespachoController {
 
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> actualizar(@PathVariable Long id, @RequestBody com.juan.curso.springboot.webapp.gestordedepositos.Dtos.DetalleDespachoDTO dto) {
+    public ResponseEntity<?> actualizar(@PathVariable Long id, @RequestBody DetalleDespachoDTO dto) {
         try {
             DetalleDespacho detalle = detalleDespachoServiceImpl.buscarPorId(id)
-                    .orElseThrow(() -> new RecursoNoEncontradoException("Orden no encontrada con ID: " + id));
+                    .orElseThrow(() -> new RecursoNoEncontradoException("Detalle no encontrada con ID: " + id));
 
-            detalle.setOrdenDespacho(dto.getOrdenDespacho());
+            Inventario inventario = inventarioServiceImpl.buscarPorIdProducto(dto.getProducto().getId_producto())
+                    .orElseThrow(() -> new RecursoNoEncontradoException("Inventario no encontrado"));
+
+            if (dto.getCantidad() > inventario.getCantidad()) {
+                throw new RecursoNoEncontradoException("Cantidad insuficiente en inventario");
+            }
+
             detalle.setProducto(dto.getProducto());
             detalle.setCantidad(dto.getCantidad());
 
             detalleDespachoServiceImpl.crear(detalle);
             return new ResponseEntity<>(detalle, HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>("Error al actualizar orden", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Error al actualizar detalle", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> eliminar(@PathVariable Long id) {
+    @DeleteMapping("/eliminar")
+    public ResponseEntity<?> eliminar(@RequestParam Long id) {
         try {
-            detalleDespachoServiceImpl.buscarPorId(id)
-                    .orElseThrow(() -> new RecursoNoEncontradoException("Orden no encontrada con ID: " + id));
-
+            if (!detalleDespachoServiceImpl.ExistePorId(id)) {
+                return new ResponseEntity<>("Detalle de despacho con id " + id + " no encontrada", HttpStatus.NOT_FOUND);
+            }
             detalleDespachoServiceImpl.eliminar(id);
-            return new ResponseEntity<>("Orden eliminada con éxito", HttpStatus.OK);
+            return new ResponseEntity<>("Detalle eliminada con exito", HttpStatus.OK);
+        } catch (RecursoNoEncontradoException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
         } catch (Exception e) {
-            return new ResponseEntity<>("Error al eliminar orden", HttpStatus.INTERNAL_SERVER_ERROR);
+            e.printStackTrace();
+            return new ResponseEntity<>("Error al eliminar detalle: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

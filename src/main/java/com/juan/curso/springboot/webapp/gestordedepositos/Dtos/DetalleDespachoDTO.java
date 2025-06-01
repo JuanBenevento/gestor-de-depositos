@@ -1,5 +1,7 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Dtos;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.DetalleDespacho;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.OrdenDespacho;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Producto;
 import lombok.AllArgsConstructor;
