@@ -4,6 +4,7 @@ import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Rol;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Usuario;
 import com.juan.curso.springboot.webapp.gestordedepositos.Repositorios.RolRepositorio;
 import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.UsuarioServiceImpl;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -18,6 +19,7 @@ public class AuthServicio  implements UserDetailsService {
         private final JwtUtil jwtUtil;
     private final RolRepositorio rolRepositorio;
 
+    @Autowired
     public AuthServicio(UsuarioServiceImpl usuarioRepository , JwtUtil jwtUtil, RolRepositorio rolRepositorio) {
             this.usuarioRepository = usuarioRepository;
        //  this.authenticationManager = authenticationManager;

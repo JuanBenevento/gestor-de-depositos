@@ -50,24 +50,31 @@ public class OrdenDespachoServiceImpl implements GenericService<OrdenDespacho, L
     }
 
     @Override
-    public void actualizar(OrdenDespacho ordenDespacho) throws RecursoNoEncontradoException{
+    public OrdenDespacho actualizar(OrdenDespacho ordenDespacho) throws RecursoNoEncontradoException{
         try {
-            ordenDespachoRepositorio.save(ordenDespacho);
+            ordenDespacho = ordenDespachoRepositorio.save(ordenDespacho);
         }catch (RecursoNoEncontradoException e){
             throw new RecursoNoEncontradoException("Orden de despacho con id " + ordenDespacho.getId_despacho() + " no encontrado");
         }catch (Exception e){
             e.printStackTrace();
         }
+        return  ordenDespacho;
     }
 
+    public boolean ExistePorId(Long id) {
+        return ordenDespachoRepositorio.existsById(id);
+    }
+
+    @Transactional
     @Override
     public void eliminar(Long id) {
+        if (!ordenDespachoRepositorio.existsById(id)) {
+            throw new RecursoNoEncontradoException("Orden de despacho con id " + id + " no encontrada");
+        }
         try {
             ordenDespachoRepositorio.deleteById(id);
-        }catch (RecursoNoEncontradoException e){
-            throw new RecursoNoEncontradoException("Orden de despacho con id " + id + " no encontrado");
-        }catch (Exception e){
-            e.printStackTrace();
+        } catch (Exception e) {
+            throw new RuntimeException("Error al eliminar la orden con id " + id, e);
         }
     }
     @Transactional

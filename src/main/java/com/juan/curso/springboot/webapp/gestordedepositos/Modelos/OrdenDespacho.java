@@ -33,7 +33,6 @@ public class OrdenDespacho {
     @JoinColumn(name = "id_cliente", nullable = false)
     private Cliente cliente;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "id_despacho")
+    @OneToMany(mappedBy = "ordenDespacho", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DetalleDespacho> detalle_despacho = new ArrayList<>();
 }

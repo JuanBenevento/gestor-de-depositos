@@ -50,14 +50,15 @@ public class ZonaServiceImpl implements GenericService<Zona, Long>{
     }
 
     @Override
-    public void actualizar(Zona zona) throws RecursoNoEncontradoException {
+    public Zona actualizar(Zona zona) throws RecursoNoEncontradoException {
         try {
-            zonaRepositorio.save(zona);
+           zona = zonaRepositorio.save(zona);
         }catch (RecursoNoEncontradoException e){
             throw new RecursoNoEncontradoException("Zona no encontrado con ID: " + zona.getIdZona());
         }catch (Exception e) {
             e.printStackTrace();
         }
+        return zona;
     }
 
     @Override

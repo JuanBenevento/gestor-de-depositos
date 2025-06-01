@@ -51,14 +51,15 @@ public class ProveedorServiceImpl implements GenericService<Proveedor, Long> {
     }
 
     @Override
-    public void actualizar(Proveedor proveedor) throws RecursoNoEncontradoException {
+    public Proveedor actualizar(Proveedor proveedor) throws RecursoNoEncontradoException {
         try {
-            proveedorRepositorio.save(proveedor);
+            proveedor = proveedorRepositorio.save(proveedor);
         }catch (RecursoNoEncontradoException e){
             throw new RecursoNoEncontradoException("Proveedor no encontrado con ID: " + proveedor.getId_proveedor());
         }catch (Exception e){
             e.printStackTrace();
         }
+        return proveedor;
     }
 
     @Override

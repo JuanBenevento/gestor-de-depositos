@@ -33,8 +33,13 @@ public class RolServiceImpl implements GenericService<Rol, Long> {
     }
 
     @Override
-    public void actualizar(Rol rol) {
-
+    public Rol actualizar(Rol rol) {
+        try {
+            rol = rolRepositorio.save(rol);
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+        return rol;
     }
 
     @Override

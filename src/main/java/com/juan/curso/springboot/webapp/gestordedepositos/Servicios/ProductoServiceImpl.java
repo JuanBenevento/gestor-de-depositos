@@ -49,12 +49,13 @@ public class ProductoServiceImpl implements GenericService<Producto, Long> {
     }
 
     @Override
-    public void actualizar(Producto producto) {
+    public Producto actualizar(Producto producto) {
         try {
-            productoRepositorio.save(producto);
+            producto = productoRepositorio.save(producto);
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return producto;
     }
 
     @Override

@@ -16,8 +16,11 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final AuthServicio authServicio;
+
     @Autowired
     PasswordEncoderConfig passwordEncoderConfig;
+
+    @Autowired
     public AuthController(AuthenticationManager authenticationManager, AuthServicio authServicio) {
         this.authenticationManager = authenticationManager;
         this.authServicio = authServicio;

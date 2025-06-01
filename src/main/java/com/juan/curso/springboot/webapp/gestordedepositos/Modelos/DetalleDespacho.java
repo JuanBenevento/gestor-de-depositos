@@ -22,7 +22,7 @@ public class DetalleDespacho {
     @ManyToOne
     @JoinColumn(name = "id_despacho", nullable = false)
     @JsonIgnore
-    private OrdenDespacho ordendespacho;
+    private OrdenDespacho ordenDespacho;
 
     @ManyToOne
     @JoinColumn(name = "id_producto", nullable = false)

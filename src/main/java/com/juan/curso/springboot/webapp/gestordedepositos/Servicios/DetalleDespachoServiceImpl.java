@@ -50,14 +50,15 @@ public class DetalleDespachoServiceImpl implements GenericService<DetalleDespach
     }
 
     @Override
-    public void actualizar(DetalleDespacho detalleDespacho) throws RecursoNoEncontradoException{
+    public DetalleDespacho actualizar(DetalleDespacho detalleDespacho) throws RecursoNoEncontradoException{
         try {
-            detalleDespachoRepositorio.save(detalleDespacho);
+            detalleDespacho = detalleDespachoRepositorio.save(detalleDespacho);
         }catch (RecursoNoEncontradoException e){
             throw new RecursoNoEncontradoException("Detalle de despacho con id " + detalleDespacho.getId_detalle_despacho() + " no encontrado");
         }catch (Exception e){
             e.printStackTrace();
         }
+        return detalleDespacho;
     }
 
     @Override
@@ -80,5 +81,9 @@ public class DetalleDespachoServiceImpl implements GenericService<DetalleDespach
             e.printStackTrace();
         }
         return retorno;
+    }
+
+    public boolean ExistePorId(Long id) {
+        return detalleDespachoRepositorio.existsById(id);
     }
 }

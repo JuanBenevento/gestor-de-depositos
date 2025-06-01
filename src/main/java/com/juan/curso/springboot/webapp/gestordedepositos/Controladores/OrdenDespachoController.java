@@ -94,7 +94,7 @@ public class OrdenDespachoController {
                             DetalleDespacho detalle = new DetalleDespacho();
                             detalle.setProducto(producto.get());
                             detalle.setCantidad(detalleDto.getCantidad());
-                            detalle.setOrdendespacho(orden);
+                            detalle.setOrdenDespacho(orden);
                             return detalle;
                         }else {
                             throw new RecursoNoEncontradoException("Producto no encontrado");
@@ -125,10 +125,7 @@ public class OrdenDespachoController {
             OrdenDespacho orden = ordenDespachoService.buscarPorId(id)
                     .orElseThrow(() -> new RecursoNoEncontradoException("Orden no encontrada con ID: " + id));
 
-            orden.setFecha_despacho(ordenDTO.getFecha_despacho());
             orden.setEstado(ordenDTO.getEstado());
-            orden.setCliente(ordenDTO.getCliente());
-            orden.setDetalle_despacho(ordenDTO.getDetalle_despacho());
 
             ordenDespachoService.actualizar(orden);
 
@@ -138,16 +135,19 @@ public class OrdenDespachoController {
         }
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> eliminar(@PathVariable Long id) {
+    @DeleteMapping("/eliminar")
+    public ResponseEntity<?> eliminar(@RequestParam Long id) {
         try {
-            ordenDespachoService.buscarPorId(id)
-                    .orElseThrow(() -> new RecursoNoEncontradoException("Orden no encontrada con ID: " + id));
-
+            if (!ordenDespachoService.ExistePorId(id)) {
+                return new ResponseEntity<>("Orden de despacho con id " + id + " no encontrada", HttpStatus.NOT_FOUND);
+            }
             ordenDespachoService.eliminar(id);
             return new ResponseEntity<>("Orden eliminada con éxito", HttpStatus.OK);
+        } catch (RecursoNoEncontradoException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
         } catch (Exception e) {
-            return new ResponseEntity<>("Error al eliminar orden", HttpStatus.INTERNAL_SERVER_ERROR);
+            e.printStackTrace();
+            return new ResponseEntity<>("Error al eliminar orden: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

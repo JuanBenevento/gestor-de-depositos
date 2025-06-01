@@ -43,12 +43,13 @@ public class OrdenRecepcionServiceImpl implements GenericService<OrdenRecepcion,
     }
 
     @Override
-    public void actualizar(OrdenRecepcion ordenRecepcion) {
+    public OrdenRecepcion actualizar(OrdenRecepcion ordenRecepcion) {
         try {
-            ordenRecepcionRepositorio.save(ordenRecepcion);
+            ordenRecepcion = ordenRecepcionRepositorio.save(ordenRecepcion);
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return  ordenRecepcion;
     }
 
     @Override

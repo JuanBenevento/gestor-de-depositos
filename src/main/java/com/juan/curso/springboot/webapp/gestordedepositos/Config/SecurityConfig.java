@@ -31,6 +31,7 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     //private final UserDetailsService userDetailsService;
 
+    @Autowired
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilterp) {
       this.jwtAuthenticationFilter = jwtAuthenticationFilterp;
        // this.userDetailsService = userDetailsService;
