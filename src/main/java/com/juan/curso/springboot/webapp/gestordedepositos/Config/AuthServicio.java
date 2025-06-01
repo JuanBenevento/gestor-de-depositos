@@ -30,7 +30,7 @@ public class AuthServicio  implements UserDetailsService {
         @Override
         public UserDetails loadUserByUsername(String nombre) throws UsernameNotFoundException {
             Usuario usuario = usuarioRepository.getByNombreEquals(nombre);
-            if(usuario.getId_usuario() == null){
+            if(usuario.getIdUsuario() == null){
                 throw new UsernameNotFoundException("Usuario no encontrado: " + nombre);
 
             }
