@@ -50,11 +50,11 @@ public class InventarioServiceImpl implements GenericService<Inventario, Long> {
 
     }
 
-    public Optional<Inventario> buscarPorIdProducto(Long idProducto) throws RecursoNoEncontradoException {
+    public Optional<Inventario> buscarPorIdProducto(Long id) throws RecursoNoEncontradoException {
         try {
-            return inventarioRepositorio.findByIdProducto(idProducto);
+            return inventarioRepositorio.findByProductoId(id);
         }catch (RecursoNoEncontradoException e){
-            throw new RecursoNoEncontradoException("Inventario del producto con id " + idProducto + " no encontrado");
+            throw new RecursoNoEncontradoException("Inventario del producto con id " + id + " no encontrado");
         }catch (Exception e){
             e.printStackTrace();
             return Optional.empty();
