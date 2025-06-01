@@ -128,7 +128,6 @@ public class OrdenDespachoController {
             orden.setEstado(ordenDTO.getEstado());
 
             ordenDespachoService.actualizar(orden);
-
             return new ResponseEntity<>(orden, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>("Error al actualizar orden", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -142,7 +141,7 @@ public class OrdenDespachoController {
                 return new ResponseEntity<>("Orden de despacho con id " + id + " no encontrada", HttpStatus.NOT_FOUND);
             }
             ordenDespachoService.eliminar(id);
-            return new ResponseEntity<>("Orden eliminada con éxito", HttpStatus.OK);
+            return new ResponseEntity<>("Orden eliminada con exito", HttpStatus.OK);
         } catch (RecursoNoEncontradoException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
         } catch (Exception e) {
