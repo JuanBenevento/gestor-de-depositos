@@ -17,11 +17,10 @@ import java.util.stream.Collectors;
 @RequestMapping("GestorDeDepositos/producto")
 public class ProductoController {
 
-    private final ProductoServiceImpl productoServiceImpl;
-
     @Autowired
-    public ProductoController(ProductoServiceImpl productoServiceImpl) {
-        this.productoServiceImpl = productoServiceImpl;
+    ProductoServiceImpl productoServiceImpl;
+
+    public ProductoController() {
     }
 
     @GetMapping("/todos")

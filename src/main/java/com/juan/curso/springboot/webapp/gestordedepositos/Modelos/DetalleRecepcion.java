@@ -1,5 +1,6 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Modelos;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -21,10 +22,12 @@ public class DetalleRecepcion {
 
     @ManyToOne
     @JoinColumn(name = "id_orden_recepcion")
+    @JsonIgnore
     private OrdenRecepcion ordenRecepcion;
 
     @ManyToOne
     @JoinColumn (name = "id_producto")
+    @JsonIgnore
     private Producto producto;
 
     @NotNull

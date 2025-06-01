@@ -1,7 +1,10 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Servicios;
 
+import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.DetalleRecepcionDTO;
+import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.RecursoNoEncontradoException;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.DetalleRecepcion;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.OrdenRecepcion;
+import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Producto;
 import com.juan.curso.springboot.webapp.gestordedepositos.Repositorios.DetalleRecepcionRepositorio;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,13 +23,33 @@ public class DetalleRecepcionServiceImpl implements GenericService<DetalleRecepc
 
     @Override
     public Optional<List<DetalleRecepcion>> buscarTodos() {
-        Optional<List<DetalleRecepcion>> detalles = Optional.of(new ArrayList<>(detalleRecepcionRepositorio.findAll()));
-        return detalles;
+        try{
+            Optional<List<DetalleRecepcion>> detalles = Optional.of(new ArrayList<>(detalleRecepcionRepositorio.findAll()));
+            if(detalles.isPresent()) {
+                return detalles;
+            }
+        }catch(Exception e) {
+            e.printStackTrace();
+        }
+        return Optional.empty();
     }
     @Override
     public Optional<DetalleRecepcion> buscarPorId(Long id) {
-        Optional<DetalleRecepcion> detalle = detalleRecepcionRepositorio.findById(id);
-        return detalle;
+        if(id!= null) {
+            try {
+                Optional<DetalleRecepcion> detalle = detalleRecepcionRepositorio.findById(id);
+                if(detalle.isPresent()) {
+                    return detalle;
+                }
+                return Optional.empty();
+            }catch(Exception e) {
+                e.printStackTrace();
+            }
+        }else{
+            throw new IllegalArgumentException("El id del detalle recepcion no existe.");
+        }
+        return Optional.empty();
+
     }
 
     @Override
@@ -40,13 +63,15 @@ public class DetalleRecepcionServiceImpl implements GenericService<DetalleRecepc
     }
 
     @Override
-    public void actualizar(DetalleRecepcion detalle) {
+    public DetalleRecepcion actualizar(DetalleRecepcion detalle) {
         try {
-            detalleRecepcionRepositorio.save(detalle);
+            detalle = detalleRecepcionRepositorio.save(detalle);
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return detalle;
     }
+
 
     @Override
     public void eliminar(Long id) {
@@ -57,13 +82,26 @@ public class DetalleRecepcionServiceImpl implements GenericService<DetalleRecepc
         }
     }
 
-    public Optional<List<DetalleRecepcion>> buscarDetallesPorOrden(Long orden) {
-        Optional<List<DetalleRecepcion>> detalles = null;
+    public void eliminarTodos(List<DetalleRecepcion> detalles){
         try{
-             detalles = detalleRecepcionRepositorio.findByOrdenRecepcion_IdOrdenRecepcion(orden);
+            detalleRecepcionRepositorio.deleteAll(detalles);
+        }catch(Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public Optional<List<DetalleRecepcion>> buscarDetallesPorOrden(Long orden) {
+        try{
+            Optional<List<DetalleRecepcion>> detalles = detalleRecepcionRepositorio.findByOrdenRecepcion_IdOrdenRecepcion(orden);
+             if(detalles.isPresent()) {
+                 return detalles;
+             }else{
+                 throw new RecursoNoEncontradoException("No se encontraron detalles para esa orden");
+             }
         }catch (Exception e){
             e.printStackTrace();
         }
-        return detalles;
+        return Optional.empty();
     }
+
 }

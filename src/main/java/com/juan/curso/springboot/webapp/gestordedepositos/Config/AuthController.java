@@ -14,13 +14,14 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/GestorDeDepositos")
 public class AuthController {
-    private final AuthenticationManager authenticationManager;
-    private final AuthServicio authServicio;
+    @Autowired
+    AuthenticationManager authenticationManager;
+    @Autowired
+    AuthServicio authServicio;
     @Autowired
     PasswordEncoderConfig passwordEncoderConfig;
-    public AuthController(AuthenticationManager authenticationManager, AuthServicio authServicio) {
-        this.authenticationManager = authenticationManager;
-        this.authServicio = authServicio;
+    public AuthController() {
+
     }
 
     @PostMapping("/login")

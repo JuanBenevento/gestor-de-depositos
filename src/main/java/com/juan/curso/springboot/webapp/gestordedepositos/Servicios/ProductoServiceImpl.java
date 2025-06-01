@@ -12,11 +12,10 @@ import java.util.Optional;
 @Service
 public class ProductoServiceImpl implements GenericService<Producto, Long> {
 
-    private final ProductoRepositorio productoRepositorio;
-
     @Autowired
-    public ProductoServiceImpl(ProductoRepositorio productoRepositorio) {
-        this.productoRepositorio = productoRepositorio;
+    ProductoRepositorio productoRepositorio;
+
+    public ProductoServiceImpl() {
     }
 
     @Override
@@ -49,12 +48,13 @@ public class ProductoServiceImpl implements GenericService<Producto, Long> {
     }
 
     @Override
-    public void actualizar(Producto producto) {
+    public Producto actualizar(Producto producto) {
         try {
-            productoRepositorio.save(producto);
+          producto=   productoRepositorio.save(producto);
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return producto;
     }
 
     @Override

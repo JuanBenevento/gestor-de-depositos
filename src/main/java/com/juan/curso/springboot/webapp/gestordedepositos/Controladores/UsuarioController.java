@@ -24,19 +24,15 @@ import java.util.Optional;
 @RequestMapping("/GestorDeDepositos/usuarios")
 public class UsuarioController {
 
-    private final AuthenticationManager authenticationManager;
-    private final AuthServicio authServicio;
     @Autowired
     private UsuarioServiceImpl usuarioServiceImpl;
     @Autowired
     private RolServiceImpl rolServiceImpl;
-
-    public UsuarioController(AuthenticationManager authenticationManager, AuthServicio authServicio) {
-        this.authenticationManager = authenticationManager;
-        this.authServicio = authServicio;
-    }
     @Autowired
     PasswordEncoderConfig passwordEncoderConfig;
+
+    public UsuarioController() {
+    }
 
     @PostMapping("/crearUsuario")
     public ResponseEntity<?> crearUsuario(@RequestBody UsuarioDTO usuarioDTO) {
