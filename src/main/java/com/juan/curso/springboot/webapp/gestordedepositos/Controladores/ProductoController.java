@@ -79,7 +79,7 @@ public class ProductoController {
             Producto producto1 = toEntity(producto);
             producto1.setFecha_creacion(Calendar.getInstance().getTime());
             Producto retorno = productoServiceImpl.crearConRetorno(producto1);
-            ProductoDTO retornoDTO = toDTO(retorno);
+            ProductoDTO retornoDTO = new ProductoDTO(retorno);
             return new ResponseEntity<>(retornoDTO, HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>("Error al crear producto: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -113,7 +113,7 @@ public class ProductoController {
         try {
             Optional<Producto> productoEncontrado = Optional.ofNullable(productoServiceImpl.buscarPorCodigoSKU(codigo));
             if (productoEncontrado.isPresent()) {
-                dto = toDTO(productoEncontrado.get());
+                dto = new ProductoDTO(productoEncontrado.get());
             }
         } catch (NumberFormatException e) {
             System.err.println("Código SKU inválido: " + codigo);
@@ -123,24 +123,12 @@ public class ProductoController {
         return Optional.ofNullable(dto);
     }
 
-    public ProductoDTO toDTO(Producto producto) {
-        if (producto == null) return null;
-
-        ProductoDTO dto = new ProductoDTO();
-        dto.setId_producto(producto.getIdProducto());
-        dto.setNombre(producto.getNombre());
-        dto.setDescripcion(producto.getDescripcion());
-        dto.setCodigo_sku(String.valueOf(producto.getCodigoSku())); // Convert Long to String
-        dto.setUnidad_medida(producto.getUnidad_medida());
-        dto.setFecha_creacion(producto.getFecha_creacion());
-        return dto;
-    }
 
     public Producto toEntity(ProductoDTO dto) {
         if (dto == null) return null;
 
         Producto producto = new Producto();
-        producto.setIdProducto(dto.getId_producto());
+        producto.setIdProducto(dto.getIdProducto());
         producto.setNombre(dto.getNombre());
         producto.setDescripcion(dto.getDescripcion());
         try {
