@@ -5,6 +5,7 @@ import com.juan.curso.springboot.webapp.gestordedepositos.Config.DTOs.LoginReque
 import com.juan.curso.springboot.webapp.gestordedepositos.Config.DTOs.LoginResponse;
 import com.juan.curso.springboot.webapp.gestordedepositos.Config.PasswordEncoderConfig;
 import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.UsuarioDTO;
+import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.RecursoNoEncontradoException;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Rol;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Usuario;
 import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.RolServiceImpl;
@@ -13,11 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -56,4 +56,74 @@ public class UsuarioController {
         }
         return new ResponseEntity<>(usuario, HttpStatus.CREATED);
     }
+
+    @PutMapping("modificarUsuario")
+    public ResponseEntity<?> modificarUsuario(@RequestBody UsuarioDTO usuarioDTO) {
+        Usuario retorno = new Usuario();
+        if(usuarioDTO.getIdUsuario() != null){
+            Optional<Usuario> usuarioPorID = usuarioServiceImpl.buscarPorId(usuarioDTO.getIdUsuario());
+            if( usuarioPorID.isPresent()){
+                    usuarioPorID.get().setApellido(usuarioDTO.getApellido());
+                    usuarioPorID.get().setEmail(usuarioDTO.getEmail());
+                    usuarioPorID.get().setNombre(usuarioDTO.getNombre());
+                    retorno =  usuarioServiceImpl.actualizar(usuarioPorID.get());
+                }else {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+
+                }
+        }
+
+        return ResponseEntity.ok(new UsuarioDTO(retorno));
+    }
+
+    @DeleteMapping("/eliminarUsuario")
+    public ResponseEntity<?> eliminarUsuario(@RequestParam Long idUsuario) {
+
+            try {
+                Optional<Usuario> usuarioPorID = usuarioServiceImpl.buscarPorId(idUsuario);
+                if (usuarioPorID.isPresent()) {
+                    usuarioServiceImpl.eliminar(usuarioPorID.get().getIdUsuario());
+                } else {
+                    throw new RecursoNoEncontradoException("El usuario no ha sido encontrado");
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/buscarUsuario")
+    public ResponseEntity<UsuarioDTO> buscarUsuario(@RequestParam Long idUsuario) {
+        try{
+            Optional<Usuario> usuarioPorID = usuarioServiceImpl.buscarPorId(idUsuario);
+            if (usuarioPorID.isPresent()) {
+                return ResponseEntity.ok(new UsuarioDTO(usuarioPorID.get()));
+            }else{
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/buscarTodosLosUsuarios")
+    public ResponseEntity<List<UsuarioDTO>> buscarUsuarios(){
+        List<UsuarioDTO> usuariosDTO = new ArrayList<>();
+        try{
+            Optional<List<Usuario>> usuarios = usuarioServiceImpl.buscarTodos();
+            if(usuarios.isPresent()){
+                for(Usuario usuario : usuarios.get()){
+                    usuariosDTO.add(new UsuarioDTO(usuario));
+                }
+            }else{
+                throw new RecursoNoEncontradoException("No se encontraron usuarios");
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return ResponseEntity.ok(usuariosDTO);
+    }
+
 }
