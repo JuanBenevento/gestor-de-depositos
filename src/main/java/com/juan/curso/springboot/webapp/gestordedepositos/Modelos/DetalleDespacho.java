@@ -1,5 +1,7 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Modelos;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,14 +15,19 @@ import lombok.Setter;
 @NoArgsConstructor
 @Table(name = "detalle_despacho")
 public class DetalleDespacho {
-
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id_detalle_despacho;
+
     @ManyToOne
-    @JoinColumn(name = "id_despacho")
-    private OrdenDespacho Ordendespacho;
-    @OneToOne
-    @JoinColumn(name="id_producto")
+    @JoinColumn(name = "id_despacho", nullable = false)
+    @JsonIgnore
+    private OrdenDespacho ordenDespacho;
+
+    @ManyToOne
+    @JoinColumn(name = "id_producto", nullable = false)
     private Producto producto;
+
+    @Column(nullable = false)
     private Double cantidad;
 }

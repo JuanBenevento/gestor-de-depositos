@@ -4,6 +4,7 @@ import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Rol;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Usuario;
 import com.juan.curso.springboot.webapp.gestordedepositos.Repositorios.RolRepositorio;
 import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.UsuarioServiceImpl;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -13,16 +14,15 @@ import org.springframework.stereotype.Service;
 @Service
 public class AuthServicio  implements UserDetailsService {
 
-        private final UsuarioServiceImpl usuarioRepository;
-       // private final AuthenticationManager authenticationManager;
-        private final JwtUtil jwtUtil;
-    private final RolRepositorio rolRepositorio;
+    @Autowired
+    UsuarioServiceImpl usuarioRepository;
+    @Autowired
+    JwtUtil jwtUtil;
+    @Autowired
+    RolRepositorio rolRepositorio;
 
-    public AuthServicio(UsuarioServiceImpl usuarioRepository , JwtUtil jwtUtil, RolRepositorio rolRepositorio) {
-            this.usuarioRepository = usuarioRepository;
-       //  this.authenticationManager = authenticationManager;
-            this.jwtUtil = jwtUtil;
-        this.rolRepositorio = rolRepositorio;
+    public AuthServicio() {
+
     }
 
 
@@ -30,7 +30,7 @@ public class AuthServicio  implements UserDetailsService {
         @Override
         public UserDetails loadUserByUsername(String nombre) throws UsernameNotFoundException {
             Usuario usuario = usuarioRepository.getByNombreEquals(nombre);
-            if(usuario.getId_usuario() == null){
+            if(usuario.getIdUsuario() == null){
                 throw new UsernameNotFoundException("Usuario no encontrado: " + nombre);
 
             }

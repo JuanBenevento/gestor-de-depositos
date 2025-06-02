@@ -50,14 +50,15 @@ public class ClienteServiceImpl implements GenericService<Cliente, Long>{
     }
 
     @Override
-    public void actualizar(Cliente cliente) throws RecursoNoEncontradoException {
+    public Cliente actualizar(Cliente cliente) throws RecursoNoEncontradoException {
         try {
-            clienteRepositorio.save(cliente);
+            cliente = clienteRepositorio.save(cliente);
         }catch (RecursoNoEncontradoException e) {
             throw new RecursoNoEncontradoException("Cliente no encontrado con ID: " + cliente.getId_cliente());
         }catch (Exception e) {
             e.printStackTrace();
         }
+        return cliente;
     }
 
     @Override

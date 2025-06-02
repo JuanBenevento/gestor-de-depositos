@@ -3,6 +3,7 @@ package com.juan.curso.springboot.webapp.gestordedepositos.Servicios;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Rol;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Usuario;
 import com.juan.curso.springboot.webapp.gestordedepositos.Repositorios.RolRepositorio;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -10,9 +11,10 @@ import java.util.Optional;
 
 @Service
 public class RolServiceImpl implements GenericService<Rol, Long> {
-    private final RolRepositorio rolRepositorio;
-    public RolServiceImpl(RolRepositorio rolRepositorio) {
-        this.rolRepositorio = rolRepositorio;
+    @Autowired
+    RolRepositorio rolRepositorio;
+
+    public RolServiceImpl() {
     }
 
 
@@ -33,8 +35,9 @@ public class RolServiceImpl implements GenericService<Rol, Long> {
     }
 
     @Override
-    public void actualizar(Rol rol) {
-
+    public Rol actualizar(Rol rol) {
+        rol = rolRepositorio.save(rol);
+        return rol;
     }
 
     @Override
