@@ -1,5 +1,6 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Servicios;
 
+import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Rol;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Usuario;
 import com.juan.curso.springboot.webapp.gestordedepositos.Repositorios.UsuarioRepositorio;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,5 +75,15 @@ public class UsuarioServiceImpl implements GenericService<Usuario, Long> {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public Optional<List<Usuario>> buscarPorRol(Rol rol) {
+        try{
+        return Optional.ofNullable(usuarioRepositorio.getByRolEquals(rol));
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return Optional.empty();
     }
 }

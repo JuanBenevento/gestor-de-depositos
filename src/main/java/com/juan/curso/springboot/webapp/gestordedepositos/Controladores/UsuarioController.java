@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/GestorDeDepositos/usuarios")
@@ -124,6 +125,28 @@ public class UsuarioController {
             e.printStackTrace();
         }
         return ResponseEntity.ok(usuariosDTO);
+    }
+
+    @GetMapping("/buscarPorRol")
+    public ResponseEntity<List<UsuarioDTO>> buscarPorRol(@RequestParam Long idRol){
+        try{
+            Optional<Rol> rol = rolServiceImpl.buscarPorId(idRol);
+            if(rol.isPresent()){
+                Optional<List<Usuario>> usuariosPorRol = usuarioServiceImpl.buscarPorRol(rol.get());
+                if(usuariosPorRol.isPresent()){
+                    List<UsuarioDTO> usuariosDTO = usuariosPorRol.get().stream().map(u -> new UsuarioDTO(u)).collect(Collectors.toList());
+                    return ResponseEntity.ok(usuariosDTO);
+                }else {
+                    throw new RecursoNoEncontradoException("No se encontraron usuarios para ese rol");
+                }
+            }else{
+                throw new RecursoNoEncontradoException("No se encontró el rol especificado");
+            }
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
     }
 
 }
