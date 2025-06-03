@@ -74,6 +74,11 @@ public class SecurityConfig {
                         .requestMatchers("/GestorDeDepositos/detalleRecepcion/buscarDetallesPorIdOrden").hasAnyRole("ADMIN","OPERATIVO")
                         .requestMatchers("/GestorDeDepositos/**").hasAnyRole("OPERATIVO", "ADMIN")
                         .requestMatchers("/GestorDeDepositos/producto/todos").hasAnyRole("OPERATIVO", "ADMIN")
+                        .requestMatchers("/GestorDeDepositos/producto/buscar").hasAnyRole("OPERATIVO", "ADMIN")
+                        .requestMatchers("/GestorDeDepositos/producto/crearProducto").hasAnyRole("OPERATIVO", "ADMIN")
+                        .requestMatchers("/GestorDeDepositos/producto/eliminarProducto").hasRole("ADMIN")
+                        .requestMatchers("/GestorDeDepositos/producto/actualizarProducto").hasAnyRole("OPERATIVO","ADMIN")
+                        .requestMatchers("/GestorDeDepositos/producto/buscarPorCodigoSku").hasAnyRole("ADMIN","OPERATIVO")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

@@ -29,13 +29,7 @@ public class ProductoController {
             List<ProductoDTO> productos = productoServiceImpl.buscarTodos()
                     .orElseThrow(() -> new RuntimeException("No se encontraron productos"))
                     .stream()
-                    .map(producto -> new ProductoDTO(
-                            producto.getIdProducto(),
-                            producto.getNombre(),
-                            producto.getDescripcion(),
-                            String.valueOf(producto.getCodigoSku()), // Convert Long to String
-                            producto.getUnidad_medida(),
-                            producto.getFecha_creacion()))
+                    .map(ProductoDTO::new).filter(p->p.getIsDeleted().equals("N"))
                     .collect(Collectors.toList());
 
             return new ResponseEntity<>(productos, HttpStatus.OK);
@@ -48,10 +42,8 @@ public class ProductoController {
     public ResponseEntity<?> buscar(@RequestParam Long id) {
         try {
             Optional<Producto> producto = productoServiceImpl.buscarPorId(id);
-            if (producto.isPresent()) {
-                Producto p = producto.get();
-                ProductoDTO dto = new ProductoDTO(p.getIdProducto(), p.getNombre(), p.getDescripcion(),
-                        String.valueOf(p.getCodigoSku()), p.getUnidad_medida(), p.getFecha_creacion());
+            if (producto.isPresent() && producto.get().getIsDeleted().equals("N")) {
+                ProductoDTO dto = new ProductoDTO(producto.get());
                 return new ResponseEntity<>(dto, HttpStatus.OK);
             } else {
                 return new ResponseEntity<>("Producto no encontrado", HttpStatus.NOT_FOUND);
@@ -66,39 +58,27 @@ public class ProductoController {
         try {
             Producto producto1 = toEntity(producto);
             producto1.setFecha_creacion(Calendar.getInstance().getTime());
-            productoServiceImpl.crear(producto1);
-            return new ResponseEntity<>(producto, HttpStatus.CREATED);
+            producto1 = productoServiceImpl.crearConRetorno(producto1);
+            return new ResponseEntity<>(producto1, HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>("Error al crear producto: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    @PostMapping
-    public ResponseEntity<?> crearConRetorno(@RequestBody ProductoDTO producto) {
-        try {
-            Producto producto1 = toEntity(producto);
-            producto1.setFecha_creacion(Calendar.getInstance().getTime());
-            Producto retorno = productoServiceImpl.crearConRetorno(producto1);
-            ProductoDTO retornoDTO = new ProductoDTO(retorno);
-            return new ResponseEntity<>(retornoDTO, HttpStatus.CREATED);
-        } catch (Exception e) {
-            return new ResponseEntity<>("Error al crear producto: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
 
-    @PutMapping
+    @PutMapping("/actualizarProducto")
     public ResponseEntity<?> actualizar(@RequestBody ProductoDTO dto) {
         try {
             Producto producto = toEntity(dto);
             producto.setFecha_creacion(dto.getFecha_creacion() != null ? dto.getFecha_creacion() : Calendar.getInstance().getTime());
-            productoServiceImpl.actualizar(producto);
-            return new ResponseEntity<>(dto, HttpStatus.OK);
+            producto = productoServiceImpl.actualizar(producto);
+            return new ResponseEntity<>(producto, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>("Error al actualizar producto: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    @DeleteMapping
+    @DeleteMapping("/eliminarProducto")
     public ResponseEntity<?> eliminar(@RequestParam Long id) {
         try {
             productoServiceImpl.eliminar(id);
@@ -107,12 +87,12 @@ public class ProductoController {
             return new ResponseEntity<>("Error al eliminar producto: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
+    @GetMapping("/buscarPorCodigoSku")
     public Optional<ProductoDTO> buscarPorCodigoSKU(String codigo) {
         ProductoDTO dto = null;
         try {
             Optional<Producto> productoEncontrado = Optional.ofNullable(productoServiceImpl.buscarPorCodigoSKU(codigo));
-            if (productoEncontrado.isPresent()) {
+            if (productoEncontrado.isPresent() && productoEncontrado.get().getIsDeleted().equals("N")) {
                 dto = new ProductoDTO(productoEncontrado.get());
             }
         } catch (NumberFormatException e) {
@@ -132,12 +112,13 @@ public class ProductoController {
         producto.setNombre(dto.getNombre());
         producto.setDescripcion(dto.getDescripcion());
         try {
-            producto.setCodigoSku(dto.getCodigo_sku()); // Convert String to Long
+            producto.setCodigoSku(dto.getCodigo_sku());
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Código SKU inválido: " + dto.getCodigo_sku());
         }
         producto.setUnidad_medida(dto.getUnidad_medida());
         producto.setFecha_creacion(dto.getFecha_creacion());
+        producto.setIsDeleted("N");
         return producto;
     }
 }
