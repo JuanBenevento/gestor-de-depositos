@@ -1,5 +1,6 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Dtos;
 
+import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Ubicacion;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Zona;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,9 +12,17 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UbicacionDTO {
-    private Long id_ubicacion;
+    private Long idUbicacion;
     private String codigo;
     private Zona zona;
-    private int capacidad_maxima;
-    private int ocupado_actual;
+    private int capacidadMaxima;
+    private Boolean ocupadoActual;
+
+    public UbicacionDTO(Ubicacion ubicacion) {
+        this.idUbicacion = ubicacion.getIdUbicacion();
+        this.codigo = ubicacion.getCodigo();
+        this.zona = ubicacion.getZona();
+        this.capacidadMaxima = ubicacion.getCapacidadMaxima();
+        this.ocupadoActual = ubicacion.getOcupadoActual();
+    }
 }

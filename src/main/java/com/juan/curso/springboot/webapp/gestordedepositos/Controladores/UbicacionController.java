@@ -29,11 +29,11 @@ public class UbicacionController {
     public ResponseEntity<?> buscarTodos() {
         List<UbicacionDTO> ubicaciones = ubicacionService.buscarTodos().orElseThrow().stream().
                 map(ubicacion -> new UbicacionDTO(
-                        ubicacion.getId_ubicacion(),
+                        ubicacion.getIdUbicacion(),
                         ubicacion.getCodigo(),
                         ubicacion.getZona(),
-                        ubicacion.getCapacidad_maxima(),
-                        ubicacion.getOcupado_actual()))
+                        ubicacion.getCapacidadMaxima(),
+                        ubicacion.getOcupadoActual()))
                         .collect(Collectors.toList());
         return new ResponseEntity(ubicaciones, HttpStatus.OK);
     }
@@ -44,11 +44,11 @@ public class UbicacionController {
                 .orElseThrow(() -> new RuntimeException("Ubicacion no encontrada con ID: " + id));
 
         UbicacionDTO ubicacionDTO = new UbicacionDTO(
-                ubicacion.getId_ubicacion(),
+                ubicacion.getIdUbicacion(),
                 ubicacion.getCodigo(),
                 ubicacion.getZona(),
-                ubicacion.getCapacidad_maxima(),
-                ubicacion.getOcupado_actual()
+                ubicacion.getCapacidadMaxima(),
+                ubicacion.getOcupadoActual()
         );
         return new ResponseEntity(ubicacionDTO, HttpStatus.OK);
     }
@@ -61,8 +61,8 @@ public class UbicacionController {
         Ubicacion ubicacion = new Ubicacion();
         ubicacion.setCodigo(dto.getCodigo());
         ubicacion.setZona(zona);
-        ubicacion.setCapacidad_maxima(dto.getCapacidad_maxima());
-        ubicacion.setOcupado_actual(dto.getOcupado_actual());
+        ubicacion.setCapacidadMaxima(dto.getCapacidadMaxima());
+        ubicacion.setOcupadoActual(dto.getOcupadoActual());
 
         ubicacionService.crear(ubicacion);
         return new ResponseEntity<>(dto, HttpStatus.CREATED);
@@ -73,8 +73,8 @@ public class UbicacionController {
         Ubicacion ubicacion = new Ubicacion();
         ubicacion.setCodigo(dto.getCodigo());
         ubicacion.setZona(dto.getZona());
-        ubicacion.setCapacidad_maxima(dto.getCapacidad_maxima());
-        ubicacion.setOcupado_actual(dto.getOcupado_actual());
+        ubicacion.setCapacidadMaxima(dto.getCapacidadMaxima());
+        ubicacion.setOcupadoActual(dto.getOcupadoActual());
 
         ubicacionService.actualizar(ubicacion);
         return ResponseEntity.ok(dto);

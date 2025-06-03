@@ -1,11 +1,15 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Servicios;
 
 import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.RecursoNoEncontradoException;
+import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.DetalleRecepcion;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Inventario;
+import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Producto;
+import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Ubicacion;
 import com.juan.curso.springboot.webapp.gestordedepositos.Repositorios.InventarioRepositorio;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Calendar;
 import java.util.List;
 import java.util.Optional;
 
@@ -13,12 +17,20 @@ import java.util.Optional;
 public class InventarioServiceImpl implements GenericService<Inventario, Long> {
     @Autowired
     InventarioRepositorio inventarioRepositorio;
-
+    @Autowired
+    UbicacionServiceImpl ubicacionService;
+    @Autowired
+    ProductoServiceImpl productoService;
     public InventarioServiceImpl() {
     }
 
     @Override
     public Optional<List<Inventario>> buscarTodos() {
+        try{
+            return Optional.of(inventarioRepositorio.findAll());
+        }catch (Exception e){
+            e.printStackTrace();
+        }
         return Optional.empty();
     }
 
@@ -36,27 +48,52 @@ public class InventarioServiceImpl implements GenericService<Inventario, Long> {
 
     @Override
     public void crear(Inventario inventario) {
-
+        try{
+            inventarioRepositorio.save(inventario);
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public Inventario crearConRetorno(Inventario inventario) {
-        return null;
+        try{
+            inventario= inventarioRepositorio.save(inventario);
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e);
+        }
+        return inventario;
     }
 
     @Override
     public Inventario actualizar(Inventario inventario) {
-        return null;
+        try{
+            inventario = inventarioRepositorio.save(inventario);
+        }
+        catch (RuntimeException e) {
+            throw new RuntimeException(e);
+        }
+        return inventario;
     }
 
     @Override
     public void eliminar(Long id) {
-
+        try{
+            inventarioRepositorio.deleteById(id);
+        }catch (RuntimeException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public Optional<Inventario> buscarPorIdProducto(Long idProducto) throws RecursoNoEncontradoException {
         try {
-            return Optional.of(inventarioRepositorio.findInventarioByProducto_IdProducto(idProducto));
+            Optional<Producto> productoEncontrado = productoService.buscarPorId(idProducto);
+            if (productoEncontrado.isPresent() && productoEncontrado.get().getIsDeleted().equals("N")) {
+                return Optional.of(inventarioRepositorio.findInventarioByProducto_IdProducto(idProducto));
+            }else{
+                throw new RecursoNoEncontradoException("No se pudo traer el inventario ya que el producto ya no existe");
+            }
+
         }catch (RecursoNoEncontradoException e){
             throw new RecursoNoEncontradoException("Inventario del producto con id " + idProducto + " no encontrado");
         }catch (Exception e){
@@ -64,4 +101,52 @@ public class InventarioServiceImpl implements GenericService<Inventario, Long> {
             return Optional.empty();
         }
     }
+
+    public void agregarMercaderia(DetalleRecepcion detalle) {
+        Inventario inventario = inventarioRepositorio.findInventarioByProducto_IdProducto(detalle.getProducto().getIdProducto());
+        Double cantidadDetalle = detalle.getCantidad();
+
+        if (inventario != null) {
+            Optional<Ubicacion> ubicacionDeProdEncontrada = ubicacionService.buscarPorId(inventario.getUbicacion().getIdUbicacion());
+
+            if (ubicacionDeProdEncontrada.isPresent()) {
+                Ubicacion ubicacionActual = ubicacionDeProdEncontrada.get();
+                int capacidadMaxima = ubicacionActual.getCapacidadMaxima();
+                Double cantidadActual = inventario.getCantidad();
+                int espacioDisponible = (int) (capacidadMaxima - cantidadActual);
+
+                if (espacioDisponible >= cantidadDetalle) {
+                    inventario.setCantidad(cantidadActual + cantidadDetalle);
+                    inventario.setFecha_actualizacion(Calendar.getInstance().getTime());
+                    inventarioRepositorio.save(inventario);
+                } else {
+                    int cantidadAColocar = espacioDisponible;
+                    int cantidadRestante = (int) (cantidadDetalle - cantidadAColocar);
+
+                    if (cantidadAColocar > 0) {
+                        inventario.setCantidad(cantidadActual + cantidadAColocar);
+                        inventario.setFecha_actualizacion(Calendar.getInstance().getTime());
+                        inventarioRepositorio.save(inventario);
+                    }
+
+                    List<Ubicacion> nuevaUbicacionOpt = ubicacionService.buscarUbicacionSegunCantidad((double)cantidadRestante);
+
+                    if (!nuevaUbicacionOpt.isEmpty()) {
+                        Ubicacion nuevaUbicacion = nuevaUbicacionOpt.getFirst();
+
+                        Inventario nuevoInventario = new Inventario();
+                        nuevoInventario.setProducto(detalle.getProducto());
+                        nuevoInventario.setCantidad((double) cantidadRestante);
+                        nuevoInventario.setUbicacion(nuevaUbicacion);
+                        nuevoInventario.setFecha_actualizacion(Calendar.getInstance().getTime());
+
+                        inventarioRepositorio.save(nuevoInventario);
+                    } else {
+                        throw new RuntimeException("No hay ubicación con capacidad suficiente para la cantidad restante: " + cantidadRestante);
+                    }
+                }
+            }
+        }
+    }
+
 }

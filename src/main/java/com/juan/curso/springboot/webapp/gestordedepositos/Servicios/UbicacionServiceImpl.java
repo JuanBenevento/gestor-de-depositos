@@ -64,7 +64,7 @@ public class UbicacionServiceImpl implements GenericService<Ubicacion, Long> {
         try {
             ubicacion = ubicacionRepositorio.save(ubicacion);
         }catch (RecursoNoEncontradoException e) {
-            throw new RecursoNoEncontradoException("Ubicacion no encontrada con ID: " + ubicacion.getId_ubicacion());
+            throw new RecursoNoEncontradoException("Ubicacion no encontrada con ID: " + ubicacion.getIdUbicacion());
         }catch (Exception e) {
             e.printStackTrace();
         }
@@ -79,6 +79,17 @@ public class UbicacionServiceImpl implements GenericService<Ubicacion, Long> {
             throw new RecursoNoEncontradoException("Ubicacion no encontrada con ID: " + id);
         }catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    public List<Ubicacion> buscarUbicacionSegunCantidad(Double cantidad) {
+        try {
+            List<Ubicacion> ubicaciones = ubicacionRepositorio.findByCapacidadMaximaGreaterThanEqual(cantidad);
+            List<Ubicacion> ubicacionesDisponibles = ubicaciones.stream().filter(u->
+                    u.getOcupadoActual()).toList();
+            return ubicacionesDisponibles;
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e);
         }
     }
 }

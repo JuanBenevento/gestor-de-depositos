@@ -2,17 +2,10 @@ package com.juan.curso.springboot.webapp.gestordedepositos.Controladores;
 
 import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.DetalleRecepcionDTO;
 import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.OrdenRecepcionDTO;
-import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.ProductoDTO;
 import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.RecursoNoEncontradoException;
-import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.DetalleRecepcion;
+import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.*;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Enums.EstadosDeOrden;
-import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.OrdenRecepcion;
-import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Producto;
-import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Proveedor;
-import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.DetalleRecepcionServiceImpl;
-import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.OrdenRecepcionServiceImpl;
-import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.ProductoServiceImpl;
-import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.ProveedorServiceImpl;
+import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,7 +30,7 @@ public class OrdenRecepcionController {
     @Autowired
     DetalleRecepcionServiceImpl detalleRecepcionService;
     @Autowired
-    DetalleRecepcionController ordenDetalleController;
+    InventarioServiceImpl inventarioService;
 
     public OrdenRecepcionController() {
     }
@@ -97,6 +90,7 @@ public class OrdenRecepcionController {
                 detalle.setCantidad(detalleDTO.getCantidad());
                 detalle.setOrdenRecepcion(orden);
                 detalles.add(detalle);
+                inventarioService.agregarMercaderia(detalle);
             }
 
             orden.setDetalles(detalles);
@@ -149,6 +143,7 @@ public class OrdenRecepcionController {
             return new ResponseEntity<>("Error al eliminar orden: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
 
 }

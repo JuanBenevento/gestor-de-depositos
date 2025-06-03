@@ -17,14 +17,17 @@ import lombok.Setter;
 public class Ubicacion {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id_ubicacion;
+    @Column(name = "id_ubicacion")
+    private Long idUbicacion;
     @NotBlank
     private String codigo;
     @ManyToOne
     @JoinColumn (name = "id_zona")
     private Zona zona;
     @NotNull
-    private int capacidad_maxima;
+    @Column(name= "capacidad_maxima")
+    private int capacidadMaxima;
     @NotNull
-    private int ocupado_actual;
+    @Column(name = "ocupado_actual")
+    private Boolean ocupadoActual;
 }

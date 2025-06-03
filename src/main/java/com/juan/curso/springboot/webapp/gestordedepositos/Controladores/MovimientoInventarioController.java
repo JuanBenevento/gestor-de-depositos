@@ -51,8 +51,8 @@ public class MovimientoInventarioController {
     public ResponseEntity<?> crear(@RequestBody MovimientoInventarioDTO dto) {
         try {
             Optional<Producto> productoElegido = productoServiceImpl.buscarPorId(dto.getProducto().getIdProducto());
-            Optional<Ubicacion> ubicacion_origen = ubicacionServiceImpl.buscarPorId(dto.getUbicacionOrigen().getId_ubicacion());
-            Optional<Ubicacion> ubicacion_destino = ubicacionServiceImpl.buscarPorId(dto.getUbicacionDestino().getId_ubicacion());
+            Optional<Ubicacion> ubicacion_origen = ubicacionServiceImpl.buscarPorId(dto.getUbicacionOrigen().getIdUbicacion());
+            Optional<Ubicacion> ubicacion_destino = ubicacionServiceImpl.buscarPorId(dto.getUbicacionDestino().getIdUbicacion());
 
             if(ubicacion_origen.isPresent() && ubicacion_destino.isPresent() && productoElegido.isPresent()) {
                 Ubicacion origen = ubicacion_origen.get();
@@ -93,8 +93,8 @@ public class MovimientoInventarioController {
     public ResponseEntity<?> editar(@RequestParam Long id, @RequestBody MovimientoInventarioDTO dto) {
         try {
             Optional<MovimientoInventario> movInventarioSelected = movimientoInventarioServiceImpl.buscarPorId(id);
-            Optional<Ubicacion> ubicacion_origen = ubicacionServiceImpl.buscarPorId(dto.getUbicacionOrigen().getId_ubicacion());
-            Optional<Ubicacion> ubicacion_destino = ubicacionServiceImpl.buscarPorId(dto.getUbicacionDestino().getId_ubicacion());
+            Optional<Ubicacion> ubicacion_origen = ubicacionServiceImpl.buscarPorId(dto.getUbicacionOrigen().getIdUbicacion());
+            Optional<Ubicacion> ubicacion_destino = ubicacionServiceImpl.buscarPorId(dto.getUbicacionDestino().getIdUbicacion());
             Optional<Producto> reqProducto = productoServiceImpl.buscarPorId(dto.getProducto().getIdProducto());
 
             if(movInventarioSelected.isPresent() && ubicacion_origen.isPresent() && ubicacion_destino.isPresent() && reqProducto.isPresent()) {
