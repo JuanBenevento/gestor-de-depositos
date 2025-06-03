@@ -50,14 +50,25 @@ public class UbicacionServiceImpl implements GenericService<Ubicacion, Long> {
     }
 
     @Override
-    public void actualizar(Ubicacion ubicacion) throws RecursoNoEncontradoException {
+    public Ubicacion crearConRetorno(Ubicacion ubicacion) {
         try {
-            ubicacionRepositorio.save(ubicacion);
+            ubicacion = ubicacionRepositorio.save(ubicacion);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return ubicacion;
+    }
+
+    @Override
+    public Ubicacion actualizar(Ubicacion ubicacion) throws RecursoNoEncontradoException {
+        try {
+            ubicacion = ubicacionRepositorio.save(ubicacion);
         }catch (RecursoNoEncontradoException e) {
             throw new RecursoNoEncontradoException("Ubicacion no encontrada con ID: " + ubicacion.getId_ubicacion());
         }catch (Exception e) {
             e.printStackTrace();
         }
+        return ubicacion;
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Dtos;
 
+import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Producto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,13 +12,13 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ProductoDTO {
-    private Long id_producto;
+    private Long idProducto;
     private String nombre;
     private String descripcion;
     private String codigo_sku;
     private String unidad_medida;
     private Date fecha_creacion;
-
+    private String isDeleted;
 
     public ProductoDTO(String nombreProducto,String descripcion ,String unidadMedida, String codigoSku, Date time) {
         this.nombre = nombreProducto;
@@ -25,5 +26,16 @@ public class ProductoDTO {
         this.codigo_sku = codigoSku;
         this.unidad_medida = unidadMedida;
         this.fecha_creacion = time;
+        this.isDeleted = "N";
+    }
+
+    public ProductoDTO(Producto producto) {
+        this.idProducto = producto.getIdProducto();
+        this.nombre = producto.getNombre();
+        this.descripcion = producto.getDescripcion();
+        this.codigo_sku = producto.getCodigoSku();
+        this.unidad_medida = producto.getUnidad_medida();
+        this.fecha_creacion = producto.getFecha_creacion();
+        this.isDeleted = producto.getIsDeleted();
     }
 }

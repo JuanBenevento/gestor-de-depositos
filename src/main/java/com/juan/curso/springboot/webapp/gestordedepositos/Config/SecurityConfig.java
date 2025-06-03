@@ -33,7 +33,7 @@ public class SecurityConfig {
 
     public SecurityConfig() {
     }
-   /* @Bean
+    /*@Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
@@ -53,10 +53,14 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/GestorDeDepositos/login").permitAll()
+                        .requestMatchers("/GestorDeDepositos/cambiarContrasenia").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                       // .requestMatchers(HttpMethod.GET, "/GestorDeDepositos/auditorias/**").hasRole("ADMIN")
-                       // .requestMatchers("/GestorDeDepositos/roles/**").hasRole("ADMIN")
-                        .requestMatchers("/GestorDeDepositos/usuarios/**").hasRole("ADMIN")
+                        .requestMatchers("/GestorDeDepositos/usuarios/crearUsuario").hasRole("ADMIN")
+                        .requestMatchers("/GestorDeDepositos/usuarios/modificarUsuario").hasRole("ADMIN")
+                        .requestMatchers("/GestorDeDepositos/usuarios/eliminarUsuario").hasRole("ADMIN")
+                        .requestMatchers("/GestorDeDepositos/usuarios/buscarUsuario").hasRole("ADMIN")
+                        .requestMatchers("/GestorDeDepositos/usuarios/buscarTodosLosUsuarios").hasRole("ADMIN")
+                        .requestMatchers("/GestorDeDepositos/usuarios/busarPorRol").hasRole("ADMIN")
                         .requestMatchers("/GestorDeDepositos/ordenes/crearOrdenRecepcion").hasAnyRole("ADMIN","OPERATIVO")
                         .requestMatchers("/GestorDeDepositos/ordenes/todos").hasAnyRole("ADMIN","OPERATIVO")
                         .requestMatchers("/GestorDeDepositos/ordenes/buscar").hasAnyRole("ADMIN","OPERATIVO")
@@ -70,6 +74,15 @@ public class SecurityConfig {
                         .requestMatchers("/GestorDeDepositos/detalleRecepcion/buscarDetallesPorIdOrden").hasAnyRole("ADMIN","OPERATIVO")
                         .requestMatchers("/GestorDeDepositos/**").hasAnyRole("OPERATIVO", "ADMIN")
                         .requestMatchers("/GestorDeDepositos/producto/todos").hasAnyRole("OPERATIVO", "ADMIN")
+                        .requestMatchers("/GestorDeDepositos/producto/buscar").hasAnyRole("OPERATIVO", "ADMIN")
+                        .requestMatchers("/GestorDeDepositos/producto/crearProducto").hasAnyRole("OPERATIVO", "ADMIN")
+                        .requestMatchers("/GestorDeDepositos/producto/eliminarProducto").hasRole("ADMIN")
+                        .requestMatchers("/GestorDeDepositos/producto/actualizarProducto").hasAnyRole("OPERATIVO","ADMIN")
+                        .requestMatchers("/GestorDeDepositos/producto/buscarPorCodigoSku").hasAnyRole("ADMIN","OPERATIVO")
+                        .requestMatchers("/GestorDeDepositos/movimientoInventario/crearMovimiento").hasAnyRole("OPERATIVO", "ADMIN")
+                        .requestMatchers("/GestorDeDepositos/movimientoInventario/actualizar").hasAnyRole( "ADMIN")
+                        .requestMatchers("/GestorDeDepositos/movimientoInventario/eliminar").hasAnyRole( "ADMIN")
+                        .requestMatchers("/GestorDeDepositos/movimientoInventario/buscarTodos").hasAnyRole("OPERATIVO", "ADMIN")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

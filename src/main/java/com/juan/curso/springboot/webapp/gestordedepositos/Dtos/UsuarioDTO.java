@@ -1,6 +1,7 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Dtos;
 
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Rol;
+import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Usuario;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -20,4 +21,10 @@ public class UsuarioDTO {
     private String email;
     private Long idRol;
 
+    public UsuarioDTO(Usuario usuario) {
+        this.idUsuario = usuario.getIdUsuario();
+        this.nombre = usuario.getNombre();
+        this.apellido = usuario.getApellido();
+        this.email = usuario.getEmail();
+    }
 }

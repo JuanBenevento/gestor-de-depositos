@@ -20,17 +20,43 @@ public class ProveedorServiceImpl implements GenericService<Proveedor, Long> {
 
     @Override
     public Optional<List<Proveedor>> buscarTodos() {
-        return Optional.of(proveedorRepositorio.findAll());
+        try{
+            return Optional.of(proveedorRepositorio.findAll());
+        }catch(Exception e){
+            e.printStackTrace();
+            return Optional.empty();
+        }
     }
 
     @Override
-    public Optional<Proveedor> buscarPorId(Long id) {
-        return proveedorRepositorio.findById(id);
+    public Optional<Proveedor> buscarPorId(Long id) throws RecursoNoEncontradoException {
+        try {
+            return proveedorRepositorio.findById(id);
+        } catch (RecursoNoEncontradoException e) {
+            throw new RecursoNoEncontradoException("Proveedor no encontrado con ID: " + id);
+        }catch (Exception e) {
+            e.printStackTrace();
+            return Optional.empty();
+        }
     }
 
     @Override
     public void crear(Proveedor proveedor) {
-        proveedorRepositorio.save(proveedor);
+        try {
+            proveedorRepositorio.save(proveedor);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public Proveedor crearConRetorno(Proveedor proveedor) {
+        try {
+            proveedor = proveedorRepositorio.save(proveedor);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return proveedor;
     }
 
     @Override

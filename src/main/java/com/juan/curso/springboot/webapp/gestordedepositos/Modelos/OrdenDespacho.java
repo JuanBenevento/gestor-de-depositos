@@ -1,6 +1,7 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Modelos;
 
-import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Enums.EstadosOrdenRecepcion;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Enums.EstadosDeOrden;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -8,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.sql.Date;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -17,18 +19,22 @@ import java.util.List;
 @NoArgsConstructor
 @Table(name = "orden_despacho")
 public class OrdenDespacho {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id_despacho;
-    private Date fecha_despacho;
-    @Enumerated(EnumType.STRING)
-    private EstadosOrdenRecepcion estado;
-    @ManyToOne
-    @JoinColumn (name = "id_cliente")
-    private Cliente cliente;
-    @OneToMany
-    @JoinColumn(name = "id_detalle_despacho")
-    private List<DetalleDespacho> detalle_despacho;
 
+    @Column(nullable = false)
+    private Date fecha_despacho;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private EstadosDeOrden estado;
+
+    @ManyToOne
+    @JoinColumn(name = "id_cliente", nullable = false)
+    private Cliente cliente;
+
+    @OneToMany(mappedBy = "ordenDespacho", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<DetalleDespacho> detalle_despacho = new ArrayList<>();
 }

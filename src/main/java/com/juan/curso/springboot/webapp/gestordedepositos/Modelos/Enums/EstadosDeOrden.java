@@ -1,6 +1,6 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Enums;
 
-public enum EstadosOrdenRecepcion {
+public enum EstadosDeOrden {
     PENDIENTE,
     COMPLETADA
 }

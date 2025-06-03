@@ -5,7 +5,7 @@ import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.OrdenRecepcionDTO
 import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.ProductoDTO;
 import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.RecursoNoEncontradoException;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.DetalleRecepcion;
-import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Enums.EstadosOrdenRecepcion;
+import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Enums.EstadosDeOrden;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.OrdenRecepcion;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Producto;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Proveedor;
@@ -125,7 +125,7 @@ public class OrdenRecepcionController {
 
             OrdenRecepcion orden = existingOrden.get();
 
-            orden.setEstado(EstadosOrdenRecepcion.valueOf(estado));
+            orden.setEstado(EstadosDeOrden.valueOf(estado));
 
             orden = ordenRecepcionService.actualizar(orden);
 
