@@ -40,6 +40,11 @@ public class InventarioServiceImpl implements GenericService<Inventario, Long> {
     }
 
     @Override
+    public Inventario crearConRetorno(Inventario inventario) {
+        return null;
+    }
+
+    @Override
     public Inventario actualizar(Inventario inventario) {
         return null;
     }
