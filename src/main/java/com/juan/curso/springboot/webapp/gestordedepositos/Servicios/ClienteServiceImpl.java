@@ -50,6 +50,16 @@ public class ClienteServiceImpl implements GenericService<Cliente, Long>{
     }
 
     @Override
+    public Cliente crearConRetorno(Cliente cliente) {
+        try {
+            cliente = clienteRepositorio.save(cliente);
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+        return cliente;
+    }
+
+    @Override
     public Cliente actualizar(Cliente cliente) throws RecursoNoEncontradoException {
         try {
             cliente = clienteRepositorio.save(cliente);

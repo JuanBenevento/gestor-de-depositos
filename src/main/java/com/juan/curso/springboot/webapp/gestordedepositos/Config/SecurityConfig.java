@@ -33,7 +33,7 @@ public class SecurityConfig {
 
     public SecurityConfig() {
     }
-   /* @Bean
+    /*@Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
@@ -79,6 +79,10 @@ public class SecurityConfig {
                         .requestMatchers("/GestorDeDepositos/producto/eliminarProducto").hasRole("ADMIN")
                         .requestMatchers("/GestorDeDepositos/producto/actualizarProducto").hasAnyRole("OPERATIVO","ADMIN")
                         .requestMatchers("/GestorDeDepositos/producto/buscarPorCodigoSku").hasAnyRole("ADMIN","OPERATIVO")
+                        .requestMatchers("/GestorDeDepositos/movimientoInventario/crearMovimiento").hasAnyRole("OPERATIVO", "ADMIN")
+                        .requestMatchers("/GestorDeDepositos/movimientoInventario/actualizar").hasAnyRole( "ADMIN")
+                        .requestMatchers("/GestorDeDepositos/movimientoInventario/eliminar").hasAnyRole( "ADMIN")
+                        .requestMatchers("/GestorDeDepositos/movimientoInventario/buscarTodos").hasAnyRole("OPERATIVO", "ADMIN")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
