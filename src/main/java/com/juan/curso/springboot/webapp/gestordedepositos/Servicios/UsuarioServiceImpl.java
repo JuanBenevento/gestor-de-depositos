@@ -49,6 +49,16 @@ public class UsuarioServiceImpl implements GenericService<Usuario, Long> {
     }
 
     @Override
+    public Usuario crearConRetorno(Usuario usuario) {
+        try{
+            usuario = usuarioRepositorio.save(usuario);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return usuario;
+    }
+
+    @Override
     public Usuario actualizar(Usuario usuario) {
         try {
             usuario = usuarioRepositorio.save(usuario);

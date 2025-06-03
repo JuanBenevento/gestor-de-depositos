@@ -52,14 +52,27 @@ public class MovimientoInventarioServiceImpl implements GenericService<Movimient
     }
 
     @Override
-    public void actualizar(MovimientoInventario movimientoInventario) {
+    public MovimientoInventario crearConRetorno(MovimientoInventario movimientoInventario) {
         try {
-            movimientoInventarioRepositorio.save(movimientoInventario);
+            movimientoInventario = movimientoInventarioRepositorio.save(movimientoInventario);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return movimientoInventario;
+    }
+
+    @Override
+    public MovimientoInventario actualizar(MovimientoInventario movimientoInventario) {
+        try {
+            movimientoInventario = movimientoInventarioRepositorio.save(movimientoInventario);
         }catch (RecursoNoEncontradoException e){
             throw new RecursoNoEncontradoException("Movimiento de Inventario no encontrado con ID: " + movimientoInventario.getId_movimientoInventario());
         }catch (Exception e){
             e.printStackTrace();
         }
+
+        return movimientoInventario;
     }
 
     @Override

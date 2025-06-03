@@ -63,6 +63,16 @@ public class DetalleRecepcionServiceImpl implements GenericService<DetalleRecepc
     }
 
     @Override
+    public DetalleRecepcion crearConRetorno(DetalleRecepcion detalleRecepcion) {
+        try {
+            detalleRecepcion = detalleRecepcionRepositorio.save(detalleRecepcion);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return detalleRecepcion;
+    }
+
+    @Override
     public DetalleRecepcion actualizar(DetalleRecepcion detalle) {
         try {
             detalle = detalleRecepcionRepositorio.save(detalle);
