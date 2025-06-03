@@ -18,7 +18,7 @@ public class ProductoDTO {
     private String codigo_sku;
     private String unidad_medida;
     private Date fecha_creacion;
-
+    private String isDeleted;
 
     public ProductoDTO(String nombreProducto,String descripcion ,String unidadMedida, String codigoSku, Date time) {
         this.nombre = nombreProducto;
@@ -26,6 +26,7 @@ public class ProductoDTO {
         this.codigo_sku = codigoSku;
         this.unidad_medida = unidadMedida;
         this.fecha_creacion = time;
+        this.isDeleted = "N";
     }
 
     public ProductoDTO(Producto producto) {
@@ -35,5 +36,6 @@ public class ProductoDTO {
         this.codigo_sku = producto.getCodigoSku();
         this.unidad_medida = producto.getUnidad_medida();
         this.fecha_creacion = producto.getFecha_creacion();
+        this.isDeleted = producto.getIsDeleted();
     }
 }

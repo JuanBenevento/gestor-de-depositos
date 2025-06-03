@@ -1,5 +1,6 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Servicios;
 
+import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.RecursoNoEncontradoException;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Producto;
 import com.juan.curso.springboot.webapp.gestordedepositos.Repositorios.ProductoRepositorio;
 import jakarta.transaction.Transactional;
@@ -57,14 +58,20 @@ public class ProductoServiceImpl implements GenericService<Producto, Long> {
         return producto;
     }
 
-    @Override
     public void eliminar(Long id) {
         try {
-            productoRepositorio.deleteById(id);
+            Optional<Producto> producto = buscarPorId(id);
+            if (producto.isPresent()) {
+                producto.get().setIsDeleted("S");
+                productoRepositorio.save(producto.get());
+            }else{
+                throw new RuntimeException("No se pudo eliminar el producto");
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
 
     @Transactional
     public Producto crearConRetorno(Producto producto){
