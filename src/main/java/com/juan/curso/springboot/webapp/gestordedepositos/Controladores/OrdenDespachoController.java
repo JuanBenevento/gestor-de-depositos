@@ -35,7 +35,7 @@ public class OrdenDespachoController {
         this.productoServiceImpl = productoServiceImpl;
     }
 
-    @GetMapping("/todos")
+    @GetMapping("/buscarTodos")
     public ResponseEntity<?> buscarTodos() {
         List<OrdenDespacho> ordenes = ordenDespachoService.buscarTodos()
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontraron ordenes de despacho"));
@@ -52,7 +52,7 @@ public class OrdenDespachoController {
         return ResponseEntity.ok(dtoList);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/buscarPorId/{id}")
     public ResponseEntity<?> buscar(@PathVariable Long id) {
         try {
             OrdenDespacho orden = ordenDespachoService.buscarPorId(id)
@@ -72,7 +72,7 @@ public class OrdenDespachoController {
         }
     }
 
-    @PostMapping
+    @PostMapping("/crearOrden")
     public ResponseEntity<?> crear(@RequestBody OrdenDespachoDTO dto) {
         OrdenDespacho orden = new OrdenDespacho();
         try {
@@ -119,7 +119,7 @@ public class OrdenDespachoController {
         }
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/actualizar/{id}")
     public ResponseEntity<?> actualizar(@PathVariable Long id, @RequestBody OrdenDespachoDTO ordenDTO) {
         try {
             OrdenDespacho orden = ordenDespachoService.buscarPorId(id)
@@ -134,7 +134,7 @@ public class OrdenDespachoController {
         }
     }
 
-    @DeleteMapping("/eliminar")
+    @DeleteMapping("/eliminarOrden")
     public ResponseEntity<?> eliminar(@RequestParam Long id) {
         try {
             if (!ordenDespachoService.ExistePorId(id)) {
