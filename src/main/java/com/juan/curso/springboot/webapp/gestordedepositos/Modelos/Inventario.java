@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.lang.reflect.Type;
-import java.sql.Date;
+import java.util.Date;
 
 @Entity
 @Getter
@@ -26,7 +26,7 @@ public class Inventario {
     @ManyToOne
     @JoinColumn (name = "id_ubicacion")
     private Ubicacion ubicacion;
-    private Double cantidad;
+    private int cantidad;
     private Date fecha_actualizacion;
 
 }

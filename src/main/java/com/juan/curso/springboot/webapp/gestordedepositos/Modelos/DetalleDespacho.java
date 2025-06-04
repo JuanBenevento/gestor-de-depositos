@@ -29,5 +29,5 @@ public class DetalleDespacho {
     private Producto producto;
 
     @Column(nullable = false)
-    private Double cantidad;
+    private int cantidad;
 }

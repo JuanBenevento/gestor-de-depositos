@@ -33,7 +33,7 @@ public class MovimientoInventario {
     @JoinColumn(name = "id_ubicacion_destino", nullable = false)
     private Ubicacion ubicacionDestino;
 
-    private Double cantidad;
+    private int cantidad;
 
     @Enumerated(EnumType.STRING)
     private EstadoMovimientoInventario estado;

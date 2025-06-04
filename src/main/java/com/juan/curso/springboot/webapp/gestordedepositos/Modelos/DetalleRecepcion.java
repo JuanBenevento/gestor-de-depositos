@@ -31,7 +31,7 @@ public class DetalleRecepcion {
     private Producto producto;
 
     @NotNull
-    private Double cantidad;
+    private int cantidad;
 
 
     public DetalleRecepcion(Long idProducto, Double cantidad) {

@@ -15,6 +15,6 @@ public class DetalleDespachoDTO {
     private Long id_detalle_despacho;
     private OrdenDespacho ordenDespacho;
     private Producto producto;
-    private Double cantidad;
+    private int cantidad;
 
 }

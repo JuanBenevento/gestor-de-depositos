@@ -29,6 +29,13 @@ public class ManejadorGlobalDeErrores {
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(CapacidadExcedida.class)
+    public ResponseEntity<Map<String, String>> handleRecursoNoEncontrado(CapacidadExcedida ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
     /*@ExceptionHandler(ValidacionException.class)
     public ResponseEntity<Map<String, String>> handleValidacion(ValidacionException ex) {
         Map<String, String> error = new HashMap<>();

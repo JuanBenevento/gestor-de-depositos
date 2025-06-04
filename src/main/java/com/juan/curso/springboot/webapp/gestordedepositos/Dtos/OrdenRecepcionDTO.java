@@ -9,6 +9,7 @@ import lombok.Setter;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -27,5 +28,6 @@ public class OrdenRecepcionDTO {
         this.estado = ordenRecepcion.getEstado();
         this.fecha = ordenRecepcion.getFecha();
         this.idProveedor = ordenRecepcion.getProveedor().getId_proveedor();
+        this.detalleRecepcionDTOList = ordenRecepcion.getDetallesRecepcion().stream().map(DetalleRecepcionDTO::new).collect(Collectors.toList());
     }
 }
