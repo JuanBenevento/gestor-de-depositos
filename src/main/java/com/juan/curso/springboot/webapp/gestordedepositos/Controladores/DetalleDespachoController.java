@@ -31,7 +31,7 @@ public class DetalleDespachoController {
 
     }
 
-    @GetMapping("/todos")
+    @GetMapping("/buscarTodos")
     public ResponseEntity<?> buscarTodos() {
         List<DetalleDespacho> detalles = detalleDespachoServiceImpl.buscarTodos()
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontraron detalles de despacho"));
@@ -47,7 +47,7 @@ public class DetalleDespachoController {
         return ResponseEntity.ok(dtoList);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/buscarPorId/{id}")
     public ResponseEntity<?> buscar(@PathVariable Long id) {
         try {
             DetalleDespacho detalle = detalleDespachoServiceImpl.buscarPorId(id)
@@ -103,7 +103,7 @@ public class DetalleDespachoController {
     }
 
 
-    @PutMapping("/{id}")
+    @PutMapping("/actualizar/{id}")
     public ResponseEntity<?> actualizar(@PathVariable Long id, @RequestBody DetalleDespachoDTO dto) {
         try {
             DetalleDespacho detalle = detalleDespachoServiceImpl.buscarPorId(id)
@@ -126,7 +126,7 @@ public class DetalleDespachoController {
         }
     }
 
-    @DeleteMapping("/eliminar")
+    @DeleteMapping("/eliminarDetalle")
     public ResponseEntity<?> eliminar(@RequestParam Long id) {
         try {
             if (!detalleDespachoServiceImpl.ExistePorId(id)) {
