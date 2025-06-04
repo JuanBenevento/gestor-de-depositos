@@ -1,8 +1,8 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Controladores;
 
 import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.DetalleRecepcionDTO;
+import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.InventarioDTO;
 import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.OrdenRecepcionDTO;
-import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.RecursoNoEncontradoException;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.*;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Enums.EstadosDeOrden;
 import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.*;
@@ -31,6 +31,8 @@ public class OrdenRecepcionController {
     DetalleRecepcionServiceImpl detalleRecepcionService;
     @Autowired
     InventarioServiceImpl inventarioService;
+    @Autowired
+    private UbicacionServiceImpl ubicacionService;
 
     public OrdenRecepcionController() {
     }
@@ -82,21 +84,29 @@ public class OrdenRecepcionController {
                 Optional<Producto> productoExistente = Optional.ofNullable(productoService.buscarPorCodigoSKU(detalleDTO.getProducto().getCodigoSku()));
                 if (productoExistente.isPresent()) {
                     detalle.setProducto(productoExistente.get());
+                    Optional<Inventario> inventarioEncontrado = inventarioService.buscarPorIdProducto(productoExistente.get().getIdProducto());
+                    inventarioService.agregarMercaderia(detalleDTO);
                 } else {
 
                     Producto retorno =  productoService.crearConRetorno(detalleDTO.getProducto());
                     detalle.setProducto(retorno);
+                    Inventario inventario = new Inventario();
+                    inventario.setCantidad(detalleDTO.getCantidad());
+                    inventario.setProducto(retorno);
+                    inventario.setFecha_actualizacion(Calendar.getInstance().getTime());
+                    inventario.setUbicacion(ubicacionService.buscarUbicacionSegunCantidad(detalleDTO.getCantidad()));
+                    inventarioService.crear(inventario);
                 }
                 detalle.setCantidad(detalleDTO.getCantidad());
                 detalle.setOrdenRecepcion(orden);
                 detalles.add(detalle);
-                inventarioService.agregarMercaderia(detalle);
+
             }
 
-            orden.setDetalles(detalles);
+            orden.setDetallesRecepcion(detalles);
             OrdenRecepcion ordenCreada = ordenRecepcionService.crearConRetorno(orden);
             OrdenRecepcionDTO ordenDTO = new OrdenRecepcionDTO();
-            if(ordenCreada!= null && ordenCreada.getDetalles() != null) {
+            if(ordenCreada!= null && ordenCreada.getDetallesRecepcion() != null) {
                 ordenDTO = new OrdenRecepcionDTO(ordenCreada);
                 if (ordenDTO != null) {
                     return new ResponseEntity<>(ordenDTO, HttpStatus.CREATED);
@@ -136,7 +146,7 @@ public class OrdenRecepcionController {
             OrdenRecepcion orden = ordenRecepcionService.buscarPorId(idOrden)
                     .orElseThrow(() -> new RuntimeException("Orden no encontrada"));
 
-            orden.getDetalles().clear();
+            orden.getDetallesRecepcion().clear();
             ordenRecepcionService.eliminar(orden.getIdOrdenRecepcion());
             return new ResponseEntity<>("Orden eliminada", HttpStatus.OK);
         } catch (Exception e) {

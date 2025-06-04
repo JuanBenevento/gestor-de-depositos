@@ -82,14 +82,17 @@ public class UbicacionServiceImpl implements GenericService<Ubicacion, Long> {
         }
     }
 
-    public List<Ubicacion> buscarUbicacionSegunCantidad(Double cantidad) {
+    public Ubicacion buscarUbicacionSegunCantidad(int cantidad) {
         try {
-            List<Ubicacion> ubicaciones = ubicacionRepositorio.findByCapacidadMaximaGreaterThanEqual(cantidad);
-            List<Ubicacion> ubicacionesDisponibles = ubicaciones.stream().filter(u->
-                    u.getOcupadoActual()).toList();
-            return ubicacionesDisponibles;
+            List<Ubicacion> ubicaciones = ubicacionRepositorio.findAll();
+            for (Ubicacion ubicacion : ubicaciones) {
+                if(ubicacion.getCapacidadMaxima() - ubicacion.getOcupadoActual() >=cantidad) {
+                    return ubicacion;
+                }
+            }
         } catch (RuntimeException e) {
             throw new RuntimeException(e);
         }
+        return null;
     }
 }

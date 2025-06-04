@@ -33,7 +33,6 @@ public class Producto {
     @NotNull
     @Column(nullable = false)
     private Date fecha_creacion;
-    @NotNull
     @Column(name = "is_deleted")
     private String isDeleted;
 

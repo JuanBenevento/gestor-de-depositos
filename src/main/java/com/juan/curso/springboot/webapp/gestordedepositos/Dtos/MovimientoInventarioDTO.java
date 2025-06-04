@@ -21,7 +21,7 @@ public class MovimientoInventarioDTO {
     private Producto producto;
     private Ubicacion ubicacionOrigen;
     private Ubicacion ubicacionDestino;
-    private Double cantidad;
+    private int cantidad;
     private EstadoMovimientoInventario estado;
     private Date fecha;
 

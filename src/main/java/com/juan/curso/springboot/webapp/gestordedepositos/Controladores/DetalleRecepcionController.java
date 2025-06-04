@@ -1,8 +1,6 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Controladores;
 
 import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.DetalleRecepcionDTO;
-import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.OrdenRecepcionDTO;
-import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.ProductoDTO;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.DetalleRecepcion;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.OrdenRecepcion;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Producto;
@@ -14,7 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Calendar;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -94,7 +91,7 @@ public class DetalleRecepcionController {
     public ResponseEntity<?> actualizarDetalleRecepcion(@RequestBody DetalleRecepcionDTO detalleDTO) {
         try {
             DetalleRecepcion detalle = new DetalleRecepcion();
-            Optional<DetalleRecepcion> detallesEncontrados = detalleRecepcionService.buscarPorId(detalleDTO.getId_detalle_recepcion());
+            Optional<DetalleRecepcion> detallesEncontrados = detalleRecepcionService.buscarPorId(detalleDTO.getIdDetalleRecepcion());
             if (detallesEncontrados.isPresent()) {
                 detalle = detallesEncontrados.get();
                 detalle.setCantidad(detalleDTO.getCantidad());

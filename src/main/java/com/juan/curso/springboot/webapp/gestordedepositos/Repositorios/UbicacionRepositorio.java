@@ -8,6 +8,5 @@ import java.util.List;
 
 @Repository
 public interface UbicacionRepositorio extends JpaRepository<Ubicacion, Long> {
-    List<Ubicacion> findByCapacidadMaximaGreaterThanEqual(Double cantidad);
-    Ubicacion findByOcupadoActual(Boolean ocupadoActual);
+    List<Ubicacion> findByCapacidadMaximaGreaterThanEqual(int cantidad);
 }

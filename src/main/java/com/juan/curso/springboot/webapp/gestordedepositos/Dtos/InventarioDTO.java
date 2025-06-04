@@ -18,7 +18,7 @@ public class InventarioDTO {
     private Long id_inventario;
     private Producto producto;
     private Ubicacion ubicacion;
-    private Double cantidad;
+    private int cantidad;
     private Date fecha_actualizacion;
 
     public InventarioDTO(Inventario inventario) {

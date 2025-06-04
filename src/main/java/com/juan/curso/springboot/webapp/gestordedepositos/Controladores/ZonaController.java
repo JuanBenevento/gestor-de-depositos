@@ -45,7 +45,7 @@ public class ZonaController {
         return new ResponseEntity(zonaDTO, HttpStatus.OK);
     }
 
-    @PostMapping
+    @PostMapping("/crear")
     public ResponseEntity<?> crear(@RequestBody ZonaDTO dto) {
         Zona zona = new Zona();
         zona.setNombre(dto.getNombre());
@@ -55,7 +55,7 @@ public class ZonaController {
         return new ResponseEntity<>(dto, HttpStatus.CREATED);
     }
 
-    @PutMapping
+    @PutMapping("actualizar")
     public ResponseEntity<?> actualizar(@RequestBody ZonaDTO dto) {
         Zona zona = new Zona();
         zona.setIdZona(dto.getIdZona());
@@ -66,7 +66,7 @@ public class ZonaController {
         return ResponseEntity.ok(dto);
     }
 
-    @DeleteMapping
+    @DeleteMapping("/eliminar")
     public ResponseEntity<?> eliminar(@RequestParam Long id) {
         zonaService.eliminar(id);
         return ResponseEntity.ok("Zona eliminado con éxito");

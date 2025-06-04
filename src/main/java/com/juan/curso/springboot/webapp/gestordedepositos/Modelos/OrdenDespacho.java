@@ -36,5 +36,6 @@ public class OrdenDespacho {
 
     @OneToMany(mappedBy = "ordenDespacho", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
-    private List<DetalleDespacho> detalle_despacho = new ArrayList<>();
+    @Column(name="detalle_despacho")
+    private List<DetalleDespacho> detalleDespacho = new ArrayList<>();
 }

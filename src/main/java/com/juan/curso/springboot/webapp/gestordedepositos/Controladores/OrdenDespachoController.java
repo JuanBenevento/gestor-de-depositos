@@ -46,7 +46,7 @@ public class OrdenDespachoController {
                         orden.getFecha_despacho(),
                         orden.getEstado(),
                         orden.getCliente(),
-                        orden.getDetalle_despacho()))
+                        orden.getDetalleDespacho()))
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(dtoList);
@@ -62,7 +62,7 @@ public class OrdenDespachoController {
                     orden.getFecha_despacho(),
                     orden.getEstado(),
                     orden.getCliente(),
-                    orden.getDetalle_despacho()
+                    orden.getDetalleDespacho()
             );
             return new ResponseEntity<>(dto, HttpStatus.OK);
         } catch (IllegalArgumentException e) {
@@ -102,7 +102,7 @@ public class OrdenDespachoController {
                     })
                     .collect(Collectors.toList());
 
-            orden.setDetalle_despacho(detalles);
+            orden.setDetalleDespacho(detalles);
 
             OrdenDespacho retorno = ordenDespachoService.crearConRetorno(orden);
 
@@ -111,7 +111,7 @@ public class OrdenDespachoController {
             respuesta.setFecha_despacho(retorno.getFecha_despacho());
             respuesta.setEstado(retorno.getEstado());
             respuesta.setCliente(retorno.getCliente());
-            respuesta.setDetalle_despacho(retorno.getDetalle_despacho());
+            respuesta.setDetalle_despacho(retorno.getDetalleDespacho());
 
             return new ResponseEntity<>(respuesta, HttpStatus.CREATED);
         } catch (Exception e) {

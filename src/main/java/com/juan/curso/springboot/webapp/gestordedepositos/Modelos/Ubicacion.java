@@ -29,5 +29,5 @@ public class Ubicacion {
     private int capacidadMaxima;
     @NotNull
     @Column(name = "ocupado_actual")
-    private Boolean ocupadoActual;
+    private int ocupadoActual;
 }

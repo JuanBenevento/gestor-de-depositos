@@ -53,7 +53,7 @@ public class UbicacionController {
         return new ResponseEntity(ubicacionDTO, HttpStatus.OK);
     }
 
-    @PostMapping
+    @PostMapping("/crear")
     public ResponseEntity<?> crear(@RequestBody UbicacionDTO dto) {
         Zona zona = zonaServiceImpl.buscarPorId(dto.getZona().getIdZona())
                 .orElseThrow(() -> new RuntimeException("Zona no encontrada con ID: " + dto.getZona().getIdZona()));
@@ -68,7 +68,7 @@ public class UbicacionController {
         return new ResponseEntity<>(dto, HttpStatus.CREATED);
     }
 
-    @PutMapping
+    @PutMapping("/actualizar")
     public ResponseEntity<?> actualizar(@RequestBody UbicacionDTO dto) {
         Ubicacion ubicacion = new Ubicacion();
         ubicacion.setCodigo(dto.getCodigo());
@@ -80,7 +80,7 @@ public class UbicacionController {
         return ResponseEntity.ok(dto);
     }
 
-    @DeleteMapping
+    @DeleteMapping("/eliminar")
     public ResponseEntity<?> eliminar(@RequestParam Long id) {
         ubicacionService.eliminar(id);
         return ResponseEntity.ok("Ubicacion eliminada con éxito");

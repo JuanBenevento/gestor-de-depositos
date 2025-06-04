@@ -16,7 +16,7 @@ public class UbicacionDTO {
     private String codigo;
     private Zona zona;
     private int capacidadMaxima;
-    private Boolean ocupadoActual;
+    private int ocupadoActual;
 
     public UbicacionDTO(Ubicacion ubicacion) {
         this.idUbicacion = ubicacion.getIdUbicacion();
