@@ -7,6 +7,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Calendar;
 import java.util.List;
 import java.util.Optional;
 
@@ -77,6 +78,7 @@ public class ProductoServiceImpl implements GenericService<Producto, Long> {
     public Producto crearConRetorno(Producto producto){
         Producto retorno = new Producto();
         try{
+            producto.setFecha_creacion(Calendar.getInstance().getTime());
             retorno = productoRepositorio.save(producto);
         }catch(Exception e){
             e.printStackTrace();

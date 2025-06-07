@@ -21,7 +21,8 @@ import java.util.List;
 public class OrdenDespacho {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id_despacho;
+    @Column(name ="id_despacho")
+    private Long IdDespacho;
 
     @Column(nullable = false)
     private Date fecha_despacho;

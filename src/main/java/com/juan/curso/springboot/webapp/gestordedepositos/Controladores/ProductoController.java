@@ -112,9 +112,9 @@ public class ProductoController {
         producto.setNombre(dto.getNombre());
         producto.setDescripcion(dto.getDescripcion());
         try {
-            producto.setCodigoSku(dto.getCodigo_sku());
+            producto.setCodigoSku(dto.getCodigoSku());
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Código SKU inválido: " + dto.getCodigo_sku());
+            throw new IllegalArgumentException("Código SKU inválido: " + dto.getCodigoSku());
         }
         producto.setUnidad_medida(dto.getUnidad_medida());
         producto.setFecha_creacion(dto.getFecha_creacion());

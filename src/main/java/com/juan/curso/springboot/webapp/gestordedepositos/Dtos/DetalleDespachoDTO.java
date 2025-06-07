@@ -1,5 +1,6 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Dtos;
 
+import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.DetalleDespacho;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.OrdenDespacho;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Producto;
 import lombok.AllArgsConstructor;
@@ -12,7 +13,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class DetalleDespachoDTO {
-    private Long id_detalle_despacho;
+    private Long idDetalleDespacho;
     private OrdenDespacho ordenDespacho;
     private Producto producto;
     private int cantidad;

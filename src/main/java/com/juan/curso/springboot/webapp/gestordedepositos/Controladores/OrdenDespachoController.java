@@ -2,14 +2,8 @@ package com.juan.curso.springboot.webapp.gestordedepositos.Controladores;
 
 import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.OrdenDespachoDTO;
 import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.RecursoNoEncontradoException;
-import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Cliente;
-import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.DetalleDespacho;
-import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.OrdenDespacho;
-import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Producto;
-import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.ClienteServiceImpl;
-import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.DetalleDespachoServiceImpl;
-import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.OrdenDespachoServiceImpl;
-import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.ProductoServiceImpl;
+import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.*;
+import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,13 +20,15 @@ public class OrdenDespachoController {
     private final ClienteServiceImpl clienteServiceImpl;
     private final DetalleDespachoServiceImpl detalleDespachoService;
     private final ProductoServiceImpl productoServiceImpl;
+    private final InventarioServiceImpl inventarioServiceImpl;
 
     @Autowired
-    public OrdenDespachoController(OrdenDespachoServiceImpl ordenDespachoService, ClienteServiceImpl clienteServiceImpl, DetalleDespachoServiceImpl detalleDespachoService, ProductoServiceImpl productoServiceImpl) {
+    public OrdenDespachoController(OrdenDespachoServiceImpl ordenDespachoService, ClienteServiceImpl clienteServiceImpl, DetalleDespachoServiceImpl detalleDespachoService, ProductoServiceImpl productoServiceImpl, InventarioServiceImpl inventarioServiceImpl) {
         this.ordenDespachoService = ordenDespachoService;
         this.clienteServiceImpl = clienteServiceImpl;
         this.detalleDespachoService = detalleDespachoService;
         this.productoServiceImpl = productoServiceImpl;
+        this.inventarioServiceImpl = inventarioServiceImpl;
     }
 
     @GetMapping("/buscarTodos")
@@ -42,7 +38,7 @@ public class OrdenDespachoController {
 
         List<OrdenDespachoDTO> dtoList = ordenes.stream()
                 .map(orden -> new OrdenDespachoDTO(
-                        orden.getId_despacho(),
+                        orden.getIdDespacho(),
                         orden.getFecha_despacho(),
                         orden.getEstado(),
                         orden.getCliente(),
@@ -58,7 +54,7 @@ public class OrdenDespachoController {
             OrdenDespacho orden = ordenDespachoService.buscarPorId(id)
                     .orElseThrow(() -> new RecursoNoEncontradoException("Orden no encontrada con ID: " + id));
             OrdenDespachoDTO dto = new OrdenDespachoDTO(
-                    orden.getId_despacho(),
+                    orden.getIdDespacho(),
                     orden.getFecha_despacho(),
                     orden.getEstado(),
                     orden.getCliente(),
@@ -79,7 +75,7 @@ public class OrdenDespachoController {
             Optional<Cliente> cliente = clienteServiceImpl.buscarPorId(dto.getCliente().getId_cliente());
 
             if(cliente.isPresent()) {
-               orden.setCliente(cliente.get());
+                orden.setCliente(cliente.get());
             }else {
                 throw new RecursoNoEncontradoException("Cliente no encontrado");
             }
@@ -93,8 +89,18 @@ public class OrdenDespachoController {
                         if(producto.isPresent()) {
                             DetalleDespacho detalle = new DetalleDespacho();
                             detalle.setProducto(producto.get());
+
+                            Inventario inventario = inventarioServiceImpl.buscarPorIdProducto(producto.get().getIdProducto())
+                                    .orElseThrow(() -> new RecursoNoEncontradoException("Inventario no encontrado"));
+
+                            if (detalleDto.getCantidad() > inventario.getCantidad()) {
+                                throw new RecursoNoEncontradoException("Cantidad insuficiente en inventario");
+                            }
+
                             detalle.setCantidad(detalleDto.getCantidad());
                             detalle.setOrdenDespacho(orden);
+
+                            inventarioServiceImpl.disminuirCantidad(detalle);
                             return detalle;
                         }else {
                             throw new RecursoNoEncontradoException("Producto no encontrado");
@@ -107,7 +113,7 @@ public class OrdenDespachoController {
             OrdenDespacho retorno = ordenDespachoService.crearConRetorno(orden);
 
             OrdenDespachoDTO respuesta = new OrdenDespachoDTO();
-            respuesta.setId_despacho(retorno.getId_despacho());
+            respuesta.setId_despacho(retorno.getIdDespacho());
             respuesta.setFecha_despacho(retorno.getFecha_despacho());
             respuesta.setEstado(retorno.getEstado());
             respuesta.setCliente(retorno.getCliente());

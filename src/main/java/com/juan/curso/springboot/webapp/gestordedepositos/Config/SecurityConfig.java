@@ -33,7 +33,9 @@ public class SecurityConfig {
 
     public SecurityConfig() {
     }
-    /*@Bean
+
+    /*
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
@@ -42,8 +44,8 @@ public class SecurityConfig {
                 .logout(logout -> logout.logoutUrl("/logout").permitAll());
 
         return http.build();
-    }*/
-
+    }
+    */
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -117,8 +119,6 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
-
-
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {

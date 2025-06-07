@@ -4,6 +4,7 @@ import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.DetalleRecepcionD
 import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.RecursoNoEncontradoException;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.*;
 import com.juan.curso.springboot.webapp.gestordedepositos.Repositorios.InventarioRepositorio;
+import com.juan.curso.springboot.webapp.gestordedepositos.Repositorios.UbicacionRepositorio;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +20,9 @@ public class InventarioServiceImpl implements GenericService<Inventario, Long> {
     UbicacionServiceImpl ubicacionService;
     @Autowired
     ProductoServiceImpl productoService;
+    @Autowired
+    private UbicacionRepositorio ubicacionRepositorio;
+
     public InventarioServiceImpl() {
     }
 
@@ -155,7 +159,14 @@ public class InventarioServiceImpl implements GenericService<Inventario, Long> {
                 Inventario inventario = inventarioRepositorio.findInventarioByProducto_IdProducto(productoEncontrado.get().getIdProducto());
                 inventario.setCantidad(inventario.getCantidad() - detalleDespacho.getCantidad());
                 inventario.setFecha_actualizacion(Calendar.getInstance().getTime());
+
                 inventarioRepositorio.save(inventario);
+
+                Ubicacion ubicacion = inventario.getUbicacion();
+                ubicacion.setOcupadoActual(ubicacion.getOcupadoActual() - detalleDespacho.getCantidad());
+
+                ubicacionRepositorio.save(ubicacion);
+
                 return inventario;
             }
         }catch (Exception e){

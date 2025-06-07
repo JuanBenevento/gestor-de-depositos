@@ -1,7 +1,6 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Modelos;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,7 +16,8 @@ import lombok.Setter;
 public class DetalleDespacho {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id_detalle_despacho;
+    @Column(name="id_detalle_despacho")
+    private Long idDetalleDespacho;
 
     @ManyToOne
     @JoinColumn(name = "id_despacho", nullable = false)

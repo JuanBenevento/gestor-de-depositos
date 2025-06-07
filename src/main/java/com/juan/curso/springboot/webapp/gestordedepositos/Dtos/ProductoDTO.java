@@ -15,7 +15,7 @@ public class ProductoDTO {
     private Long idProducto;
     private String nombre;
     private String descripcion;
-    private String codigo_sku;
+    private String codigoSku;
     private String unidad_medida;
     private Date fecha_creacion;
     private String isDeleted;
@@ -23,7 +23,7 @@ public class ProductoDTO {
     public ProductoDTO(String nombreProducto,String descripcion ,String unidadMedida, String codigoSku, Date time) {
         this.nombre = nombreProducto;
         this.descripcion = descripcion;
-        this.codigo_sku = codigoSku;
+        this.codigoSku = codigoSku;
         this.unidad_medida = unidadMedida;
         this.fecha_creacion = time;
         this.isDeleted = "N";
@@ -33,7 +33,7 @@ public class ProductoDTO {
         this.idProducto = producto.getIdProducto();
         this.nombre = producto.getNombre();
         this.descripcion = producto.getDescripcion();
-        this.codigo_sku = producto.getCodigoSku();
+        this.codigoSku = producto.getCodigoSku();
         this.unidad_medida = producto.getUnidad_medida();
         this.fecha_creacion = producto.getFecha_creacion();
         this.isDeleted = producto.getIsDeleted();
