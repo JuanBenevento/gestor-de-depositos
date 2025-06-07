@@ -3,6 +3,7 @@ package com.juan.curso.springboot.webapp.gestordedepositos.Controladores;
 import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.DetalleDespachoDTO;
 import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.RecursoNoEncontradoException;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.*;
+import com.juan.curso.springboot.webapp.gestordedepositos.Repositorios.DetalleDespachoRepositorio;
 import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.DetalleDespachoServiceImpl;
 import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.InventarioServiceImpl;
 import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.OrdenDespachoServiceImpl;
@@ -13,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -27,9 +29,6 @@ public class DetalleDespachoController {
     @Autowired
     InventarioServiceImpl inventarioServiceImpl;
 
-    public DetalleDespachoController() {
-
-    }
 
     @GetMapping("/buscarTodos")
     public ResponseEntity<?> buscarTodos() {
@@ -38,7 +37,7 @@ public class DetalleDespachoController {
 
         List<DetalleDespachoDTO> dtoList = detalles.stream()
                 .map(detalle -> new DetalleDespachoDTO(
-                        detalle.getId_detalle_despacho(),
+                        detalle.getIdDetalleDespacho(),
                         detalle.getOrdenDespacho(),
                         detalle.getProducto(),
                         detalle.getCantidad()))
@@ -53,7 +52,7 @@ public class DetalleDespachoController {
             DetalleDespacho detalle = detalleDespachoServiceImpl.buscarPorId(id)
                     .orElseThrow(() -> new RecursoNoEncontradoException("Detalle no encontrada con ID: " + id));
             DetalleDespachoDTO dto = new DetalleDespachoDTO(
-                    detalle.getId_detalle_despacho(),
+                    detalle.getIdDetalleDespacho(),
                     detalle.getOrdenDespacho(),
                     detalle.getProducto(),
                     detalle.getCantidad()
@@ -78,7 +77,7 @@ public class DetalleDespachoController {
                 throw new RecursoNoEncontradoException("Cantidad insuficiente en inventario");
             }
 
-            OrdenDespacho orden = ordenDespachoServiceImpl.buscarPorId(dto.getOrdenDespacho().getId_despacho())
+            OrdenDespacho orden = ordenDespachoServiceImpl.buscarPorId(dto.getOrdenDespacho().getIdDespacho())
                     .orElseThrow(() -> new RecursoNoEncontradoException("Orden no encontrada"));
 
             DetalleDespacho detalle = new DetalleDespacho();
@@ -86,10 +85,12 @@ public class DetalleDespachoController {
             detalle.setOrdenDespacho(orden);
             detalle.setCantidad(dto.getCantidad());
 
+            inventarioServiceImpl.disminuirCantidad(detalle);
+
             DetalleDespacho creado = detalleDespachoServiceImpl.crearConRetorno(detalle);
 
             DetalleDespachoDTO respuesta = new DetalleDespachoDTO();
-            respuesta.setId_detalle_despacho(creado.getId_detalle_despacho());
+            respuesta.setIdDetalleDespacho(creado.getIdDetalleDespacho());
             respuesta.setProducto(creado.getProducto());
             respuesta.setCantidad(creado.getCantidad());
 

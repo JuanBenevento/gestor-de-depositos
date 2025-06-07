@@ -54,7 +54,7 @@ public class DetalleDespachoServiceImpl implements GenericService<DetalleDespach
         try {
             detalleDespacho = detalleDespachoRepositorio.save(detalleDespacho);
         }catch (RecursoNoEncontradoException e){
-            throw new RecursoNoEncontradoException("Detalle de despacho con id " + detalleDespacho.getId_detalle_despacho() + " no encontrado");
+            throw new RecursoNoEncontradoException("Detalle de despacho con id " + detalleDespacho.getIdDetalleDespacho() + " no encontrado");
         }catch (Exception e){
             e.printStackTrace();
         }
