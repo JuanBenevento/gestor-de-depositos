@@ -55,7 +55,7 @@ public class UsuarioController {
             usuario.setEmail(usuarioDTO.getEmail());
             usuario.setRol(rol);
 
-             usuarioServiceImpl.crear(usuario);
+            usuario = usuarioServiceImpl.crear(usuario);
             return ResponseEntity.ok(usuario);
         }catch(Exception e){
             e.printStackTrace();

@@ -87,9 +87,8 @@ public class DetalleRecepcionController {
             }
             detalleRecepcion.setCantidad(dto.getCantidad());
 
-            detalleRecepcionService.crear(detalleRecepcion);
-
-            return new ResponseEntity<>(dto, HttpStatus.CREATED);
+            detalleRecepcion = detalleRecepcionService.crear(detalleRecepcion);
+            return new ResponseEntity<>(detalleRecepcion, HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>("Error al crear detalle: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }

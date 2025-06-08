@@ -59,7 +59,7 @@ public class MovimientoInventarioController {
 
                 MovimientoInventario movInventario = new MovimientoInventario(dto.getId_movimiento(), producto, origen, destino, dto.getCantidad(), dto.getEstado(), new Date());
 
-                movInventario = movimientoInventarioServiceImpl.crearConRetorno(movInventario);
+                movInventario = movimientoInventarioServiceImpl.crear(movInventario);
                 dto = new MovimientoInventarioDTO(movInventario);
                 return new ResponseEntity<>(dto, HttpStatus.CREATED);
             } else {

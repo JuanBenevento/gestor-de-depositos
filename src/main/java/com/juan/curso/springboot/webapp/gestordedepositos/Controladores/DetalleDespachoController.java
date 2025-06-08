@@ -92,7 +92,7 @@ public class DetalleDespachoController {
 
             inventarioServiceImpl.disminuirCantidad(detalle);
 
-            DetalleDespacho creado = detalleDespachoServiceImpl.crearConRetorno(detalle);
+            DetalleDespacho creado = detalleDespachoServiceImpl.crear(detalle);
 
             DetalleDespachoDTO respuesta = new DetalleDespachoDTO();
             respuesta.setIdDetalleDespacho(creado.getIdDetalleDespacho());

@@ -55,8 +55,8 @@ public class ZonaController {
         zona.setNombre(dto.getNombre());
         zona.setDescripcion(dto.getDescripcion());
 
-        zonaService.crear(zona);
-        return new ResponseEntity<>(dto, HttpStatus.CREATED);
+        zona = zonaService.crear(zona);
+        return new ResponseEntity<>(zona, HttpStatus.CREATED);
     }
 
     @PutMapping("actualizar")

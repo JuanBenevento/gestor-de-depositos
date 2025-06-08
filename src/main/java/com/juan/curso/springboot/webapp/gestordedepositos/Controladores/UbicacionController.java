@@ -60,8 +60,7 @@ public class UbicacionController {
         ubicacion.setZona(zona);
         ubicacion.setCapacidadMaxima(dto.getCapacidadMaxima());
         ubicacion.setOcupadoActual(dto.getOcupadoActual());
-
-        ubicacion = ubicacionService.crearConRetorno(ubicacion);
+        ubicacion = ubicacionService.crear(ubicacion);
         return new ResponseEntity<>(new UbicacionDTO(ubicacion), HttpStatus.CREATED);
     }
 

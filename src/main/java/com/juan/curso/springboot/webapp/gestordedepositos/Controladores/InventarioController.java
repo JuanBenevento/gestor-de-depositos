@@ -61,7 +61,7 @@ public class InventarioController {
             }
             inventario.setCantidad(inventarioDTO.getCantidad());
             inventario.setFecha_actualizacion(Calendar.getInstance().getTime());
-            inventario = inventarioService.crearConRetorno(inventario);
+            inventario = inventarioService.crear(inventario);
             return new ResponseEntity<>(new InventarioDTO(inventario), HttpStatus.CREATED);
         } catch (RuntimeException e) {
             throw new RuntimeException(e);

@@ -41,12 +41,13 @@ public class ProductoServiceImpl implements GenericService<Producto, Long> {
     }
 
     @Override
-    public void crear(Producto producto) {
+    public Producto crear(Producto producto) {
         try {
-            productoRepositorio.save(producto);
+            producto = productoRepositorio.save(producto);
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return producto;
     }
 
     @Override
@@ -71,19 +72,6 @@ public class ProductoServiceImpl implements GenericService<Producto, Long> {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-
-    @Transactional
-    public Producto crearConRetorno(Producto producto){
-        Producto retorno = new Producto();
-        try{
-            producto.setFecha_creacion(Calendar.getInstance().getTime());
-            retorno = productoRepositorio.save(producto);
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-        return retorno;
     }
 
     public Producto buscarPorCodigoSKU(String codigo){

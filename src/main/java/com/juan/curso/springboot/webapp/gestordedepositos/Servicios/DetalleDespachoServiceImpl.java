@@ -41,12 +41,14 @@ public class DetalleDespachoServiceImpl implements GenericService<DetalleDespach
     }
 
     @Override
-    public void crear(DetalleDespacho detalleDespacho) {
+    public DetalleDespacho crear(DetalleDespacho detalleDespacho) {
         try {
-            detalleDespachoRepositorio.save(detalleDespacho);
+            detalleDespacho = detalleDespachoRepositorio.save(detalleDespacho);
         }catch (Exception e){
             e.printStackTrace();
         }
+
+        return detalleDespacho;
     }
 
     @Override
@@ -70,17 +72,6 @@ public class DetalleDespachoServiceImpl implements GenericService<DetalleDespach
         }catch (Exception e){
             e.printStackTrace();
         }
-    }
-
-    @Transactional
-    public DetalleDespacho crearConRetorno(DetalleDespacho detalleDespacho) {
-        DetalleDespacho retorno = new DetalleDespacho();
-        try {
-            retorno = detalleDespachoRepositorio.save(detalleDespacho);
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-        return retorno;
     }
 
     public boolean ExistePorId(Long id) {

@@ -59,8 +59,9 @@ public class ClienteController {
         cliente.setTelefono(dto.getTelefono());
         cliente.setEmail(dto.getEmail());
 
-        clienteService.crear(cliente);
-        return new ResponseEntity<>(dto, HttpStatus.CREATED);
+
+        cliente = clienteService.crear(cliente);
+        return new ResponseEntity<>(cliente, HttpStatus.CREATED);
     }
 
     @PutMapping("/actualizarCliente")

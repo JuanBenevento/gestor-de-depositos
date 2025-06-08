@@ -44,16 +44,7 @@ public class UbicacionServiceImpl implements GenericService<Ubicacion, Long> {
     }
 
     @Override
-    public void crear(Ubicacion ubicacion) {
-        try {
-            ubicacionRepositorio.save(ubicacion);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public Ubicacion crearConRetorno(Ubicacion ubicacion) {
+    public Ubicacion crear(Ubicacion ubicacion) {
         try {
             ubicacion = ubicacionRepositorio.save(ubicacion);
         } catch (Exception e) {

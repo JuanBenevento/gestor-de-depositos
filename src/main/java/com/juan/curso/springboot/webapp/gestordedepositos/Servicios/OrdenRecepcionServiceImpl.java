@@ -33,13 +33,14 @@ public class OrdenRecepcionServiceImpl implements GenericService<OrdenRecepcion,
     }
 
     @Override
-    public void crear(OrdenRecepcion ordenRecepcion) {
+    public OrdenRecepcion crear(OrdenRecepcion ordenRecepcion) {
 
         try {
-            ordenRecepcionRepositorio.save(ordenRecepcion);
+            ordenRecepcion = ordenRecepcionRepositorio.save(ordenRecepcion);
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return ordenRecepcion;
     }
 
     @Override
@@ -60,15 +61,5 @@ public class OrdenRecepcionServiceImpl implements GenericService<OrdenRecepcion,
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-    @Transactional
-    public OrdenRecepcion crearConRetorno(OrdenRecepcion ordenRecepcion) {
-        OrdenRecepcion ordenCreada = new OrdenRecepcion();
-        try {
-             ordenCreada = ordenRecepcionRepositorio.save(ordenRecepcion);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        return ordenCreada;
     }
 }

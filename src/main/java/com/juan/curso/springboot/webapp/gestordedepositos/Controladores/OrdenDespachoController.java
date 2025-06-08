@@ -105,7 +105,7 @@ public class OrdenDespachoController {
 
             orden.setDetalleDespacho(detalles);
 
-            OrdenDespacho retorno = ordenDespachoService.crearConRetorno(orden);
+            OrdenDespacho retorno = ordenDespachoService.crear(orden);
 
 
             return new ResponseEntity<>(new OrdenDespachoDTO(retorno), HttpStatus.CREATED);

@@ -63,7 +63,7 @@ public class ProductoController {
         try {
             Producto producto1 = toEntity(producto);
             producto1.setFecha_creacion(Calendar.getInstance().getTime());
-            producto1 = productoServiceImpl.crearConRetorno(producto1);
+            producto1 = productoServiceImpl.crear(producto1);
             return new ResponseEntity<>(producto1, HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>("Error al crear producto: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
