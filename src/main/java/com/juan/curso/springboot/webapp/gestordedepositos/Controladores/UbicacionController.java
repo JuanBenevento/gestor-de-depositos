@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -83,7 +84,7 @@ public class UbicacionController {
         Optional<Ubicacion> ubicacionEncontrada = ubicacionService.buscarPorId(id);
         if(ubicacionEncontrada.isPresent()) {
            List<Inventario> inventariosConEsaUbicacion = inventarioServiceImpl.buscarTodos().get().stream().filter(
-                   inventario -> inventario.getUbicacion().getIdUbicacion() == ubicacionEncontrada.get().getIdUbicacion()
+                   inventario -> Objects.equals(inventario.getUbicacion().getIdUbicacion(), ubicacionEncontrada.get().getIdUbicacion())
            ).collect(Collectors.toList());
            if(inventariosConEsaUbicacion.size() > 0) {
                throw new Exception("No se puede eliminar la ubicacion porque esta asignada a un inventario");
