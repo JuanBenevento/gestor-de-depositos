@@ -8,6 +8,7 @@ import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.DetalleDespa
 import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.InventarioServiceImpl;
 import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.OrdenDespachoServiceImpl;
 import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.ProductoServiceImpl;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,17 +21,25 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("GestorDeDepositos/detallesDeDespacho")
 public class DetalleDespachoController {
-    @Autowired
-    DetalleDespachoServiceImpl detalleDespachoServiceImpl;
-    @Autowired
-    ProductoServiceImpl productoServiceImpl;
-    @Autowired
-    OrdenDespachoServiceImpl ordenDespachoServiceImpl;
-    @Autowired
-    InventarioServiceImpl inventarioServiceImpl;
 
+    private final DetalleDespachoServiceImpl detalleDespachoServiceImpl;
+    private final ProductoServiceImpl productoServiceImpl;
+    private final OrdenDespachoServiceImpl ordenDespachoServiceImpl;
+    private final InventarioServiceImpl inventarioServiceImpl;
+
+    @Autowired
+    public DetalleDespachoController( DetalleDespachoServiceImpl detalleDespachoServiceImpl,
+    ProductoServiceImpl productoServiceImpl,
+    OrdenDespachoServiceImpl ordenDespachoServiceImpl,
+    InventarioServiceImpl inventarioServiceImpl) {
+        this.detalleDespachoServiceImpl = detalleDespachoServiceImpl;
+        this.productoServiceImpl = productoServiceImpl;
+        this.ordenDespachoServiceImpl = ordenDespachoServiceImpl;
+        this.inventarioServiceImpl = inventarioServiceImpl;
+    }
 
     @GetMapping("/buscarTodos")
+    @Operation(summary = "Este metodo busca todos los deetalles de despachos guardados en la base de datos")
     public ResponseEntity<?> buscarTodos() {
         List<DetalleDespacho> detalles = detalleDespachoServiceImpl.buscarTodos()
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontraron detalles de despacho"));
@@ -47,17 +56,12 @@ public class DetalleDespachoController {
     }
 
     @GetMapping("/buscarPorId/{id}")
+    @Operation(summary = "Este metodo busca un detalle de despacho por el id tipo LONG")
     public ResponseEntity<?> buscar(@PathVariable Long id) {
         try {
             DetalleDespacho detalle = detalleDespachoServiceImpl.buscarPorId(id)
                     .orElseThrow(() -> new RecursoNoEncontradoException("Detalle no encontrada con ID: " + id));
-            DetalleDespachoDTO dto = new DetalleDespachoDTO(
-                    detalle.getIdDetalleDespacho(),
-                    detalle.getOrdenDespacho(),
-                    detalle.getProducto(),
-                    detalle.getCantidad()
-            );
-            return new ResponseEntity<>(dto, HttpStatus.OK);
+            return new ResponseEntity<>( new DetalleDespachoDTO(detalle), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
@@ -65,6 +69,7 @@ public class DetalleDespachoController {
         }
     }
     @PostMapping("/crearDetalle")
+    @Operation(summary = "Este metodo crea un detalle de despacho. Valida que el producto y el inventario existan como tambien la orden a la que se quiere agregar el detalle")
     public ResponseEntity<?> crear(@RequestBody DetalleDespachoDTO dto) {
         try {
             Producto producto = productoServiceImpl.buscarPorId(dto.getProducto().getIdProducto())
@@ -104,7 +109,8 @@ public class DetalleDespachoController {
     }
 
 
-    @PutMapping("/actualizar/{id}")
+    @PutMapping("/actualizarDetalle/{id}")
+    @Operation(summary = "Este metodo actualiza un detalle de despacho por el id tipo LONG")
     public ResponseEntity<?> actualizar(@PathVariable Long id, @RequestBody DetalleDespachoDTO dto) {
         try {
             DetalleDespacho detalle = detalleDespachoServiceImpl.buscarPorId(id)
@@ -128,6 +134,7 @@ public class DetalleDespachoController {
     }
 
     @DeleteMapping("/eliminarDetalle")
+    @Operation(summary = "Este metodo elimina un detalle de una orden de despacho")
     public ResponseEntity<?> eliminar(@RequestParam Long id) {
         try {
             if (!detalleDespachoServiceImpl.ExistePorId(id)) {

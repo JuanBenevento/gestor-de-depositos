@@ -9,6 +9,7 @@ import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Ubicacion;
 import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.InventarioServiceImpl;
 import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.ProductoServiceImpl;
 import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.UbicacionServiceImpl;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,14 +24,20 @@ import java.util.Optional;
 @RestController
 @RequestMapping("GestorDeDepositos/inventario")
 public class InventarioController {
-    @Autowired
-    ProductoServiceImpl productoService;
-    @Autowired
-    UbicacionServiceImpl ubicacionService;
-    @Autowired
-    InventarioServiceImpl inventarioService;
 
+    private final ProductoServiceImpl productoService;
+    private final UbicacionServiceImpl ubicacionService;
+    private final InventarioServiceImpl inventarioService;
+
+    public InventarioController(ProductoServiceImpl productoService,
+    UbicacionServiceImpl ubicacionService,
+    InventarioServiceImpl inventarioService){
+        this.productoService = productoService;
+        this.ubicacionService = ubicacionService;
+        this.inventarioService = inventarioService;
+    }
     @PostMapping("/crear")
+    @Operation(summary = "Este metodo crea un inventario")
     public ResponseEntity<InventarioDTO> crear(@RequestBody InventarioDTO inventarioDTO) {
         try{
             Inventario inventario = new Inventario();

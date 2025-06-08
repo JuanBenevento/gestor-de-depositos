@@ -3,6 +3,7 @@ package com.juan.curso.springboot.webapp.gestordedepositos.Controladores;
 import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.ProductoDTO;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Producto;
 import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.ProductoServiceImpl;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,13 +18,15 @@ import java.util.stream.Collectors;
 @RequestMapping("GestorDeDepositos/producto")
 public class ProductoController {
 
-    @Autowired
-    ProductoServiceImpl productoServiceImpl;
+    private final ProductoServiceImpl productoServiceImpl;
 
-    public ProductoController() {
+    @Autowired
+    public ProductoController(ProductoServiceImpl productoServiceImpl) {
+        this.productoServiceImpl = productoServiceImpl;
     }
 
     @GetMapping("/todos")
+    @Operation(summary = "Este metodo busca todos los productos")
     public ResponseEntity<?> buscarTodos() {
         try {
             List<ProductoDTO> productos = productoServiceImpl.buscarTodos()
@@ -39,6 +42,7 @@ public class ProductoController {
     }
 
     @GetMapping("/buscar")
+    @Operation(summary = "Este metodo busca un producto por su id")
     public ResponseEntity<?> buscar(@RequestParam Long id) {
         try {
             Optional<Producto> producto = productoServiceImpl.buscarPorId(id);
@@ -54,6 +58,7 @@ public class ProductoController {
     }
 
     @PostMapping("/crearProducto")
+    @Operation(summary = "Este metodo crea un nuevo producto")
     public ResponseEntity<?> crearProducto(@RequestBody ProductoDTO producto) {
         try {
             Producto producto1 = toEntity(producto);
@@ -67,6 +72,7 @@ public class ProductoController {
 
 
     @PutMapping("/actualizarProducto")
+    @Operation(summary = "Este metodo actualiza un producto")
     public ResponseEntity<?> actualizar(@RequestBody ProductoDTO dto) {
         try {
             Producto producto = toEntity(dto);
@@ -79,6 +85,7 @@ public class ProductoController {
     }
 
     @DeleteMapping("/eliminarProducto")
+    @Operation(summary = "Este metodo elimina un producto")
     public ResponseEntity<?> eliminar(@RequestParam Long id) {
         try {
             productoServiceImpl.eliminar(id);
@@ -88,6 +95,7 @@ public class ProductoController {
         }
     }
     @GetMapping("/buscarPorCodigoSku")
+    @Operation(summary = "Este metodo busca producto por su codigo sku")
     public Optional<ProductoDTO> buscarPorCodigoSKU(String codigo) {
         ProductoDTO dto = null;
         try {

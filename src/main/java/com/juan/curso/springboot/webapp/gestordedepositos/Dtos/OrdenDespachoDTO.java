@@ -3,6 +3,7 @@ package com.juan.curso.springboot.webapp.gestordedepositos.Dtos;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Cliente;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.DetalleDespacho;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Enums.EstadosDeOrden;
+import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.OrdenDespacho;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -22,4 +23,11 @@ public class OrdenDespachoDTO {
     private Cliente cliente;
     private List<DetalleDespacho> detalle_despacho;
 
+    public OrdenDespachoDTO(OrdenDespacho ordenDespacho) {
+        this.id_despacho = ordenDespacho.getIdDespacho();
+        this.fecha_despacho = ordenDespacho.getFecha_despacho();
+        this.estado = ordenDespacho.getEstado();
+        this.cliente = ordenDespacho.getCliente();
+        this.detalle_despacho = ordenDespacho.getDetalleDespacho();
+    }
 }

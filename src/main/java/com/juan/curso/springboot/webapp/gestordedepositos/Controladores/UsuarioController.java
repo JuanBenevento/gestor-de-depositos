@@ -10,6 +10,7 @@ import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Rol;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Usuario;
 import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.RolServiceImpl;
 import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.UsuarioServiceImpl;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,17 +26,21 @@ import java.util.stream.Collectors;
 @RequestMapping("/GestorDeDepositos/usuarios")
 public class UsuarioController {
 
-    @Autowired
-    private UsuarioServiceImpl usuarioServiceImpl;
-    @Autowired
-    private RolServiceImpl rolServiceImpl;
-    @Autowired
-    PasswordEncoderConfig passwordEncoderConfig;
+    private final UsuarioServiceImpl usuarioServiceImpl;
+    private final RolServiceImpl rolServiceImpl;
+    private final PasswordEncoderConfig passwordEncoderConfig;
 
-    public UsuarioController() {
+    @Autowired
+    public UsuarioController(UsuarioServiceImpl usuarioServiceImpl, RolServiceImpl rolServiceImpl, PasswordEncoderConfig passwordEncoderConfig) {
+
+    this.usuarioServiceImpl = usuarioServiceImpl;
+    this.rolServiceImpl = rolServiceImpl;
+    this.passwordEncoderConfig = passwordEncoderConfig;
+
     }
 
     @PostMapping("/crearUsuario")
+    @Operation(summary = "Este metodo crea un usuario")
     public ResponseEntity<?> crearUsuario(@RequestBody UsuarioDTO usuarioDTO) {
         String contrasenia = passwordEncoderConfig.passwordEncoder().encode(usuarioDTO.getContrasenia());
         Usuario usuario = new Usuario();
@@ -59,6 +64,7 @@ public class UsuarioController {
     }
 
     @PutMapping("modificarUsuario")
+    @Operation(summary = "Este metodo modifica un usuario (apellido, email y nombre)")
     public ResponseEntity<?> modificarUsuario(@RequestBody UsuarioDTO usuarioDTO) {
         Usuario retorno = new Usuario();
         if(usuarioDTO.getIdUsuario() != null){
@@ -78,6 +84,7 @@ public class UsuarioController {
     }
 
     @DeleteMapping("/eliminarUsuario")
+    @Operation(summary = "Este metodo elimina un usuario")
     public ResponseEntity<?> eliminarUsuario(@RequestParam Long idUsuario) {
 
             try {
@@ -95,6 +102,7 @@ public class UsuarioController {
     }
 
     @GetMapping("/buscarUsuario")
+    @Operation(summary = "Este metodo busca un usuario")
     public ResponseEntity<UsuarioDTO> buscarUsuario(@RequestParam Long idUsuario) {
         try{
             Optional<Usuario> usuarioPorID = usuarioServiceImpl.buscarPorId(idUsuario);
@@ -110,6 +118,7 @@ public class UsuarioController {
     }
 
     @GetMapping("/buscarTodosLosUsuarios")
+    @Operation(summary = "Este metodo busca todos los usuarios")
     public ResponseEntity<List<UsuarioDTO>> buscarUsuarios(){
         List<UsuarioDTO> usuariosDTO = new ArrayList<>();
         try{
@@ -128,6 +137,7 @@ public class UsuarioController {
     }
 
     @GetMapping("/buscarPorRol")
+    @Operation(summary = "Este metodo busca usuarios por rol")
     public ResponseEntity<List<UsuarioDTO>> buscarPorRol(@RequestParam Long idRol){
         try{
             Optional<Rol> rol = rolServiceImpl.buscarPorId(idRol);

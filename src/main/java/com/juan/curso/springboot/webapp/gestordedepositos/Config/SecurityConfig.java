@@ -34,8 +34,8 @@ public class SecurityConfig {
     public SecurityConfig() {
     }
 
-    /*
-    @Bean
+
+   /* @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
@@ -44,8 +44,9 @@ public class SecurityConfig {
                 .logout(logout -> logout.logoutUrl("/logout").permitAll());
 
         return http.build();
-    }
-    */
+    }*/
+
+
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -56,7 +57,13 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/GestorDeDepositos/login").permitAll()
                         .requestMatchers("/GestorDeDepositos/cambiarContrasenia").permitAll()
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/swagger-resources/**",
+                                "/webjars/**",
+                                "/swagger-ui.html"
+                        ).permitAll()
                         .requestMatchers("/GestorDeDepositos/usuarios/crearUsuario").hasRole("ADMIN")
                         .requestMatchers("/GestorDeDepositos/usuarios/modificarUsuario").hasRole("ADMIN")
                         .requestMatchers("/GestorDeDepositos/usuarios/eliminarUsuario").hasRole("ADMIN")

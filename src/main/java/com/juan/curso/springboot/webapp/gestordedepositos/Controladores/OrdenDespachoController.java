@@ -4,6 +4,7 @@ import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.OrdenDespachoDTO;
 import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.RecursoNoEncontradoException;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.*;
 import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.*;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,20 +19,19 @@ import java.util.stream.Collectors;
 public class OrdenDespachoController {
     private final OrdenDespachoServiceImpl ordenDespachoService;
     private final ClienteServiceImpl clienteServiceImpl;
-    private final DetalleDespachoServiceImpl detalleDespachoService;
     private final ProductoServiceImpl productoServiceImpl;
     private final InventarioServiceImpl inventarioServiceImpl;
 
     @Autowired
-    public OrdenDespachoController(OrdenDespachoServiceImpl ordenDespachoService, ClienteServiceImpl clienteServiceImpl, DetalleDespachoServiceImpl detalleDespachoService, ProductoServiceImpl productoServiceImpl, InventarioServiceImpl inventarioServiceImpl) {
+    public OrdenDespachoController(OrdenDespachoServiceImpl ordenDespachoService, ClienteServiceImpl clienteServiceImpl, ProductoServiceImpl productoServiceImpl, InventarioServiceImpl inventarioServiceImpl) {
         this.ordenDespachoService = ordenDespachoService;
         this.clienteServiceImpl = clienteServiceImpl;
-        this.detalleDespachoService = detalleDespachoService;
         this.productoServiceImpl = productoServiceImpl;
         this.inventarioServiceImpl = inventarioServiceImpl;
     }
 
     @GetMapping("/buscarTodos")
+    @Operation(summary = "Este metodo busca todas las ordenes de despacho")
     public ResponseEntity<?> buscarTodos() {
         List<OrdenDespacho> ordenes = ordenDespachoService.buscarTodos()
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontraron ordenes de despacho"));
@@ -49,18 +49,12 @@ public class OrdenDespachoController {
     }
 
     @GetMapping("/buscarPorId/{id}")
+    @Operation(summary = "Este metodo busca una orden de despacho por su id")
     public ResponseEntity<?> buscar(@PathVariable Long id) {
         try {
             OrdenDespacho orden = ordenDespachoService.buscarPorId(id)
                     .orElseThrow(() -> new RecursoNoEncontradoException("Orden no encontrada con ID: " + id));
-            OrdenDespachoDTO dto = new OrdenDespachoDTO(
-                    orden.getIdDespacho(),
-                    orden.getFecha_despacho(),
-                    orden.getEstado(),
-                    orden.getCliente(),
-                    orden.getDetalleDespacho()
-            );
-            return new ResponseEntity<>(dto, HttpStatus.OK);
+            return new ResponseEntity<>(new OrdenDespachoDTO(orden), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
@@ -69,6 +63,7 @@ public class OrdenDespachoController {
     }
 
     @PostMapping("/crearOrden")
+    @Operation(summary = "Este metodo crea una orden de despacho")
     public ResponseEntity<?> crear(@RequestBody OrdenDespachoDTO dto) {
         OrdenDespacho orden = new OrdenDespacho();
         try {
@@ -112,20 +107,15 @@ public class OrdenDespachoController {
 
             OrdenDespacho retorno = ordenDespachoService.crear(orden);
 
-            OrdenDespachoDTO respuesta = new OrdenDespachoDTO();
-            respuesta.setId_despacho(retorno.getIdDespacho());
-            respuesta.setFecha_despacho(retorno.getFecha_despacho());
-            respuesta.setEstado(retorno.getEstado());
-            respuesta.setCliente(retorno.getCliente());
-            respuesta.setDetalle_despacho(retorno.getDetalleDespacho());
 
-            return new ResponseEntity<>(respuesta, HttpStatus.CREATED);
+            return new ResponseEntity<>(new OrdenDespachoDTO(retorno), HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>("Error al crear orden", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @PutMapping("/actualizar/{id}")
+    @Operation(summary = "Este metodo actualiza una orden de despacho")
     public ResponseEntity<?> actualizar(@PathVariable Long id, @RequestBody OrdenDespachoDTO ordenDTO) {
         try {
             OrdenDespacho orden = ordenDespachoService.buscarPorId(id)
@@ -133,14 +123,16 @@ public class OrdenDespachoController {
 
             orden.setEstado(ordenDTO.getEstado());
 
-            ordenDespachoService.actualizar(orden);
-            return new ResponseEntity<>(orden, HttpStatus.OK);
+            orden = ordenDespachoService.actualizar(orden);
+
+            return new ResponseEntity<>(new OrdenDespachoDTO(orden), HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>("Error al actualizar orden", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @DeleteMapping("/eliminarOrden")
+    @Operation(summary = "Este metodo elimina una orden de despacho por su id")
     public ResponseEntity<?> eliminar(@RequestParam Long id) {
         try {
             if (!ordenDespachoService.ExistePorId(id)) {

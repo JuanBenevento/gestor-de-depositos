@@ -1,13 +1,16 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Servicios;
 
+import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.ReporteUbicacionDTO;
 import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.RecursoNoEncontradoException;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Ubicacion;
 import com.juan.curso.springboot.webapp.gestordedepositos.Repositorios.UbicacionRepositorio;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UbicacionServiceImpl implements GenericService<Ubicacion, Long> {
@@ -85,5 +88,18 @@ public class UbicacionServiceImpl implements GenericService<Ubicacion, Long> {
             throw new RuntimeException(e);
         }
         return null;
+    }
+
+    public List<ReporteUbicacionDTO> obtenerEspacioDeUbicaciones() {
+        List<Ubicacion> ubicaciones = ubicacionRepositorio.findAll();
+
+        return ubicaciones.stream()
+                .map(u -> new ReporteUbicacionDTO(
+                        u.getIdUbicacion(),
+                        u.getCapacidadMaxima(),
+                        u.getOcupadoActual()
+                ))
+                .sorted(Comparator.comparingInt(ReporteUbicacionDTO::getEspacioUtilizado).reversed())
+                .collect(Collectors.toList());
     }
 }

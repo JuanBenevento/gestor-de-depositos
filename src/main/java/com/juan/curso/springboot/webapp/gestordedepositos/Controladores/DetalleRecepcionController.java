@@ -7,6 +7,7 @@ import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Producto;
 import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.DetalleRecepcionServiceImpl;
 import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.OrdenRecepcionServiceImpl;
 import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.ProductoServiceImpl;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,17 +20,22 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("GestorDeDepositos/detalleRecepcion")
 public class DetalleRecepcionController {
-    @Autowired
-    DetalleRecepcionServiceImpl detalleRecepcionService;
-    @Autowired
-    OrdenRecepcionServiceImpl ordenRecepcionService;
-    @Autowired
-    ProductoServiceImpl productoService;
 
-    public DetalleRecepcionController() {
+    private final DetalleRecepcionServiceImpl detalleRecepcionService;
+    private final OrdenRecepcionServiceImpl ordenRecepcionService;
+    private final ProductoServiceImpl productoService;
+
+    @Autowired
+    public DetalleRecepcionController(DetalleRecepcionServiceImpl detalleRecepcionService,
+    OrdenRecepcionServiceImpl ordenRecepcionService,
+    ProductoServiceImpl productoService) {
+        this.detalleRecepcionService = detalleRecepcionService;
+        this.ordenRecepcionService = ordenRecepcionService;
+        this.productoService = productoService;
     }
 
     @GetMapping("/todos")
+    @Operation(summary = "Este metodo busca todos los detalles de recepcion que se encuentran en la base de datos")
     public ResponseEntity<?> buscarTodos() {
         try {
             List<DetalleRecepcionDTO> detallesRecepcion = detalleRecepcionService.buscarTodos()
@@ -45,6 +51,7 @@ public class DetalleRecepcionController {
     }
 
     @GetMapping("/buscarDetallePorId")
+    @Operation(summary = "Este metodo busca un detalle de recepcion por el id tipo LONG")
     public ResponseEntity<?> buscarDetallePorIdDetalle(@RequestParam Long id) {
         try {
             Optional<DetalleRecepcion> detalle = detalleRecepcionService.buscarPorId(id);
@@ -60,7 +67,8 @@ public class DetalleRecepcionController {
         }
     }
 
-    @PostMapping()
+    @PostMapping("/crearDetalleRecepcion")
+    @Operation(summary = "Este metodo crea un detalle de recepcion para una orden ya creada. Valida que exista la orden y que el producto tambien exista")
     public ResponseEntity<?> crearDetalleRecepcion(@RequestBody DetalleRecepcionDTO dto) {
 
         try {
@@ -87,6 +95,7 @@ public class DetalleRecepcionController {
     }
 
     @PutMapping("/actualizarDetalle")
+    @Operation(summary = "Este metodo actualiza un detalle de recepcion de una orden ya creada")
     public ResponseEntity<?> actualizarDetalleRecepcion(@RequestBody DetalleRecepcionDTO detalleDTO) {
         try {
             DetalleRecepcion detalle = new DetalleRecepcion();
@@ -104,6 +113,7 @@ public class DetalleRecepcionController {
     }
 
     @DeleteMapping("/eliminarDetalleConIdDet")
+    @Operation(summary = "Este metodo elimina un detalle de una orden ya creada-")
     public ResponseEntity<?> eliminarDetalle(@RequestParam Long idDet) {
         try {
             detalleRecepcionService.eliminar(idDet);
@@ -114,6 +124,7 @@ public class DetalleRecepcionController {
     }
 
     @DeleteMapping("/eliminarDetallesDeOrden")
+    @Operation(summary = "Este metodo elimina TODOS los detalles de una orden")
     public ResponseEntity<?> eliminarDetallesDeOrden(@RequestParam Long idOrden) {
         try {
             Optional<List<DetalleRecepcion>> detalles = detalleRecepcionService.buscarDetallesPorOrden(idOrden);
@@ -129,6 +140,7 @@ public class DetalleRecepcionController {
     }
 
     @GetMapping("/buscarDetallesPorIdOrden")
+    @Operation(summary = "Este metodo busca todos los detalles por el id de orden tipo LONG")
     public ResponseEntity<?> buscarDetallesPorOrdenRecepcionId(@RequestParam Long idOrden) {
         try {
             Optional<List<DetalleRecepcion>> detalles = detalleRecepcionService.buscarDetallesPorOrden(idOrden);
