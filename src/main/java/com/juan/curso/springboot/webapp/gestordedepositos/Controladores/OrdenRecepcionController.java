@@ -88,7 +88,7 @@ public class OrdenRecepcionController {
                     inventarioService.agregarMercaderia(detalleDTO);
                 } else {
 
-                    Producto retorno =  productoService.crearConRetorno(detalleDTO.getProducto());
+                    Producto retorno =  productoService.crear(detalleDTO.getProducto());
                     detalle.setProducto(retorno);
                     Inventario inventario = new Inventario();
                     inventario.setCantidad(detalleDTO.getCantidad());
@@ -104,7 +104,7 @@ public class OrdenRecepcionController {
             }
 
             orden.setDetallesRecepcion(detalles);
-            OrdenRecepcion ordenCreada = ordenRecepcionService.crearConRetorno(orden);
+            OrdenRecepcion ordenCreada = ordenRecepcionService.crear(orden);
             OrdenRecepcionDTO ordenDTO = new OrdenRecepcionDTO();
             if(ordenCreada!= null && ordenCreada.getDetallesRecepcion() != null) {
                 ordenDTO = new OrdenRecepcionDTO(ordenCreada);

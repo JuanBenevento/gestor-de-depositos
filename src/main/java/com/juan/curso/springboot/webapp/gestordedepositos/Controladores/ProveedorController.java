@@ -55,8 +55,8 @@ public class ProveedorController {
         proveedor.setTelefono(dto.getTelefono());
         proveedor.setEmail(dto.getEmail());
 
-        proveedorService.crear(proveedor);
-        return new ResponseEntity<>(dto, HttpStatus.CREATED);
+        proveedor = proveedorService.crear(proveedor);
+        return new ResponseEntity<>(proveedor, HttpStatus.CREATED);
     }
 
     @PutMapping

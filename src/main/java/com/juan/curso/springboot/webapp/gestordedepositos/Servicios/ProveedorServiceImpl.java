@@ -41,16 +41,7 @@ public class ProveedorServiceImpl implements GenericService<Proveedor, Long> {
     }
 
     @Override
-    public void crear(Proveedor proveedor) {
-        try {
-            proveedorRepositorio.save(proveedor);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public Proveedor crearConRetorno(Proveedor proveedor) {
+    public Proveedor crear(Proveedor proveedor) {
         try {
             proveedor = proveedorRepositorio.save(proveedor);
         } catch (Exception e) {

@@ -41,18 +41,9 @@ public class ZonaServiceImpl implements GenericService<Zona, Long>{
     }
 
     @Override
-    public void crear(Zona zona) {
+    public Zona crear(Zona zona) {
         try {
-            zonaRepositorio.save(zona);
-        }catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public Zona crearConRetorno(Zona zona) {
-        try {
-            zona = zonaRepositorio.save(zona);
+            zona= zonaRepositorio.save(zona);
         }catch (Exception e) {
             e.printStackTrace();
         }

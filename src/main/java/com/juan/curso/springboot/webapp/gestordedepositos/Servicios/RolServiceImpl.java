@@ -30,12 +30,7 @@ public class RolServiceImpl implements GenericService<Rol, Long> {
     }
 
     @Override
-    public void crear(Rol rol) {
-
-    }
-
-    @Override
-    public Rol crearConRetorno(Rol rol) {
+    public Rol crear(Rol rol) {
         rol = rolRepositorio.save(rol);
         return rol;
     }

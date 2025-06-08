@@ -110,7 +110,7 @@ public class OrdenDespachoController {
 
             orden.setDetalleDespacho(detalles);
 
-            OrdenDespacho retorno = ordenDespachoService.crearConRetorno(orden);
+            OrdenDespacho retorno = ordenDespachoService.crear(orden);
 
             OrdenDespachoDTO respuesta = new OrdenDespachoDTO();
             respuesta.setId_despacho(retorno.getIdDespacho());

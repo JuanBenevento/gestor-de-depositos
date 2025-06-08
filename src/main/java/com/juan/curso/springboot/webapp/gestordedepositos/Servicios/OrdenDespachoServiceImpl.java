@@ -41,12 +41,13 @@ public class OrdenDespachoServiceImpl implements GenericService<OrdenDespacho, L
     }
 
     @Override
-    public void crear(OrdenDespacho ordenDespacho) {
+    public OrdenDespacho crear(OrdenDespacho ordenDespacho) {
         try {
-            ordenDespachoRepositorio.save(ordenDespacho);
+            ordenDespacho = ordenDespachoRepositorio.save(ordenDespacho);
         }catch (Exception e){
             e.printStackTrace();
         }
+        return ordenDespacho;
     }
 
     @Override
@@ -76,15 +77,5 @@ public class OrdenDespachoServiceImpl implements GenericService<OrdenDespacho, L
         } catch (Exception e) {
             throw new RuntimeException("Error al eliminar la orden con id " + id, e);
         }
-    }
-    @Transactional
-    public OrdenDespacho crearConRetorno(OrdenDespacho ordenDespacho) {
-        OrdenDespacho retorno = new OrdenDespacho();
-        try {
-           retorno = ordenDespachoRepositorio.save(ordenDespacho);
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-        return retorno;
     }
 }

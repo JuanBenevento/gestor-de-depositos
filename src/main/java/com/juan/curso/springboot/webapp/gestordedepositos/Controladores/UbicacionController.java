@@ -64,8 +64,8 @@ public class UbicacionController {
         ubicacion.setCapacidadMaxima(dto.getCapacidadMaxima());
         ubicacion.setOcupadoActual(dto.getOcupadoActual());
 
-        ubicacionService.crear(ubicacion);
-        return new ResponseEntity<>(dto, HttpStatus.CREATED);
+        ubicacion = ubicacionService.crear(ubicacion);
+        return new ResponseEntity<>(ubicacion, HttpStatus.CREATED);
     }
 
     @PutMapping("/actualizar")

@@ -49,18 +49,9 @@ public class InventarioServiceImpl implements GenericService<Inventario, Long> {
     }
 
     @Override
-    public void crear(Inventario inventario) {
+    public Inventario crear(Inventario inventario) {
         try{
-            inventarioRepositorio.save(inventario);
-        } catch (RuntimeException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    public Inventario crearConRetorno(Inventario inventario) {
-        try{
-            inventario= inventarioRepositorio.save(inventario);
+            inventario = inventarioRepositorio.save(inventario);
         } catch (RuntimeException e) {
             throw new RuntimeException(e);
         }

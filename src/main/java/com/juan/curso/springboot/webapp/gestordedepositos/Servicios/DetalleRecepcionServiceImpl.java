@@ -53,23 +53,13 @@ public class DetalleRecepcionServiceImpl implements GenericService<DetalleRecepc
     }
 
     @Override
-    public void crear(DetalleRecepcion detalle) {
+    public DetalleRecepcion crear(DetalleRecepcion detalle) {
         try {
-            detalleRecepcionRepositorio.save(detalle);
+            detalle = detalleRecepcionRepositorio.save(detalle);
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-    }
-
-    @Override
-    public DetalleRecepcion crearConRetorno(DetalleRecepcion detalleRecepcion) {
-        try {
-            detalleRecepcion = detalleRecepcionRepositorio.save(detalleRecepcion);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return detalleRecepcion;
+        return detalle;
     }
 
     @Override
@@ -81,7 +71,6 @@ public class DetalleRecepcionServiceImpl implements GenericService<DetalleRecepc
         }
         return detalle;
     }
-
 
     @Override
     public void eliminar(Long id) {

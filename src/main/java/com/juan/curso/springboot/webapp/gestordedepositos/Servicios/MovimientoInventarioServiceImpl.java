@@ -43,22 +43,12 @@ public class MovimientoInventarioServiceImpl implements GenericService<Movimient
     }
 
     @Override
-    public void crear(MovimientoInventario movimientoInventario) {
-        try {
-            movimientoInventarioRepositorio.save(movimientoInventario);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public MovimientoInventario crearConRetorno(MovimientoInventario movimientoInventario) {
+    public MovimientoInventario crear(MovimientoInventario movimientoInventario) {
         try {
             movimientoInventario = movimientoInventarioRepositorio.save(movimientoInventario);
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         return movimientoInventario;
     }
 

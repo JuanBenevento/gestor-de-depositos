@@ -41,21 +41,13 @@ public class ClienteServiceImpl implements GenericService<Cliente, Long>{
     }
 
     @Override
-    public void crear(Cliente cliente) {
-        try {
-            clienteRepositorio.save(cliente);
-        }catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public Cliente crearConRetorno(Cliente cliente) {
+    public Cliente crear(Cliente cliente) {
         try {
             cliente = clienteRepositorio.save(cliente);
         }catch (Exception e) {
             e.printStackTrace();
         }
+
         return cliente;
     }
 
