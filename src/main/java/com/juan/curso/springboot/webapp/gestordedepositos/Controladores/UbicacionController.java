@@ -2,16 +2,20 @@ package com.juan.curso.springboot.webapp.gestordedepositos.Controladores;
 
 import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.ReporteUbicacionDTO;
 import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.UbicacionDTO;
+import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Inventario;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Ubicacion;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Zona;
+import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.InventarioServiceImpl;
 import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.UbicacionServiceImpl;
 import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.ZonaServiceImpl;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -19,42 +23,34 @@ import java.util.stream.Collectors;
 public class UbicacionController {
     private final UbicacionServiceImpl ubicacionService;
     private final ZonaServiceImpl zonaServiceImpl;
+    private final InventarioServiceImpl inventarioServiceImpl;
 
     @Autowired
-    public UbicacionController(UbicacionServiceImpl ubicacionService, ZonaServiceImpl zonaServiceImpl) {
+    public UbicacionController(UbicacionServiceImpl ubicacionService, ZonaServiceImpl zonaServiceImpl, InventarioServiceImpl inventarioServiceImpl) {
         this.ubicacionService = ubicacionService;
         this.zonaServiceImpl = zonaServiceImpl;
+        this.inventarioServiceImpl = inventarioServiceImpl;
     }
 
     @GetMapping("/todos")
+    @Operation(summary = "Este metodo busca todas las ubicaciones")
     public ResponseEntity<?> buscarTodos() {
         List<UbicacionDTO> ubicaciones = ubicacionService.buscarTodos().orElseThrow().stream().
-                map(ubicacion -> new UbicacionDTO(
-                        ubicacion.getIdUbicacion(),
-                        ubicacion.getCodigo(),
-                        ubicacion.getZona(),
-                        ubicacion.getCapacidadMaxima(),
-                        ubicacion.getOcupadoActual()))
+                map(UbicacionDTO::new)
                         .collect(Collectors.toList());
         return new ResponseEntity(ubicaciones, HttpStatus.OK);
     }
 
     @GetMapping("/buscar")
+    @Operation(summary = "Este metodo busca una ubicacion por su id")
     public ResponseEntity<?> buscar(@RequestParam Long id) {
         Ubicacion ubicacion = ubicacionService.buscarPorId(id)
                 .orElseThrow(() -> new RuntimeException("Ubicacion no encontrada con ID: " + id));
-
-        UbicacionDTO ubicacionDTO = new UbicacionDTO(
-                ubicacion.getIdUbicacion(),
-                ubicacion.getCodigo(),
-                ubicacion.getZona(),
-                ubicacion.getCapacidadMaxima(),
-                ubicacion.getOcupadoActual()
-        );
-        return new ResponseEntity(ubicacionDTO, HttpStatus.OK);
+        return new ResponseEntity(new UbicacionDTO(ubicacion), HttpStatus.OK);
     }
 
     @PostMapping("/crear")
+    @Operation(summary = "Este metodo crea una nueva ubicacion")
     public ResponseEntity<?> crear(@RequestBody UbicacionDTO dto) {
         Zona zona = zonaServiceImpl.buscarPorId(dto.getZona().getIdZona())
                 .orElseThrow(() -> new RuntimeException("Zona no encontrada con ID: " + dto.getZona().getIdZona()));
@@ -65,11 +61,12 @@ public class UbicacionController {
         ubicacion.setCapacidadMaxima(dto.getCapacidadMaxima());
         ubicacion.setOcupadoActual(dto.getOcupadoActual());
 
-        ubicacionService.crear(ubicacion);
-        return new ResponseEntity<>(dto, HttpStatus.CREATED);
+        ubicacion = ubicacionService.crearConRetorno(ubicacion);
+        return new ResponseEntity<>(new UbicacionDTO(ubicacion), HttpStatus.CREATED);
     }
 
     @PutMapping("/actualizar")
+    @Operation(summary = "Este metodo busca todas las ubicaciones")
     public ResponseEntity<?> actualizar(@RequestBody UbicacionDTO dto) {
         Ubicacion ubicacion = new Ubicacion();
         ubicacion.setCodigo(dto.getCodigo());
@@ -77,17 +74,29 @@ public class UbicacionController {
         ubicacion.setCapacidadMaxima(dto.getCapacidadMaxima());
         ubicacion.setOcupadoActual(dto.getOcupadoActual());
 
-        ubicacionService.actualizar(ubicacion);
-        return ResponseEntity.ok(dto);
+        ubicacion = ubicacionService.actualizar(ubicacion);
+        return ResponseEntity.ok(new UbicacionDTO(ubicacion));
     }
 
     @DeleteMapping("/eliminar")
-    public ResponseEntity<?> eliminar(@RequestParam Long id) {
-        ubicacionService.eliminar(id);
+    @Operation(summary = "Este metodo elimina una ubicacion")
+    public ResponseEntity<?> eliminar(@RequestParam Long id) throws Exception {
+        Optional<Ubicacion> ubicacionEncontrada = ubicacionService.buscarPorId(id);
+        if(ubicacionEncontrada.isPresent()) {
+           List<Inventario> inventariosConEsaUbicacion = inventarioServiceImpl.buscarTodos().get().stream().filter(
+                   inventario -> inventario.getUbicacion().getIdUbicacion() == ubicacionEncontrada.get().getIdUbicacion()
+           ).collect(Collectors.toList());
+           if(inventariosConEsaUbicacion.size() > 0) {
+               throw new Exception("No se puede eliminar la ubicacion porque esta asignada a un inventario");
+           }else{
+               ubicacionService.eliminar(id);
+           }
+        }
         return ResponseEntity.ok("Ubicacion eliminada con éxito");
     }
 
     @GetMapping("/reporte")
+    @Operation(summary = "Este metodo reporta el lugar disponible en una ubicacion")
     public ResponseEntity<List<ReporteUbicacionDTO>> listarEspacioUbicaciones() {
         List<ReporteUbicacionDTO> lista = ubicacionService.obtenerEspacioDeUbicaciones();
         return ResponseEntity.ok(lista);
