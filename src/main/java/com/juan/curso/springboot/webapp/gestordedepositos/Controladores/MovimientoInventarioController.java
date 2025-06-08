@@ -8,6 +8,7 @@ import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Ubicacion;
 import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.MovimientoInventarioServiceImpl;
 import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.ProductoServiceImpl;
 import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.UbicacionServiceImpl;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,22 +36,16 @@ public class MovimientoInventarioController {
     }
 
     @GetMapping("/todos")
+    @Operation(summary = "Este metodo busca todos los movimientos del inventario")
     public ResponseEntity<?> buscarTodos() {
         List<MovimientoInventarioDTO> movimientosInventario = movimientoInventarioServiceImpl.buscarTodos().orElseThrow().stream().
-                map(movInventario -> new MovimientoInventarioDTO(
-                        movInventario.getId_movimientoInventario(),
-                        movInventario.getProducto(),
-                        movInventario.getUbicacionOrigen(),
-                        movInventario.getUbicacionDestino(),
-                        movInventario.getCantidad(),
-                        movInventario.getEstado(),
-                        movInventario.getFecha()
-                ))
+                map(MovimientoInventarioDTO::new)
                 .collect(Collectors.toList());
         return new ResponseEntity<>(movimientosInventario, HttpStatus.OK);
     }
 
     @PostMapping("/crearMovimiento")
+    @Operation(summary = "Este metodo crea un nuevo movimiento de inventario")
     public ResponseEntity<?> crear(@RequestBody MovimientoInventarioDTO dto) {
         try {
             Optional<Producto> productoElegido = productoServiceImpl.buscarPorId(dto.getProducto().getIdProducto());
@@ -76,14 +71,13 @@ public class MovimientoInventarioController {
     }
 
     @GetMapping("/buscar")
+    @Operation(summary = "Este metodo busca un inventario por su id")
     public ResponseEntity<?> buscar(@RequestParam Long id) {
         try {
             Optional<MovimientoInventario> movInventarioSelected = movimientoInventarioServiceImpl.buscarPorId(id);
             if (movInventarioSelected.isPresent()) {
                 MovimientoInventario movimInvent = movInventarioSelected.get();
-                MovimientoInventarioDTO dto = new MovimientoInventarioDTO(movimInvent.getId_movimientoInventario(), movimInvent.getProducto(), movimInvent.getUbicacionOrigen(), movimInvent.getUbicacionDestino(),
-                        movimInvent.getCantidad(), movimInvent.getEstado(), movimInvent.getFecha());
-                return new ResponseEntity<>(dto, HttpStatus.OK);
+                return new ResponseEntity<>(new MovimientoInventarioDTO(movimInvent), HttpStatus.OK);
             } else {
                 return new ResponseEntity<>("Movimiento de inventario no encontrado", HttpStatus.NOT_FOUND);
             }
@@ -93,6 +87,7 @@ public class MovimientoInventarioController {
     }
 
     @PutMapping("/editar")
+    @Operation(summary = "Este metodo edita un movimiento")
     public ResponseEntity<?> editar(@RequestParam Long id, @RequestBody MovimientoInventarioDTO dto) {
         try {
             Optional<MovimientoInventario> movInventarioSelected = movimientoInventarioServiceImpl.buscarPorId(id);
@@ -125,6 +120,7 @@ public class MovimientoInventarioController {
     }
 
     @DeleteMapping ("/eliminar")
+    @Operation(summary = "Este metodo elimina un movimiento de inventario")
     public ResponseEntity<?> eliminar(@RequestParam Long id) {
         try {
             movimientoInventarioServiceImpl.eliminar(id);

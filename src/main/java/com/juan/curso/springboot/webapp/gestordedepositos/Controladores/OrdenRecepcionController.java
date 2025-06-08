@@ -3,9 +3,11 @@ package com.juan.curso.springboot.webapp.gestordedepositos.Controladores;
 import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.DetalleRecepcionDTO;
 import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.InventarioDTO;
 import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.OrdenRecepcionDTO;
+import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.RecursoNoEncontradoException;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.*;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Enums.EstadosDeOrden;
 import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.*;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,6 +44,7 @@ public class OrdenRecepcionController {
     }
 
     @GetMapping("/todos")
+    @Operation(summary = "Este metodo busca todas las ordenes de recepcion")
     public ResponseEntity<?> buscarTodos() {
         try {
             List<OrdenRecepcion> ordenes = ordenRecepcionService.buscarTodos()
@@ -56,6 +59,7 @@ public class OrdenRecepcionController {
     }
 
     @GetMapping("/buscar")
+    @Operation(summary = "Este metodo busca una orden de recepcion por su id")
     public ResponseEntity<?> buscar(@RequestParam Long id) {
         try {
             Optional<OrdenRecepcion> orden = ordenRecepcionService.buscarPorId(id);
@@ -70,6 +74,7 @@ public class OrdenRecepcionController {
     }
 
     @PostMapping("/crearOrdenRecepcion")
+    @Operation(summary = "Este metodo crea una nueva orden de recepcion. Si el producto no existe en la base de datos inserta uno nuevo. Valida el proveedor y busca una ubicacion disponible para crear el inventario")
     public ResponseEntity<?> crearOrdenRecepcion(@RequestBody OrdenRecepcionDTO dto) {
         try {
             OrdenRecepcion orden = new OrdenRecepcion();
@@ -124,6 +129,7 @@ public class OrdenRecepcionController {
     }
 
     @PutMapping("/actualizarEstadoOrden")
+    @Operation(summary = "Este metodo actualiza el estado de una orden de despacho")
     public ResponseEntity<?> actualizarEstadoOrden(@RequestParam Long idOrden, @RequestParam String estado) {
         try {
             Optional<OrdenRecepcion> existingOrden = ordenRecepcionService.buscarPorId(idOrden);
@@ -132,9 +138,11 @@ public class OrdenRecepcionController {
             }
 
             OrdenRecepcion orden = existingOrden.get();
-
-            orden.setEstado(EstadosDeOrden.valueOf(estado));
-
+            if(EstadosDeOrden.valueOf(estado) != null) {
+                orden.setEstado(EstadosDeOrden.valueOf(estado));
+            }else{
+                throw new RecursoNoEncontradoException("El estado no es valido");
+            }
             orden = ordenRecepcionService.actualizar(orden);
 
             return new ResponseEntity<>(new OrdenRecepcionDTO(orden), HttpStatus.OK);
@@ -145,6 +153,7 @@ public class OrdenRecepcionController {
     }
 
     @DeleteMapping("/eliminarOrden")
+    @Operation(summary = "Este metodo elimina una orden de recepcion")
     public ResponseEntity<?> eliminar(@RequestParam Long idOrden) {
         try {
             OrdenRecepcion orden = ordenRecepcionService.buscarPorId(idOrden)

@@ -18,4 +18,10 @@ public class DetalleDespachoDTO {
     private Producto producto;
     private int cantidad;
 
+    public DetalleDespachoDTO(DetalleDespacho detalle) {
+        this.idDetalleDespacho = detalle.getIdDetalleDespacho();
+        this.ordenDespacho = detalle.getOrdenDespacho();
+        this.producto = detalle.getProducto();
+        this.cantidad = detalle.getCantidad();
+    }
 }
