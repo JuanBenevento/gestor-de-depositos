@@ -23,13 +23,18 @@ import java.util.Optional;
 @RestController
 @RequestMapping("GestorDeDepositos/inventario")
 public class InventarioController {
-    @Autowired
-    ProductoServiceImpl productoService;
-    @Autowired
-    UbicacionServiceImpl ubicacionService;
-    @Autowired
-    InventarioServiceImpl inventarioService;
 
+    private final ProductoServiceImpl productoService;
+    private final UbicacionServiceImpl ubicacionService;
+    private final InventarioServiceImpl inventarioService;
+
+    public InventarioController(ProductoServiceImpl productoService,
+    UbicacionServiceImpl ubicacionService,
+    InventarioServiceImpl inventarioService){
+        this.productoService = productoService;
+        this.ubicacionService = ubicacionService;
+        this.inventarioService = inventarioService;
+    }
     @PostMapping("/crear")
     public ResponseEntity<InventarioDTO> crear(@RequestBody InventarioDTO inventarioDTO) {
         try{

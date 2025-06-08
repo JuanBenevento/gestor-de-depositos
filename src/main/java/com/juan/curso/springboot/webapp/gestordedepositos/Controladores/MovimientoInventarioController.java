@@ -22,14 +22,17 @@ import java.util.stream.Collectors;
 @RequestMapping("GestorDeDepositos/movimientoInventario")
 public class MovimientoInventarioController {
 
+    private final MovimientoInventarioServiceImpl movimientoInventarioServiceImpl;
+    private final UbicacionServiceImpl ubicacionServiceImpl;
+    private final ProductoServiceImpl productoServiceImpl;
     @Autowired
-    MovimientoInventarioServiceImpl movimientoInventarioServiceImpl;
-    @Autowired
-    UbicacionServiceImpl ubicacionServiceImpl;
-    @Autowired
-    ProductoServiceImpl productoServiceImpl;
-
-    public MovimientoInventarioController(){}
+    public MovimientoInventarioController( MovimientoInventarioServiceImpl movimientoInventarioServiceImpl,
+    UbicacionServiceImpl ubicacionServiceImpl,
+    ProductoServiceImpl productoServiceImpl){
+        this.movimientoInventarioServiceImpl = movimientoInventarioServiceImpl;
+        this.ubicacionServiceImpl = ubicacionServiceImpl;
+        this.productoServiceImpl = productoServiceImpl;
+    }
 
     @GetMapping("/todos")
     public ResponseEntity<?> buscarTodos() {

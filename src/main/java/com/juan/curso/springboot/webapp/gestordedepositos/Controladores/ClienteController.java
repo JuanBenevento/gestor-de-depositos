@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("GestorDeDepositos/cliente")
 public class ClienteController {
+
     private final ClienteServiceImpl clienteService;
 
     @Autowired
@@ -47,7 +48,7 @@ public class ClienteController {
         return new ResponseEntity(clienteDTO, HttpStatus.OK);
     }
 
-    @PostMapping
+    @PostMapping("/crearCliente")
     public ResponseEntity<?> crear(@RequestBody ClienteDTO dto) {
         Cliente cliente = new Cliente();
         cliente.setNombre(dto.getNombre());
@@ -58,7 +59,7 @@ public class ClienteController {
         return new ResponseEntity<>(dto, HttpStatus.CREATED);
     }
 
-    @PutMapping
+    @PutMapping("/actualizarCliente")
     public ResponseEntity<?> actualizar(@RequestBody ClienteDTO dto) {
         Cliente cliente = new Cliente();
         cliente.setId_cliente(dto.getId_cliente());
@@ -70,7 +71,7 @@ public class ClienteController {
         return ResponseEntity.ok(dto);
     }
 
-    @DeleteMapping
+    @DeleteMapping("/eliminarCliente")
     public ResponseEntity<?> eliminar(@RequestParam Long id) {
         clienteService.eliminar(id);
         return ResponseEntity.ok("Cliente eliminado con éxito");

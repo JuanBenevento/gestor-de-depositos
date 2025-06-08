@@ -16,10 +16,11 @@ import java.util.stream.Collectors;
 @RequestMapping("GestorDeDepositos/proveedor")
 public class ProveedorController {
 
-    @Autowired
-    ProveedorServiceImpl proveedorService;
+    private final ProveedorServiceImpl proveedorService;
 
-    public ProveedorController() {
+    @Autowired
+    public ProveedorController(ProveedorServiceImpl proveedorService) {
+        this.proveedorService = proveedorService;
     }
 
     @GetMapping("/todos")
@@ -48,7 +49,7 @@ public class ProveedorController {
         return new ResponseEntity(proveedorDTO, HttpStatus.OK);
     }
 
-    @PostMapping
+    @PostMapping("/crearProveedor")
     public ResponseEntity<?> crear(@RequestBody ProveedorDTO dto) {
         Proveedor proveedor = new Proveedor();
         proveedor.setNombre(dto.getNombre());
@@ -59,7 +60,7 @@ public class ProveedorController {
         return new ResponseEntity<>(dto, HttpStatus.CREATED);
     }
 
-    @PutMapping
+    @PutMapping("/actualizarProveedor")
     public ResponseEntity<?> actualizar(@RequestBody ProveedorDTO dto) {
         Proveedor proveedor = new Proveedor();
         proveedor.setId_proveedor(dto.getId_proveedor());

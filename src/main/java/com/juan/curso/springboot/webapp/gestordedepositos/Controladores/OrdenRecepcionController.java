@@ -21,20 +21,24 @@ import java.util.stream.Collectors;
 @RequestMapping("GestorDeDepositos/ordenes")
 public class OrdenRecepcionController {
 
-    @Autowired
-    OrdenRecepcionServiceImpl ordenRecepcionService;
-    @Autowired
-    ProveedorServiceImpl proveedorServiceImpl;
-    @Autowired
-    ProductoServiceImpl productoService;
-    @Autowired
-    DetalleRecepcionServiceImpl detalleRecepcionService;
-    @Autowired
-    InventarioServiceImpl inventarioService;
-    @Autowired
-    private UbicacionServiceImpl ubicacionService;
+    private final OrdenRecepcionServiceImpl ordenRecepcionService;
+    private final ProveedorServiceImpl proveedorServiceImpl;
+    private final ProductoServiceImpl productoService;
+    private final InventarioServiceImpl inventarioService;
+    private final UbicacionServiceImpl ubicacionService;
 
-    public OrdenRecepcionController() {
+    @Autowired
+    public OrdenRecepcionController(OrdenRecepcionServiceImpl ordenRecepcionService,
+    ProveedorServiceImpl proveedorServiceImpl,
+    ProductoServiceImpl productoService,
+    InventarioServiceImpl inventarioService,
+    UbicacionServiceImpl ubicacionService) {
+
+        this.ordenRecepcionService = ordenRecepcionService;
+        this.proveedorServiceImpl = proveedorServiceImpl;
+        this.productoService = productoService;
+        this.inventarioService = inventarioService;
+        this.ubicacionService = ubicacionService;
     }
 
     @GetMapping("/todos")

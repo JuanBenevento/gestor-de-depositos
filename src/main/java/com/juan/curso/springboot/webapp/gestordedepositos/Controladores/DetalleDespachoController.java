@@ -20,15 +20,22 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("GestorDeDepositos/detallesDeDespacho")
 public class DetalleDespachoController {
-    @Autowired
-    DetalleDespachoServiceImpl detalleDespachoServiceImpl;
-    @Autowired
-    ProductoServiceImpl productoServiceImpl;
-    @Autowired
-    OrdenDespachoServiceImpl ordenDespachoServiceImpl;
-    @Autowired
-    InventarioServiceImpl inventarioServiceImpl;
 
+    private final DetalleDespachoServiceImpl detalleDespachoServiceImpl;
+    private final ProductoServiceImpl productoServiceImpl;
+    private final OrdenDespachoServiceImpl ordenDespachoServiceImpl;
+    private final InventarioServiceImpl inventarioServiceImpl;
+
+    @Autowired
+    public DetalleDespachoController( DetalleDespachoServiceImpl detalleDespachoServiceImpl,
+    ProductoServiceImpl productoServiceImpl,
+    OrdenDespachoServiceImpl ordenDespachoServiceImpl,
+    InventarioServiceImpl inventarioServiceImpl) {
+        this.detalleDespachoServiceImpl = detalleDespachoServiceImpl;
+        this.productoServiceImpl = productoServiceImpl;
+        this.ordenDespachoServiceImpl = ordenDespachoServiceImpl;
+        this.inventarioServiceImpl = inventarioServiceImpl;
+    }
 
     @GetMapping("/buscarTodos")
     public ResponseEntity<?> buscarTodos() {
@@ -104,7 +111,7 @@ public class DetalleDespachoController {
     }
 
 
-    @PutMapping("/actualizar/{id}")
+    @PutMapping("/actualizarDetalle/{id}")
     public ResponseEntity<?> actualizar(@PathVariable Long id, @RequestBody DetalleDespachoDTO dto) {
         try {
             DetalleDespacho detalle = detalleDespachoServiceImpl.buscarPorId(id)

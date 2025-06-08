@@ -25,14 +25,17 @@ import java.util.stream.Collectors;
 @RequestMapping("/GestorDeDepositos/usuarios")
 public class UsuarioController {
 
-    @Autowired
-    private UsuarioServiceImpl usuarioServiceImpl;
-    @Autowired
-    private RolServiceImpl rolServiceImpl;
-    @Autowired
-    PasswordEncoderConfig passwordEncoderConfig;
+    private final UsuarioServiceImpl usuarioServiceImpl;
+    private final RolServiceImpl rolServiceImpl;
+    private final PasswordEncoderConfig passwordEncoderConfig;
 
-    public UsuarioController() {
+    @Autowired
+    public UsuarioController(UsuarioServiceImpl usuarioServiceImpl, RolServiceImpl rolServiceImpl, PasswordEncoderConfig passwordEncoderConfig) {
+
+    this.usuarioServiceImpl = usuarioServiceImpl;
+    this.rolServiceImpl = rolServiceImpl;
+    this.passwordEncoderConfig = passwordEncoderConfig;
+
     }
 
     @PostMapping("/crearUsuario")

@@ -18,15 +18,13 @@ import java.util.stream.Collectors;
 public class OrdenDespachoController {
     private final OrdenDespachoServiceImpl ordenDespachoService;
     private final ClienteServiceImpl clienteServiceImpl;
-    private final DetalleDespachoServiceImpl detalleDespachoService;
     private final ProductoServiceImpl productoServiceImpl;
     private final InventarioServiceImpl inventarioServiceImpl;
 
     @Autowired
-    public OrdenDespachoController(OrdenDespachoServiceImpl ordenDespachoService, ClienteServiceImpl clienteServiceImpl, DetalleDespachoServiceImpl detalleDespachoService, ProductoServiceImpl productoServiceImpl, InventarioServiceImpl inventarioServiceImpl) {
+    public OrdenDespachoController(OrdenDespachoServiceImpl ordenDespachoService, ClienteServiceImpl clienteServiceImpl, ProductoServiceImpl productoServiceImpl, InventarioServiceImpl inventarioServiceImpl) {
         this.ordenDespachoService = ordenDespachoService;
         this.clienteServiceImpl = clienteServiceImpl;
-        this.detalleDespachoService = detalleDespachoService;
         this.productoServiceImpl = productoServiceImpl;
         this.inventarioServiceImpl = inventarioServiceImpl;
     }

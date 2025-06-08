@@ -19,14 +19,18 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("GestorDeDepositos/detalleRecepcion")
 public class DetalleRecepcionController {
-    @Autowired
-    DetalleRecepcionServiceImpl detalleRecepcionService;
-    @Autowired
-    OrdenRecepcionServiceImpl ordenRecepcionService;
-    @Autowired
-    ProductoServiceImpl productoService;
 
-    public DetalleRecepcionController() {
+    private final DetalleRecepcionServiceImpl detalleRecepcionService;
+    private final OrdenRecepcionServiceImpl ordenRecepcionService;
+    private final ProductoServiceImpl productoService;
+
+    @Autowired
+    public DetalleRecepcionController(DetalleRecepcionServiceImpl detalleRecepcionService,
+    OrdenRecepcionServiceImpl ordenRecepcionService,
+    ProductoServiceImpl productoService) {
+        this.detalleRecepcionService = detalleRecepcionService;
+        this.ordenRecepcionService = ordenRecepcionService;
+        this.productoService = productoService;
     }
 
     @GetMapping("/todos")
@@ -60,7 +64,7 @@ public class DetalleRecepcionController {
         }
     }
 
-    @PostMapping()
+    @PostMapping("/crearDetalleRecepcion")
     public ResponseEntity<?> crearDetalleRecepcion(@RequestBody DetalleRecepcionDTO dto) {
 
         try {
