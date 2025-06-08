@@ -87,7 +87,13 @@ public class InventarioServiceImpl implements GenericService<Inventario, Long> {
         try {
             Optional<Producto> productoEncontrado = productoService.buscarPorId(idProducto);
             if (productoEncontrado.isPresent() && productoEncontrado.get().getIsDeleted().equals("N")) {
-                return Optional.of(inventarioRepositorio.findInventarioByProducto_IdProducto(idProducto));
+                List<Inventario> auxInventario = inventarioRepositorio.findInventarioByProducto_IdProducto(idProducto);
+                for (Inventario invent : auxInventario) {
+                    if(invent.getCantidad() < invent.getUbicacion().getCapacidadMaxima()){
+                        return Optional.of(invent);
+                    }
+                }
+                return Optional.empty();
             }else{
                 throw new RecursoNoEncontradoException("No se pudo traer el inventario ya que el producto ya no existe");
             }
@@ -100,51 +106,59 @@ public class InventarioServiceImpl implements GenericService<Inventario, Long> {
         }
     }
 
-    public void agregarMercaderia(DetalleRecepcionDTO detalle) {
-        Inventario inventario = inventarioRepositorio.findInventarioByProducto_IdProducto(detalle.getProducto().getIdProducto());
+    public void agregarMercaderia(DetalleRecepcionDTO detalle, Inventario inventario) {
         int cantidadDetalle = detalle.getCantidad();
+        Optional<Ubicacion> ubicacionDeProdEncontrada = ubicacionService.buscarPorId(inventario.getUbicacion().getIdUbicacion());
 
-        if (inventario != null) {
-            Optional<Ubicacion> ubicacionDeProdEncontrada = ubicacionService.buscarPorId(inventario.getUbicacion().getIdUbicacion());
+        Ubicacion ubicacion = ubicacionDeProdEncontrada.orElseGet(Ubicacion::new);
 
-            if (ubicacionDeProdEncontrada.isPresent()) {
-                Ubicacion ubicacionActual = ubicacionDeProdEncontrada.get();
-                int capacidadMaxima = ubicacionActual.getCapacidadMaxima();
-                int cantidadActual = ubicacionActual.getOcupadoActual();
-                int espacioDisponible = capacidadMaxima - cantidadActual;
+        int capacidadMaxima = ubicacion.getCapacidadMaxima();
+        int cantidadActual = ubicacion.getOcupadoActual();
+        int espacioDisponible = capacidadMaxima - cantidadActual;
 
-                if (espacioDisponible >= cantidadDetalle) {
-                    inventario.setCantidad(cantidadActual + cantidadDetalle);
-                    inventario.setFecha_actualizacion(Calendar.getInstance().getTime());
-                    inventarioRepositorio.save(inventario);
-                } else {
-                    int cantidadAColocar = espacioDisponible;
-                    int cantidadRestante = (int) (cantidadDetalle - cantidadAColocar);
+        if (espacioDisponible >= cantidadDetalle) {
+            int nuevaCantidad = cantidadActual + cantidadDetalle;
 
-                    if (cantidadAColocar > 0) {
-                        inventario.setCantidad(cantidadActual + cantidadAColocar);
-                        inventario.setFecha_actualizacion(Calendar.getInstance().getTime());
-                        inventarioRepositorio.save(inventario);
-                    }
+            inventario.setCantidad(nuevaCantidad);
+            inventario.setFecha_actualizacion(Calendar.getInstance().getTime());
+            ubicacion.setOcupadoActual(nuevaCantidad);
 
-                    Ubicacion nuevaUbicacionOpt = ubicacionService.buscarUbicacionSegunCantidad(cantidadRestante);
+            inventarioRepositorio.save(inventario);
+            ubicacionService.actualizar(ubicacion);
+        } else {
+            int cantidadAColocar = espacioDisponible;
+            int cantidadRestante = (int) (cantidadDetalle - cantidadAColocar);
 
-                    if (nuevaUbicacionOpt != null) {
+            if (cantidadAColocar > 0) {
+                int nuevaCant = cantidadActual + cantidadAColocar;
+                inventario.setCantidad(nuevaCant);
+                inventario.setFecha_actualizacion(Calendar.getInstance().getTime());
+                ubicacion.setOcupadoActual(nuevaCant);
 
-                        Inventario nuevoInventario = new Inventario();
-                        nuevoInventario.setProducto(detalle.getProducto());
-                        nuevoInventario.setCantidad(cantidadRestante);
-                        nuevoInventario.setUbicacion(nuevaUbicacionOpt);
-                        nuevoInventario.setFecha_actualizacion(Calendar.getInstance().getTime());
-
-                        inventarioRepositorio.save(nuevoInventario);
-                    } else {
-                        throw new RuntimeException("No hay ubicación con capacidad suficiente para la cantidad restante: " + cantidadRestante);
-                    }
-                }
+                inventarioRepositorio.save(inventario);
+                ubicacionService.actualizar(ubicacion);
             }
-        }else{
-            throw new RecursoNoEncontradoException("El producto no está en el inventario");
+
+            Ubicacion nuevaUbicacionOpt = ubicacionService.buscarUbicacionSegunCantidad(cantidadRestante);
+
+            if (nuevaUbicacionOpt != null) {
+
+                Inventario nuevoInventario = new Inventario();
+                Producto producto = productoService.buscarPorCodigoSKU(detalle.getProducto().getCodigoSku());
+
+                nuevoInventario.setProducto(producto);
+                nuevoInventario.setCantidad(cantidadRestante);
+                nuevoInventario.setUbicacion(nuevaUbicacionOpt);
+                nuevoInventario.setFecha_actualizacion(Calendar.getInstance().getTime());
+
+                int ocupacionActual = nuevaUbicacionOpt.getOcupadoActual();
+                nuevaUbicacionOpt.setOcupadoActual(ocupacionActual + cantidadRestante);
+
+                inventarioRepositorio.save(nuevoInventario);
+                ubicacionService.actualizar(nuevaUbicacionOpt);
+            } else {
+                throw new RuntimeException("No hay ubicación con capacidad suficiente para la cantidad restante: " + cantidadRestante);
+            }
         }
     }
 
@@ -152,11 +166,11 @@ public class InventarioServiceImpl implements GenericService<Inventario, Long> {
         try{
             Optional<Producto> productoEncontrado = productoService.buscarPorId(detalleDespacho.getProducto().getIdProducto());
             if (productoEncontrado.isPresent()) {
-                Inventario inventario = inventarioRepositorio.findInventarioByProducto_IdProducto(productoEncontrado.get().getIdProducto());
-                inventario.setCantidad(inventario.getCantidad() - detalleDespacho.getCantidad());
-                inventario.setFecha_actualizacion(Calendar.getInstance().getTime());
-                inventarioRepositorio.save(inventario);
-                return inventario;
+//                Inventario inventario = inventarioRepositorio.findInventarioByProducto_IdProducto(productoEncontrado.get().getIdProducto());
+//                inventario.setCantidad(inventario.getCantidad() - detalleDespacho.getCantidad());
+//                inventario.setFecha_actualizacion(Calendar.getInstance().getTime());
+//                inventarioRepositorio.save(inventario);
+//                return inventario;
             }
         }catch (Exception e){
             e.printStackTrace();

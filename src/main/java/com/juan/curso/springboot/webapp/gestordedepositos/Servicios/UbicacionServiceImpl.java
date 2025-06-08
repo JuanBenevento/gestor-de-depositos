@@ -6,8 +6,10 @@ import com.juan.curso.springboot.webapp.gestordedepositos.Repositorios.Ubicacion
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UbicacionServiceImpl implements GenericService<Ubicacion, Long> {
@@ -94,5 +96,26 @@ public class UbicacionServiceImpl implements GenericService<Ubicacion, Long> {
             throw new RuntimeException(e);
         }
         return null;
+    }
+
+    public List<Ubicacion> buscarUbicacionesParaCantidadDistribuida(int cantidadNecesaria) {
+        List<Ubicacion> ubicaciones = ubicacionRepositorio.findAll();
+
+        // Filtramos las ubicaciones que tienen espacio disponible
+        List<Ubicacion> disponibles = ubicaciones.stream()
+                .filter(u -> u.getCapacidadMaxima() > u.getOcupadoActual())
+                .sorted(Comparator.comparingInt(
+                        u -> -1 * (u.getCapacidadMaxima() - u.getOcupadoActual()))) // ordenar por más espacio disponible
+                .collect(Collectors.toList());
+
+        int espacioTotalDisponible = disponibles.stream()
+                .mapToInt(u -> u.getCapacidadMaxima() - u.getOcupadoActual())
+                .sum();
+
+        if (espacioTotalDisponible < cantidadNecesaria) {
+            throw new RuntimeException("No hay espacio suficiente para almacenar " + cantidadNecesaria + " unidades. Espacio disponible: " + espacioTotalDisponible);
+        }
+
+        return disponibles;
     }
 }

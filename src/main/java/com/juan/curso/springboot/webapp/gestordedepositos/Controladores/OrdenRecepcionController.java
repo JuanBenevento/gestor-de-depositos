@@ -1,8 +1,8 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Controladores;
 
 import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.DetalleRecepcionDTO;
-import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.InventarioDTO;
 import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.OrdenRecepcionDTO;
+import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.RecursoNoEncontradoException;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.*;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Enums.EstadosDeOrden;
 import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.*;
@@ -85,17 +85,50 @@ public class OrdenRecepcionController {
                 if (productoExistente.isPresent()) {
                     detalle.setProducto(productoExistente.get());
                     Optional<Inventario> inventarioEncontrado = inventarioService.buscarPorIdProducto(productoExistente.get().getIdProducto());
-                    inventarioService.agregarMercaderia(detalleDTO);
-                } else {
 
-                    Producto retorno =  productoService.crearConRetorno(detalleDTO.getProducto());
+                    if (inventarioEncontrado.isPresent()) {
+                        inventarioService.agregarMercaderia(detalleDTO, inventarioEncontrado.get());
+                    } else {
+                        throw new RecursoNoEncontradoException("El producto no está en un inventario valido");
+                    }
+
+                } else {
+                    Producto auxProducto = detalleDTO.getProducto();
+                    auxProducto.setIsDeleted("N");
+                    auxProducto.setFecha_creacion(Calendar.getInstance().getTime());
+
+                    Producto retorno =  productoService.crearConRetorno(auxProducto);
                     detalle.setProducto(retorno);
                     Inventario inventario = new Inventario();
                     inventario.setCantidad(detalleDTO.getCantidad());
                     inventario.setProducto(retorno);
                     inventario.setFecha_actualizacion(Calendar.getInstance().getTime());
-                    inventario.setUbicacion(ubicacionService.buscarUbicacionSegunCantidad(detalleDTO.getCantidad()));
-                    inventarioService.crear(inventario);
+
+                    try {
+                        List<Ubicacion> ubicacionesDisponibles = ubicacionService.buscarUbicacionesParaCantidadDistribuida(detalleDTO.getCantidad());
+                        if (!ubicacionesDisponibles.isEmpty()) {
+                            int cantidadRestante = detalleDTO.getCantidad();
+
+
+                            for (Ubicacion ubicacion : ubicacionesDisponibles) {
+                                int disponible = ubicacion.getCapacidadMaxima() - ubicacion.getOcupadoActual();
+                                if (disponible <= 0) continue;
+
+                                int cantidadAColocar = Math.min(cantidadRestante, disponible);
+
+                                inventarioService.crear(inventario);
+
+                                ubicacion.setOcupadoActual(ubicacion.getOcupadoActual() + cantidadAColocar);
+                                ubicacionService.actualizar(ubicacion);
+
+                                cantidadRestante -= cantidadAColocar;
+
+                                if (cantidadRestante == 0) break;
+                            }
+                        }
+                    } catch (RuntimeException e) {
+                        return new ResponseEntity<>("Error: " + e.getMessage(), HttpStatus.CONFLICT);
+                    }
                 }
                 detalle.setCantidad(detalleDTO.getCantidad());
                 detalle.setOrdenRecepcion(orden);

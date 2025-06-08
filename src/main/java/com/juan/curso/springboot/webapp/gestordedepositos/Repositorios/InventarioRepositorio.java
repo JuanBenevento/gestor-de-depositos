@@ -10,6 +10,6 @@ import java.util.Optional;
 
 @Repository
 public interface InventarioRepositorio extends JpaRepository<Inventario, Long> {
-    Inventario findInventarioByProducto_IdProducto(Long idProducto);
+    List<Inventario> findInventarioByProducto_IdProducto(Long idProducto);
     List<Inventario> getInventariosByUbicacion(Ubicacion ubicacion);
 }
