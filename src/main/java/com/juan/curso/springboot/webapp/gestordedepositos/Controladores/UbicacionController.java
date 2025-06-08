@@ -1,5 +1,6 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Controladores;
 
+import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.ReporteUbicacionDTO;
 import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.UbicacionDTO;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Ubicacion;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Zona;
@@ -84,5 +85,11 @@ public class UbicacionController {
     public ResponseEntity<?> eliminar(@RequestParam Long id) {
         ubicacionService.eliminar(id);
         return ResponseEntity.ok("Ubicacion eliminada con éxito");
+    }
+
+    @GetMapping("/reporte")
+    public ResponseEntity<List<ReporteUbicacionDTO>> listarEspacioUbicaciones() {
+        List<ReporteUbicacionDTO> lista = ubicacionService.obtenerEspacioDeUbicaciones();
+        return ResponseEntity.ok(lista);
     }
 }
