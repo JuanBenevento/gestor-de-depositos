@@ -45,11 +45,7 @@ public class DetalleDespachoController {
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontraron detalles de despacho"));
 
         List<DetalleDespachoDTO> dtoList = detalles.stream()
-                .map(detalle -> new DetalleDespachoDTO(
-                        detalle.getIdDetalleDespacho(),
-                        detalle.getOrdenDespacho(),
-                        detalle.getProducto(),
-                        detalle.getCantidad()))
+                .map(DetalleDespachoDTO::new)
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(dtoList);
@@ -92,14 +88,9 @@ public class DetalleDespachoController {
 
             inventarioServiceImpl.disminuirCantidad(detalle);
 
-            DetalleDespacho creado = detalleDespachoServiceImpl.crear(detalle);
+            detalleDespachoServiceImpl.crear(detalle);
 
-            DetalleDespachoDTO respuesta = new DetalleDespachoDTO();
-            respuesta.setIdDetalleDespacho(creado.getIdDetalleDespacho());
-            respuesta.setProducto(creado.getProducto());
-            respuesta.setCantidad(creado.getCantidad());
-
-            return new ResponseEntity<>(respuesta, HttpStatus.CREATED);
+            return new ResponseEntity<>(new DetalleDespachoDTO(detalle), HttpStatus.CREATED);
 
         } catch (RecursoNoEncontradoException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);

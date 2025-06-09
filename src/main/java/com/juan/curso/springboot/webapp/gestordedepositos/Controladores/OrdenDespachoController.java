@@ -107,7 +107,6 @@ public class OrdenDespachoController {
 
             OrdenDespacho retorno = ordenDespachoService.crear(orden);
 
-
             return new ResponseEntity<>(new OrdenDespachoDTO(retorno), HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>("Error al crear orden", HttpStatus.INTERNAL_SERVER_ERROR);
