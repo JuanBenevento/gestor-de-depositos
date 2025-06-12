@@ -164,17 +164,14 @@ public class InventarioServiceImpl implements GenericService<Inventario, Long> {
 
     public void agregarMercaderia(DetalleRecepcionDTO detalle) {
         List<Inventario> inventarios = inventarioRepositorio.findAllByProducto_CodigoSku(detalle.getProducto().getCodigoSku());
-        int cantidadPendiente = detalle.getCantidad();
+        int cantidadRestante = detalle.getCantidad();
 
         for (Inventario inventario : inventarios) {
-            if (cantidadPendiente <= 0) break;
-
             Ubicacion ubicacion = inventario.getUbicacion();
             int espacioDisponible = ubicacion.getCapacidadMaxima() - ubicacion.getOcupadoActual();
 
             if (espacioDisponible > 0) {
-                int cantidadAAgregar = Math.min(espacioDisponible, cantidadPendiente);
-
+                int cantidadAAgregar = Math.min(espacioDisponible, cantidadRestante);
                 inventario.setCantidad(inventario.getCantidad() + cantidadAAgregar);
                 inventario.setFecha_actualizacion(Calendar.getInstance().getTime());
                 inventarioRepositorio.save(inventario);
@@ -182,36 +179,31 @@ public class InventarioServiceImpl implements GenericService<Inventario, Long> {
                 ubicacion.setOcupadoActual(ubicacion.getOcupadoActual() + cantidadAAgregar);
                 ubicacionService.actualizar(ubicacion);
 
-                cantidadPendiente -= cantidadAAgregar;
+                cantidadRestante -= cantidadAAgregar;
+
+                if (cantidadRestante == 0) break;
             }
         }
 
-        // Si todavía queda producto sin ubicar, buscar nuevas ubicaciones
-        while (cantidadPendiente > 0) {
-            Ubicacion nuevaUbicacion = ubicacionService.buscarUbicacionSegunCantidad(cantidadPendiente);
-            if (nuevaUbicacion == null) {
-                throw new RuntimeException("No hay ubicación con capacidad suficiente para el resto: " + cantidadPendiente);
+        // Si aún queda cantidad pendiente, crear nuevo inventario
+        if (cantidadRestante > 0) {
+            Ubicacion nuevaUbicacion = ubicacionService.buscarUbicacionSegunCantidad(cantidadRestante);
+
+            if (nuevaUbicacion != null) {
+                Producto productoPersistido = productoService.buscarPorCodigoSKU(detalle.getProducto().getCodigoSku());
+
+                Inventario nuevoInventario = new Inventario();
+                nuevoInventario.setProducto(productoPersistido);
+                nuevoInventario.setCantidad(cantidadRestante);
+                nuevoInventario.setUbicacion(nuevaUbicacion);
+                nuevoInventario.setFecha_actualizacion(Calendar.getInstance().getTime());
+                inventarioRepositorio.save(nuevoInventario);
+
+                nuevaUbicacion.setOcupadoActual(nuevaUbicacion.getOcupadoActual() + cantidadRestante);
+                ubicacionService.actualizar(nuevaUbicacion);
+            } else {
+                throw new RuntimeException("No hay ubicación con capacidad suficiente para la cantidad restante: " + cantidadRestante);
             }
-
-            int espacioDisponible = nuevaUbicacion.getCapacidadMaxima() - nuevaUbicacion.getOcupadoActual();
-            int cantidadAAgregar = Math.min(espacioDisponible, cantidadPendiente);
-
-            String productoId = detalle.getProducto().getCodigoSku();
-            Producto productoPersistido = productoService.buscarPorCodigoSKU(productoId);
-
-            productoPersistido.setIsDeleted("N");
-
-            Inventario nuevoInventario = new Inventario();
-            nuevoInventario.setProducto(productoPersistido);
-            nuevoInventario.setCantidad(cantidadAAgregar);
-            nuevoInventario.setUbicacion(nuevaUbicacion);
-            nuevoInventario.setFecha_actualizacion(Calendar.getInstance().getTime());
-            inventarioRepositorio.save(nuevoInventario);
-
-            nuevaUbicacion.setOcupadoActual(nuevaUbicacion.getOcupadoActual() + cantidadAAgregar);
-            ubicacionService.actualizar(nuevaUbicacion);
-
-            cantidadPendiente -= cantidadAAgregar;
         }
     }
 
