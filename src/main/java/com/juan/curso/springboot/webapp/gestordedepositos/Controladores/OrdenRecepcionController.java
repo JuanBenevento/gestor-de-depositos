@@ -96,15 +96,38 @@ public class OrdenRecepcionController {
                     Optional<Inventario> inventarioEncontrado = inventarioService.buscarPorIdProducto(productoExistente.get().getIdProducto());
                     inventarioService.agregarMercaderia(detalleDTO);
                 } else {
+                    int maximoDisponible = ubicacionService.obtenerCapacidadMaximaDisponibleDeUbicaciones();
 
-                    Producto retorno =  productoService.crear(detalleDTO.getProducto());
-                    detalle.setProducto(retorno);
-                    Inventario inventario = new Inventario();
-                    inventario.setCantidad(detalleDTO.getCantidad());
-                    inventario.setProducto(retorno);
-                    inventario.setFecha_actualizacion(Calendar.getInstance().getTime());
-                    inventario.setUbicacion(ubicacionService.buscarUbicacionSegunCantidad(detalleDTO.getCantidad()));
-                    inventarioService.crear(inventario);
+                    if (maximoDisponible >= detalleDTO.getCantidad()) {
+                        int cantidadPorAsignar = detalleDTO.getCantidad();
+
+                        detalleDTO.getProducto().setIsDeleted("N");
+                        Producto nuevoProducto = productoService.crear(detalleDTO.getProducto());
+                        detalle.setProducto(nuevoProducto);
+
+                        // Asignar a ubicaciones hasta que no quede cantidad pendiente
+                        while (cantidadPorAsignar > 0) {
+                            Ubicacion ubicacion = ubicacionService.obtenerUbicacionConMayorEspacioDisponible();
+                            int espacioDisponible = ubicacion.getCapacidadMaxima() - ubicacion.getOcupadoActual();
+
+                            int cantidadAColocar = Math.min(espacioDisponible, cantidadPorAsignar);
+                            cantidadPorAsignar -= cantidadAColocar;
+
+                            Inventario inventario = new Inventario();
+                            inventario.setProducto(nuevoProducto);
+                            inventario.setFecha_actualizacion(Calendar.getInstance().getTime());
+                            inventario.setCantidad(cantidadAColocar);
+                            inventario.setUbicacion(ubicacion);
+
+                            inventarioService.crear(inventario);
+
+                            ubicacion.setOcupadoActual(ubicacion.getOcupadoActual() + cantidadAColocar);
+                            ubicacionService.actualizar(ubicacion);
+                        }
+
+                    } else {
+                        throw new RuntimeException("No hay espacio suficiente en las ubicaciones disponibles.");
+                    }
                 }
                 detalle.setCantidad(detalleDTO.getCantidad());
                 detalle.setOrdenRecepcion(orden);

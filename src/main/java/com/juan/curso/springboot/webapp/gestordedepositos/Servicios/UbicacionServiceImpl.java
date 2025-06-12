@@ -102,4 +102,21 @@ public class UbicacionServiceImpl implements GenericService<Ubicacion, Long> {
                 .sorted(Comparator.comparingInt(ReporteUbicacionDTO::getEspacioUtilizado).reversed())
                 .collect(Collectors.toList());
     }
+
+    public Ubicacion obtenerUbicacionConMayorEspacioDisponible() {
+        List<Ubicacion> ubicaciones = ubicacionRepositorio.findAll();
+
+        return ubicaciones.stream()
+                .filter(u -> u.getCapacidadMaxima() >= u.getOcupadoActual())
+                .max(Comparator.comparingInt(u -> u.getCapacidadMaxima() - u.getOcupadoActual()))
+                .orElse(null);
+    }
+
+    public int obtenerCapacidadMaximaDisponibleDeUbicaciones() {
+        List<Ubicacion> ubicaciones = ubicacionRepositorio.findAll();
+
+        return ubicaciones.stream()
+                .mapToInt(u -> u.getCapacidadMaxima() - u.getOcupadoActual())
+                .sum();
+    }
 }

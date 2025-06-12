@@ -95,51 +95,123 @@ public class InventarioServiceImpl implements GenericService<Inventario, Long> {
         }
     }
 
+    public List<Inventario> buscarInventariosPorIdProducto(Long idProducto) throws RecursoNoEncontradoException {
+        Optional<Producto> producto = productoService.buscarPorId(idProducto);
+        if (producto.isEmpty() || producto.get().getIsDeleted().equals("S")) {
+            throw new RecursoNoEncontradoException("Producto inexistente o eliminado");
+        }
+        String sku = producto.get().getCodigoSku();
+        return inventarioRepositorio.findAllByProducto_CodigoSku(sku);
+    }
+
+//    public void agregarMercaderia(DetalleRecepcionDTO detalle) {
+//        Inventario inventario = inventarioRepositorio.findInventarioByProducto_IdProducto(detalle.getProducto().getIdProducto());
+//        int cantidadDetalle = detalle.getCantidad();
+//
+//        if (inventario != null) {
+//            Optional<Ubicacion> ubicacionDeProdEncontrada = ubicacionService.buscarPorId(inventario.getUbicacion().getIdUbicacion());
+//
+//            if (ubicacionDeProdEncontrada.isPresent()) {
+//                Ubicacion ubicacionActual = ubicacionDeProdEncontrada.get();
+//                int capacidadMaxima = ubicacionActual.getCapacidadMaxima();
+//                int cantidadActual = ubicacionActual.getOcupadoActual();
+//                int espacioDisponible = capacidadMaxima - cantidadActual;
+//
+//                if (espacioDisponible >= cantidadDetalle) {
+//                    inventario.setCantidad(cantidadActual + cantidadDetalle);
+//                    inventario.setFecha_actualizacion(Calendar.getInstance().getTime());
+//                    inventarioRepositorio.save(inventario);
+//
+//                    ubicacionActual.setOcupadoActual(cantidadActual + inventario.getCantidad());
+//                    ubicacionService.actualizar(ubicacionActual);
+//                } else {
+//
+//                    int cantidadAColocar = espacioDisponible;
+//                    int cantidadRestante = (int) (cantidadDetalle - cantidadAColocar);
+//
+//                    if (cantidadAColocar > 0) {
+//                        inventario.setCantidad(cantidadActual + cantidadAColocar);
+//                        inventario.setFecha_actualizacion(Calendar.getInstance().getTime());
+//
+//                        inventarioRepositorio.save(inventario);
+//                        ubicacionActual.setOcupadoActual(cantidadActual + inventario.getCantidad());
+//                        ubicacionService.actualizar(ubicacionActual);
+//                    }
+//
+//                    Ubicacion nuevaUbicacionOpt = ubicacionService.buscarUbicacionSegunCantidad(cantidadRestante);
+//
+//                    if (nuevaUbicacionOpt != null) {
+//                        int ocupacionActual = nuevaUbicacionOpt.getOcupadoActual();
+//
+//                        Inventario nuevoInventario = new Inventario();
+//                        nuevoInventario.setProducto(detalle.getProducto());
+//                        nuevoInventario.setCantidad(cantidadRestante);
+//                        nuevoInventario.setUbicacion(nuevaUbicacionOpt);
+//                        nuevoInventario.setFecha_actualizacion(Calendar.getInstance().getTime());
+//
+//                        inventarioRepositorio.save(nuevoInventario);
+//                        nuevaUbicacionOpt.setOcupadoActual(ocupacionActual + cantidadRestante);
+//                        ubicacionService.actualizar(nuevaUbicacionOpt);
+//                    } else {
+//                        throw new RuntimeException("No hay ubicación con capacidad suficiente para la cantidad restante: " + cantidadRestante);
+//                    }
+//                }
+//            }
+//        }else{
+//            throw new RecursoNoEncontradoException("El producto no está en el inventario");
+//        }
+//    }
+
     public void agregarMercaderia(DetalleRecepcionDTO detalle) {
-        Inventario inventario = inventarioRepositorio.findInventarioByProducto_IdProducto(detalle.getProducto().getIdProducto());
-        int cantidadDetalle = detalle.getCantidad();
+        List<Inventario> inventarios = inventarioRepositorio.findAllByProducto_CodigoSku(detalle.getProducto().getCodigoSku());
+        int cantidadPendiente = detalle.getCantidad();
 
-        if (inventario != null) {
-            Optional<Ubicacion> ubicacionDeProdEncontrada = ubicacionService.buscarPorId(inventario.getUbicacion().getIdUbicacion());
+        for (Inventario inventario : inventarios) {
+            if (cantidadPendiente <= 0) break;
 
-            if (ubicacionDeProdEncontrada.isPresent()) {
-                Ubicacion ubicacionActual = ubicacionDeProdEncontrada.get();
-                int capacidadMaxima = ubicacionActual.getCapacidadMaxima();
-                int cantidadActual = ubicacionActual.getOcupadoActual();
-                int espacioDisponible = capacidadMaxima - cantidadActual;
+            Ubicacion ubicacion = inventario.getUbicacion();
+            int espacioDisponible = ubicacion.getCapacidadMaxima() - ubicacion.getOcupadoActual();
 
-                if (espacioDisponible >= cantidadDetalle) {
-                    inventario.setCantidad(cantidadActual + cantidadDetalle);
-                    inventario.setFecha_actualizacion(Calendar.getInstance().getTime());
-                    inventarioRepositorio.save(inventario);
-                } else {
-                    int cantidadAColocar = espacioDisponible;
-                    int cantidadRestante = (int) (cantidadDetalle - cantidadAColocar);
+            if (espacioDisponible > 0) {
+                int cantidadAAgregar = Math.min(espacioDisponible, cantidadPendiente);
 
-                    if (cantidadAColocar > 0) {
-                        inventario.setCantidad(cantidadActual + cantidadAColocar);
-                        inventario.setFecha_actualizacion(Calendar.getInstance().getTime());
-                        inventarioRepositorio.save(inventario);
-                    }
+                inventario.setCantidad(inventario.getCantidad() + cantidadAAgregar);
+                inventario.setFecha_actualizacion(Calendar.getInstance().getTime());
+                inventarioRepositorio.save(inventario);
 
-                    Ubicacion nuevaUbicacionOpt = ubicacionService.buscarUbicacionSegunCantidad(cantidadRestante);
+                ubicacion.setOcupadoActual(ubicacion.getOcupadoActual() + cantidadAAgregar);
+                ubicacionService.actualizar(ubicacion);
 
-                    if (nuevaUbicacionOpt != null) {
-
-                        Inventario nuevoInventario = new Inventario();
-                        nuevoInventario.setProducto(detalle.getProducto());
-                        nuevoInventario.setCantidad(cantidadRestante);
-                        nuevoInventario.setUbicacion(nuevaUbicacionOpt);
-                        nuevoInventario.setFecha_actualizacion(Calendar.getInstance().getTime());
-
-                        inventarioRepositorio.save(nuevoInventario);
-                    } else {
-                        throw new RuntimeException("No hay ubicación con capacidad suficiente para la cantidad restante: " + cantidadRestante);
-                    }
-                }
+                cantidadPendiente -= cantidadAAgregar;
             }
-        }else{
-            throw new RecursoNoEncontradoException("El producto no está en el inventario");
+        }
+
+        // Si todavía queda producto sin ubicar, buscar nuevas ubicaciones
+        while (cantidadPendiente > 0) {
+            Ubicacion nuevaUbicacion = ubicacionService.buscarUbicacionSegunCantidad(cantidadPendiente);
+            if (nuevaUbicacion == null) {
+                throw new RuntimeException("No hay ubicación con capacidad suficiente para el resto: " + cantidadPendiente);
+            }
+
+            int espacioDisponible = nuevaUbicacion.getCapacidadMaxima() - nuevaUbicacion.getOcupadoActual();
+            int cantidadAAgregar = Math.min(espacioDisponible, cantidadPendiente);
+
+            String productoId = detalle.getProducto().getCodigoSku();
+            Producto productoPersistido = productoService.buscarPorCodigoSKU(productoId);
+
+            productoPersistido.setIsDeleted("N");
+
+            Inventario nuevoInventario = new Inventario();
+            nuevoInventario.setProducto(productoPersistido);
+            nuevoInventario.setCantidad(cantidadAAgregar);
+            nuevoInventario.setUbicacion(nuevaUbicacion);
+            nuevoInventario.setFecha_actualizacion(Calendar.getInstance().getTime());
+            inventarioRepositorio.save(nuevoInventario);
+
+            nuevaUbicacion.setOcupadoActual(nuevaUbicacion.getOcupadoActual() + cantidadAAgregar);
+            ubicacionService.actualizar(nuevaUbicacion);
+
+            cantidadPendiente -= cantidadAAgregar;
         }
     }
 
