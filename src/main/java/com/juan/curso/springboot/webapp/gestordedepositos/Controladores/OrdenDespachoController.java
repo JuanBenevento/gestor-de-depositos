@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Calendar;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -21,13 +22,14 @@ public class OrdenDespachoController {
     private final ClienteServiceImpl clienteServiceImpl;
     private final ProductoServiceImpl productoServiceImpl;
     private final InventarioServiceImpl inventarioServiceImpl;
-
+    private final UbicacionServiceImpl ubicacionServiceImpl;
     @Autowired
-    public OrdenDespachoController(OrdenDespachoServiceImpl ordenDespachoService, ClienteServiceImpl clienteServiceImpl, ProductoServiceImpl productoServiceImpl, InventarioServiceImpl inventarioServiceImpl) {
+    public OrdenDespachoController(OrdenDespachoServiceImpl ordenDespachoService, ClienteServiceImpl clienteServiceImpl, ProductoServiceImpl productoServiceImpl, InventarioServiceImpl inventarioServiceImpl, UbicacionServiceImpl ubicacionServiceImpl) {
         this.ordenDespachoService = ordenDespachoService;
         this.clienteServiceImpl = clienteServiceImpl;
         this.productoServiceImpl = productoServiceImpl;
         this.inventarioServiceImpl = inventarioServiceImpl;
+        this.ubicacionServiceImpl = ubicacionServiceImpl;
     }
 
     @GetMapping("/buscarTodos")
@@ -137,6 +139,40 @@ public class OrdenDespachoController {
             if (!ordenDespachoService.ExistePorId(id)) {
                 return new ResponseEntity<>("Orden de despacho con id " + id + " no encontrada", HttpStatus.NOT_FOUND);
             }
+
+            Optional<OrdenDespacho> ordenDespacho = ordenDespachoService.buscarPorId(id);
+            OrdenDespacho ordenAEliminar = ordenDespacho.get();
+
+            // Reponer productos al inventario
+            List<DetalleDespacho> detalles = ordenAEliminar.getDetalleDespacho();
+            for (DetalleDespacho detalle : detalles) {
+                Producto producto = detalle.getProducto();
+                int cantidadAReponer = detalle.getCantidad();
+
+                while (cantidadAReponer > 0) {
+                    Ubicacion ubicacionDisponible = ubicacionServiceImpl.obtenerUbicacionConMayorEspacioDisponible();
+                    int espacioDisponible = ubicacionDisponible.getCapacidadMaxima() - ubicacionDisponible.getOcupadoActual();
+
+                    if (espacioDisponible <= 0) {
+                        throw new RuntimeException("No hay suficiente espacio para reponer los productos.");
+                    }
+
+                    int cantidadAColocar = Math.min(espacioDisponible, cantidadAReponer);
+
+                    Inventario inventario = new Inventario();
+                    inventario.setProducto(producto);
+                    inventario.setCantidad(cantidadAColocar);
+                    inventario.setFecha_actualizacion(Calendar.getInstance().getTime());
+                    inventario.setUbicacion(ubicacionDisponible);
+                    inventarioServiceImpl.crear(inventario);
+
+                    ubicacionDisponible.setOcupadoActual(ubicacionDisponible.getOcupadoActual() + cantidadAColocar);
+                    ubicacionServiceImpl.actualizar(ubicacionDisponible);
+
+                    cantidadAReponer -= cantidadAColocar;
+                }
+            }
+
             ordenDespachoService.eliminar(id);
             return new ResponseEntity<>("Orden eliminada con exito", HttpStatus.OK);
         } catch (RecursoNoEncontradoException e) {
@@ -146,4 +182,5 @@ public class OrdenDespachoController {
             return new ResponseEntity<>("Error al eliminar orden: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 }
