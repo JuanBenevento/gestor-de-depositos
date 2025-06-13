@@ -2,6 +2,7 @@ package com.juan.curso.springboot.webapp.gestordedepositos.Controladores;
 
 import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.ReporteUbicacionDTO;
 import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.UbicacionDTO;
+import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.RecursoNoEncontradoException;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Inventario;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Ubicacion;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Zona;
@@ -67,15 +68,23 @@ public class UbicacionController {
 
     @PutMapping("/actualizar")
     @Operation(summary = "Este metodo busca todas las ubicaciones")
-    public ResponseEntity<?> actualizar(@RequestBody UbicacionDTO dto) {
-        Ubicacion ubicacion = new Ubicacion();
-        ubicacion.setCodigo(dto.getCodigo());
-        ubicacion.setZona(dto.getZona());
-        ubicacion.setCapacidadMaxima(dto.getCapacidadMaxima());
-        ubicacion.setOcupadoActual(dto.getOcupadoActual());
+    public ResponseEntity<?> actualizar(@RequestBody UbicacionDTO dto, @RequestParam Long id) throws RecursoNoEncontradoException {
+        Optional<Ubicacion> existente = ubicacionService.buscarPorId(id);
 
-        ubicacion = ubicacionService.actualizar(ubicacion);
-        return ResponseEntity.ok(new UbicacionDTO(ubicacion));
+        if (existente.isPresent()) {
+            Ubicacion ubicacion = existente.get();
+
+            ubicacion.setCodigo(dto.getCodigo());
+            ubicacion.setZona(dto.getZona());
+            ubicacion.setCapacidadMaxima(dto.getCapacidadMaxima());
+            ubicacion.setOcupadoActual(dto.getOcupadoActual());
+
+            ubicacion = ubicacionService.actualizar(ubicacion);
+
+            return ResponseEntity.ok(new UbicacionDTO(ubicacion));
+        } else {
+            throw new RecursoNoEncontradoException("No se encontró el ubicacion con ID: " + id);
+        }
     }
 
     @DeleteMapping("/eliminar")
