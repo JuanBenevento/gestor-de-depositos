@@ -27,8 +27,6 @@ public class MovimientoInventarioController {
     private final UbicacionServiceImpl ubicacionServiceImpl;
     private final ProductoServiceImpl productoServiceImpl;
     @Autowired
-    UbicacionController ubicacionController;
-    @Autowired
     public MovimientoInventarioController( MovimientoInventarioServiceImpl movimientoInventarioServiceImpl,
     UbicacionServiceImpl ubicacionServiceImpl,
     ProductoServiceImpl productoServiceImpl){
