@@ -25,7 +25,7 @@ public class ProveedorController {
         this.proveedorService = proveedorService;
     }
 
-    @GetMapping("/todosTodos")
+    @GetMapping("/buscarTodos")
     @Operation(summary = "Este metodo busca todos los proveedores")
     public ResponseEntity<?> buscarTodos() {
         List<Proveedor> proveedores = proveedorService.buscarTodos()
@@ -74,10 +74,10 @@ public class ProveedorController {
 
     @PutMapping("/actualizarProveedor")
     @Operation(summary = "Este metodo actualiza un proveedor")
-    public ResponseEntity<?> actualizar(@PathVariable Long id, @RequestBody ProveedorDTO dto) {
+    public ResponseEntity<?> actualizar(@RequestBody ProveedorDTO dto) {
         try {
-            Proveedor proveedor = proveedorService.buscarPorId(id)
-                    .orElseThrow(() -> new RecursoNoEncontradoException("Proveedor no encontrado con id: "+ id));
+            Proveedor proveedor = proveedorService.buscarPorId(dto.getId_proveedor())
+                    .orElseThrow(() -> new RecursoNoEncontradoException("Proveedor no encontrado con id: "+ dto.getId_proveedor()));
 
             proveedor.setNombre(dto.getNombre());
             proveedor.setTelefono(dto.getTelefono());
