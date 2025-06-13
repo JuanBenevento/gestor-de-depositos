@@ -87,10 +87,15 @@ public class OrdenDespachoController {
                             DetalleDespacho detalle = new DetalleDespacho();
                             detalle.setProducto(producto.get());
 
-                            Inventario inventario = inventarioServiceImpl.buscarPorIdProducto(producto.get().getIdProducto())
-                                    .orElseThrow(() -> new RecursoNoEncontradoException("Inventario no encontrado"));
-
-                            if (detalleDto.getCantidad() > inventario.getCantidad()) {
+                            List<Inventario> inventario = inventarioServiceImpl.buscarInventariosPorIdProducto(producto.get().getIdProducto());
+                            if(inventario.isEmpty()){
+                                new RecursoNoEncontradoException("Inventario no encontrado");
+                            }
+                            int cantidad = 0;
+                            for(Inventario i : inventario) {
+                                cantidad = cantidad + i.getCantidad();
+                            }
+                            if (detalleDto.getCantidad() > cantidad) {
                                 throw new RecursoNoEncontradoException("Cantidad insuficiente en inventario");
                             }
 
