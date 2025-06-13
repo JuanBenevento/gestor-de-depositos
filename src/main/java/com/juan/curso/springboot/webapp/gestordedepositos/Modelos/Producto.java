@@ -34,6 +34,6 @@ public class Producto {
     @Column(nullable = false)
     private Date fecha_creacion;
     @Column(name = "is_deleted")
-    private String isDeleted;
+    private String isDeleted = "N";
 
 }

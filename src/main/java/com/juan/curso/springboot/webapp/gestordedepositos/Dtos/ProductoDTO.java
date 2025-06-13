@@ -36,6 +36,6 @@ public class ProductoDTO {
         this.codigoSku = producto.getCodigoSku();
         this.unidad_medida = producto.getUnidad_medida();
         this.fecha_creacion = producto.getFecha_creacion();
-        this.isDeleted = producto.getIsDeleted();
+        this.isDeleted = "N";
     }
 }
