@@ -27,6 +27,8 @@ public class MovimientoInventarioController {
     private final UbicacionServiceImpl ubicacionServiceImpl;
     private final ProductoServiceImpl productoServiceImpl;
     @Autowired
+    UbicacionController ubicacionController;
+    @Autowired
     public MovimientoInventarioController( MovimientoInventarioServiceImpl movimientoInventarioServiceImpl,
     UbicacionServiceImpl ubicacionServiceImpl,
     ProductoServiceImpl productoServiceImpl){
@@ -57,8 +59,18 @@ public class MovimientoInventarioController {
                 Ubicacion destino = ubicacion_destino.get();
                 Producto producto = productoElegido.get();
 
-                MovimientoInventario movInventario = new MovimientoInventario(dto.getId_movimiento(), producto, origen, destino, dto.getCantidad(), dto.getEstado(), new Date());
+                MovimientoInventario movInventario = new MovimientoInventario(dto.getId_movimiento(), producto,
+                        origen, destino, dto.getCantidad(), dto.getEstado(), new Date());
 
+                Optional<Ubicacion> ubicacionDestino = ubicacionServiceImpl.buscarPorId(movInventario.getUbicacionDestino().getIdUbicacion());
+                Optional<Ubicacion> ubicacionOrigen = ubicacionServiceImpl.buscarPorId(movInventario.getUbicacionOrigen().getIdUbicacion());
+
+                if(ubicacionDestino.isPresent() && ubicacionOrigen.isPresent()) {
+                    ubicacionDestino.get().setOcupadoActual(ubicacionOrigen.get().getOcupadoActual() + dto.getCantidad());
+                    ubicacionOrigen.get().setOcupadoActual(ubicacionDestino.get().getOcupadoActual() - dto.getCantidad());
+                    ubicacionServiceImpl.actualizar(ubicacionDestino.get());
+                    ubicacionServiceImpl.actualizar(ubicacionOrigen.get());
+                }
                 movInventario = movimientoInventarioServiceImpl.crear(movInventario);
                 dto = new MovimientoInventarioDTO(movInventario);
                 return new ResponseEntity<>(dto, HttpStatus.CREATED);
