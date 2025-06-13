@@ -207,27 +207,33 @@ public class InventarioServiceImpl implements GenericService<Inventario, Long> {
         }
     }
 
-    public Inventario disminuirCantidad(DetalleDespacho detalleDespacho){
+    public void disminuirCantidad(DetalleDespacho detalleDespacho){
         try{
             Optional<Producto> productoEncontrado = productoService.buscarPorId(detalleDespacho.getProducto().getIdProducto());
             if (productoEncontrado.isPresent()) {
-                Inventario inventario = inventarioRepositorio.findInventarioByProducto_IdProducto(productoEncontrado.get().getIdProducto());
-                inventario.setCantidad(inventario.getCantidad() - detalleDespacho.getCantidad());
-                inventario.setFecha_actualizacion(Calendar.getInstance().getTime());
+                List<Inventario> inventario = inventarioRepositorio.findAllByProducto_CodigoSku(productoEncontrado.get().getCodigoSku());
+                if(!inventario.isEmpty()){
+                    int cantidad = 0;
+                    while(cantidad < detalleDespacho.getCantidad()){
+                        for(Inventario inventario2 : inventario){
+                            cantidad = cantidad + inventario2.getCantidad();
+                            inventario2.setCantidad(0);
+                            if(cantidad >= detalleDespacho.getCantidad()){
+                                break;
+                            }
+                            inventario2.setFecha_actualizacion(Calendar.getInstance().getTime());
+                            inventarioRepositorio.save(inventario2);
+                            Ubicacion ubicacion = inventario2.getUbicacion();
+                            ubicacion.setOcupadoActual(ubicacion.getOcupadoActual() - detalleDespacho.getCantidad());
 
-                inventarioRepositorio.save(inventario);
-
-                Ubicacion ubicacion = inventario.getUbicacion();
-                ubicacion.setOcupadoActual(ubicacion.getOcupadoActual() - detalleDespacho.getCantidad());
-
-                ubicacionRepositorio.save(ubicacion);
-
-                return inventario;
+                            ubicacionRepositorio.save(ubicacion);
+                        }
+                    }
+                }
             }
         }catch (Exception e){
             e.printStackTrace();
         }
-        return null;
     }
 
     public Inventario cambiarUbicacionDeInventario(Long idInventario, Long idNuevaUbicacion){
