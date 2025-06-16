@@ -81,7 +81,7 @@ public class MovimientoInventarioController {
     }
 
     @GetMapping("/buscar")
-    @Operation(summary = "Este metodo busca un inventario por su id")
+    @Operation(summary = "Este metodo busca un movimiento inventario por su id")
     public ResponseEntity<?> buscar(@RequestParam Long id) {
         try {
             Optional<MovimientoInventario> movInventarioSelected = movimientoInventarioServiceImpl.buscarPorId(id);

@@ -1,10 +1,12 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Controladores;
 
 import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.InventarioDTO;
+import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.ProveedorDTO;
 import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.CapacidadExcedida;
 import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.RecursoNoEncontradoException;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Inventario;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Producto;
+import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Proveedor;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Ubicacion;
 import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.InventarioServiceImpl;
 import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.ProductoServiceImpl;
@@ -13,13 +15,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Calendar;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("GestorDeDepositos/inventario")
@@ -36,6 +37,41 @@ public class InventarioController {
         this.ubicacionService = ubicacionService;
         this.inventarioService = inventarioService;
     }
+
+    @GetMapping("/buscarTodos")
+    @Operation(summary = "Este metodo busca todos los inventarios")
+    public ResponseEntity<?> buscarTodos() {
+        List<Inventario> inventarios = inventarioService.buscarTodos()
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontraron los inventarios"));
+
+        List<InventarioDTO> dtoList = inventarios.stream()
+                .map(InventarioDTO::new)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(dtoList);
+    }
+
+    @GetMapping("/buscarPorCodigoSkuProducto")
+    @Operation(summary = "Este metodo busca un inventario por codigo sku producto")
+    public ResponseEntity<?> buscarPorCodigoSku(@RequestParam String codigoSku) {
+        try {
+            List<Inventario> inventarios = inventarioService.buscarPorCodigoSku(codigoSku);
+            if (inventarios.isEmpty()) {
+                throw new RecursoNoEncontradoException("No se encontraron invetarios relacionados con ese codigo sku.");
+            }
+
+            List<InventarioDTO> dtoList = inventarios.stream()
+                    .map(InventarioDTO::new)
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(dtoList);
+        }catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error al buscar inventarios", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     @PostMapping("/crear")
     @Operation(summary = "Este metodo crea un inventario")
     public ResponseEntity<InventarioDTO> crear(@RequestBody InventarioDTO inventarioDTO) {
@@ -67,8 +103,5 @@ public class InventarioController {
             throw new RuntimeException(e);
         }
     }
-
-
-
 
 }

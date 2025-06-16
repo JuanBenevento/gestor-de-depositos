@@ -104,6 +104,15 @@ public class InventarioServiceImpl implements GenericService<Inventario, Long> {
         return inventarioRepositorio.findAllByProducto_CodigoSku(sku);
     }
 
+    public List<Inventario> buscarPorCodigoSku(String codigoSku) throws RecursoNoEncontradoException {
+        List<Inventario> inventarios = inventarioRepositorio.findAllByProducto_CodigoSku(codigoSku);
+        Producto producto = productoService.buscarPorCodigoSKU(codigoSku);
+        if (inventarios.isEmpty() || producto.getIsDeleted().equals("S")) {
+            throw new RecursoNoEncontradoException("Inventario de producto no encontrado con ese codigo");
+        }
+        return inventarios;
+    }
+
 //    public void agregarMercaderia(DetalleRecepcionDTO detalle) {
 //        Inventario inventario = inventarioRepositorio.findInventarioByProducto_IdProducto(detalle.getProducto().getIdProducto());
 //        int cantidadDetalle = detalle.getCantidad();
