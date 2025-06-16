@@ -64,10 +64,16 @@ public class MovimientoInventarioController {
                 Optional<Ubicacion> ubicacionOrigen = ubicacionServiceImpl.buscarPorId(movInventario.getUbicacionOrigen().getIdUbicacion());
 
                 if(ubicacionDestino.isPresent() && ubicacionOrigen.isPresent()) {
-                    ubicacionDestino.get().setOcupadoActual(ubicacionOrigen.get().getOcupadoActual() + dto.getCantidad());
-                    ubicacionOrigen.get().setOcupadoActual(ubicacionDestino.get().getOcupadoActual() - dto.getCantidad());
-                    ubicacionServiceImpl.actualizar(ubicacionDestino.get());
-                    ubicacionServiceImpl.actualizar(ubicacionOrigen.get());
+                    Ubicacion ubiDestino = ubicacionDestino.get();
+                    Ubicacion ubiOrigen = ubicacionOrigen.get();
+
+                    int cantidadActualOrigen =  ubiOrigen.getOcupadoActual();
+                    int cantidadActualDestino =  ubiDestino.getOcupadoActual();
+
+                    ubiDestino.setOcupadoActual( cantidadActualDestino + dto.getCantidad());
+                    ubiOrigen.setOcupadoActual(cantidadActualOrigen - dto.getCantidad());
+                    ubicacionServiceImpl.actualizar(ubiDestino);
+                    ubicacionServiceImpl.actualizar(ubiDestino);
                 }
                 movInventario = movimientoInventarioServiceImpl.crear(movInventario);
                 dto = new MovimientoInventarioDTO(movInventario);
