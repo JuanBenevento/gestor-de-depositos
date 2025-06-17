@@ -110,6 +110,7 @@ public class SecurityConfig {
                         .requestMatchers("/GestorDeDepositos/inventario/crear").hasAnyRole("ADMIN","OPERATIVO")
                         .requestMatchers("/GestorDeDepositos/inventario/buscarTodos").hasAnyRole("ADMIN","OPERATIVO")
                         .requestMatchers("/GestorDeDepositos/inventario/buscarPorCodigoSkuProducto").hasAnyRole("ADMIN","OPERATIVO")
+                        .requestMatchers("/GestorDeDepositos/inventario/eliminarInventario").hasAnyRole("ADMIN")
                         .requestMatchers("/GestorDeDepositos/ubicacion/todos").hasAnyRole("ADMIN","OPERATIVO")
                         .requestMatchers("/GestorDeDepositos/ubicacion/buscar").hasAnyRole("ADMIN", "OPERATIVO")
                         .requestMatchers("/GestorDeDepositos/ubicacion/crear").hasRole("ADMIN")

@@ -104,4 +104,17 @@ public class InventarioController {
         }
     }
 
+    @DeleteMapping("eliminarInventario")
+    @Operation(summary = "Este metodo elimina un inventario por su id")
+    public ResponseEntity<?> eliminar(@RequestParam Long id) {
+        try {
+            inventarioService.eliminar(id);
+            return ResponseEntity.ok("Inventario eliminado con éxito");
+        }catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }catch (Exception e) {
+            return new ResponseEntity<>("Error al eliminar inventario", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 }
