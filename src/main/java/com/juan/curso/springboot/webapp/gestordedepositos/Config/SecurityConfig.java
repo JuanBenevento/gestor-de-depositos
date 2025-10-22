@@ -35,7 +35,8 @@ public class SecurityConfig {
     }
 
 
-   /* metodo para crear el primer usuario admin
+    /*
+    //metodo para crear el primer usuario admin
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -45,9 +46,8 @@ public class SecurityConfig {
                 .logout(logout -> logout.logoutUrl("/logout").permitAll());
 
         return http.build();
-    }*/
-
-
+    }
+    */
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -70,7 +70,7 @@ public class SecurityConfig {
                         .requestMatchers("/GestorDeDepositos/usuarios/eliminarUsuario").hasRole("ADMIN")
                         .requestMatchers("/GestorDeDepositos/usuarios/buscarUsuario").hasRole("ADMIN")
                         .requestMatchers("/GestorDeDepositos/usuarios/buscarTodosLosUsuarios").hasRole("ADMIN")
-                        .requestMatchers("/GestorDeDepositos/usuarios/busarPorRol").hasRole("ADMIN")
+                        .requestMatchers("/GestorDeDepositos/usuarios/buscarPorRol").hasRole("ADMIN")
                         .requestMatchers("/GestorDeDepositos/ordenes/crearOrdenRecepcion").hasAnyRole("ADMIN","OPERATIVO")
                         .requestMatchers("/GestorDeDepositos/ordenes/todos").hasAnyRole("ADMIN","OPERATIVO")
                         .requestMatchers("/GestorDeDepositos/ordenes/buscar").hasAnyRole("ADMIN","OPERATIVO")
@@ -131,7 +131,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:8080")); // Ajustar según frontend
+        configuration.setAllowedOrigins(List.of("http://localhost:4200"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

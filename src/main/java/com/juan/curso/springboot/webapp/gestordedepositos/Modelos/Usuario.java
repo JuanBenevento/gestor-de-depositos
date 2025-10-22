@@ -31,14 +31,8 @@ public class Usuario {
     @Email
     @Column(nullable = false)
     private String email;
-    @OneToOne
-    @JoinTable(
-            name = "usuario_rol",
-            joinColumns = @JoinColumn(name = "id_usuario"),
-            inverseJoinColumns = @JoinColumn(name = "id_rol"),
-            uniqueConstraints = {@UniqueConstraint(columnNames = {"id_usuario", "id_rol"})}
-    )
+    @ManyToOne
+    @JoinColumn(name = "id_rol", nullable = false)
     private Rol rol;
-
 
 }
