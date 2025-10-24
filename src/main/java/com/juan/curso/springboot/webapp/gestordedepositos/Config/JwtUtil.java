@@ -1,13 +1,9 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Config;
 
-import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Rol;
-import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Usuario;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.stereotype.Component;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;

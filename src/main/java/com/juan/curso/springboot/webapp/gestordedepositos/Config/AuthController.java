@@ -19,6 +19,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Locale;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/GestorDeDepositos")
@@ -39,23 +40,33 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public LoginResponse login(@RequestBody LoginRequest loginRequest) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getNombre(), loginRequest.getContrasenia()));
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(loginRequest.getNombre(), loginRequest.getContrasenia()));
+            SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        UserDetails usuario =  authServicio.loadUserByUsername(loginRequest.getNombre());
-        if(usuario.getPassword() == null){
-            throw new UsernameNotFoundException("Usuario no encontrado: " + loginRequest.getNombre());
+            UserDetails usuario = (UserDetails) authentication.getPrincipal();
+            String token = authServicio.generateToken(usuario.getUsername());
 
+            LoginResponse response = new LoginResponse();
+            response.setToken(token);
+            response.setNombre(usuario.getUsername());
+            response.setRol(usuario.getAuthorities().iterator().next().getAuthority());
+
+            return ResponseEntity.ok(response);
+
+        } catch (org.springframework.security.authentication.BadCredentialsException ex) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Usuario o contraseña incorrectos"));
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error interno del servidor"));
         }
-        String token = authServicio.generateToken(usuario.getUsername());
-        LoginResponse response = new LoginResponse();
-        response.setToken(token);
-        response.setNombre(usuario.getUsername());
-        response.setRol(usuario.getAuthorities().iterator().next().getAuthority());
-        return response;
     }
+
+
+
 
     @PutMapping("/cambiarContrasenia")
     public ResponseEntity<?> cambiarContrasenia(@RequestBody CambioDeClaveDTO cambioDeClaveDTO){

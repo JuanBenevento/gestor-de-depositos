@@ -16,7 +16,7 @@ public class ZonaDTO {
     private String descripcion;
 
     public ZonaDTO(Zona zona) {
-        this.idZona = getIdZona();
+        this.idZona = zona.getIdZona();
         this.nombre = zona.getNombre();
         this.descripcion = zona.getDescripcion();
     }
