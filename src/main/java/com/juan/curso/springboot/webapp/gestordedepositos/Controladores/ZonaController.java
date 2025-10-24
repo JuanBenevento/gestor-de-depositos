@@ -74,7 +74,7 @@ public class ZonaController {
         }
     }
 
-    @PutMapping("actualizarZona")
+    @PutMapping("/actualizarZona/{id}")
     @Operation(summary = "Este metodo actualiza una zona")
     public ResponseEntity<?> actualizar(@PathVariable Long id, @RequestBody ZonaDTO dto) {
         try {
