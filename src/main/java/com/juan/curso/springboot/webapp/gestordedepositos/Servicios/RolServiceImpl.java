@@ -20,7 +20,12 @@ public class RolServiceImpl implements GenericService<Rol, Long> {
 
     @Override
     public Optional<List<Rol>> buscarTodos() {
-        return Optional.empty();
+        try {
+            return Optional.of(rolRepositorio.findAll());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Optional.empty();
+        }
     }
 
     @Override
