@@ -93,7 +93,7 @@ public class OrdenRecepcionController {
                 Optional<Producto> productoExistente = Optional.ofNullable(productoService.buscarPorCodigoSKU(detalleDTO.getProducto().getCodigoSku()));
                 if (productoExistente.isPresent()) {
                     detalle.setProducto(productoExistente.get());
-                    Optional<Inventario> inventarioEncontrado = inventarioService.buscarPorIdProducto(productoExistente.get().getIdProducto());
+                    Optional<Inventario> inventarioEncontrado = inventarioService.buscarPorId(productoExistente.get().getIdProducto());
                     inventarioService.agregarMercaderia(detalleDTO);
                 } else {
                     int maximoDisponible = ubicacionService.obtenerCapacidadMaximaDisponibleDeUbicaciones();

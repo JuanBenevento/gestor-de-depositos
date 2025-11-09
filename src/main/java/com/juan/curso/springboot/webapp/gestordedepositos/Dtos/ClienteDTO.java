@@ -11,13 +11,13 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ClienteDTO {
-    private Long id_cliente;
+    private Long idCliente;
     private String nombre;
     private String telefono;
     private String email;
 
     public ClienteDTO(Cliente cliente) {
-        this.id_cliente = cliente.getId_cliente();
+        this.idCliente = cliente.getIdCliente();
         this.nombre = cliente.getNombre();
         this.telefono = cliente.getTelefono();
         this.email = cliente.getEmail();

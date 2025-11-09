@@ -40,8 +40,8 @@ public class OrdenDespachoController {
 
         List<OrdenDespachoDTO> dtoList = ordenes.stream()
                 .map(orden -> new OrdenDespachoDTO(
-                        orden.getIdDespacho(),
-                        orden.getFecha_despacho(),
+                        orden.getIdOrdenDespacho(),
+                        orden.getFechaDespacho(),
                         orden.getEstado(),
                         orden.getCliente(),
                         orden.getDetalleDespacho()))
@@ -69,7 +69,7 @@ public class OrdenDespachoController {
     public ResponseEntity<?> crear(@RequestBody OrdenDespachoDTO dto) {
         OrdenDespacho orden = new OrdenDespacho();
         try {
-            Optional<Cliente> cliente = clienteServiceImpl.buscarPorId(dto.getCliente().getId_cliente());
+            Optional<Cliente> cliente = clienteServiceImpl.buscarPorId(dto.getCliente().getIdCliente());
 
             if(cliente.isPresent()) {
                 orden.setCliente(cliente.get());
@@ -77,7 +77,7 @@ public class OrdenDespachoController {
                 throw new RecursoNoEncontradoException("Cliente no encontrado");
             }
 
-            orden.setFecha_despacho(dto.getFecha_despacho());
+            orden.setFechaDespacho(dto.getFechaDespacho());
             orden.setEstado(dto.getEstado());
 
             List<DetalleDespacho> detalles = dto.getDetalle_despacho().stream()

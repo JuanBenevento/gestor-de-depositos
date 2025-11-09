@@ -64,22 +64,32 @@ public class UsuarioController {
     }
 
     @PutMapping("modificarUsuario")
-    @Operation(summary = "Este metodo modifica un usuario (apellido, email y nombre)")
+    @Operation(summary = "Este metodo modifica un usuario (apellido, email, nombre y opcionalmente rol)")
     public ResponseEntity<?> modificarUsuario(@RequestBody UsuarioDTO usuarioDTO) {
         Usuario retorno = new Usuario();
-        if(usuarioDTO.getIdUsuario() != null){
+        if (usuarioDTO.getIdUsuario() != null) {
             Optional<Usuario> usuarioPorID = usuarioServiceImpl.buscarPorId(usuarioDTO.getIdUsuario());
-            if( usuarioPorID.isPresent()){
-                    usuarioPorID.get().setApellido(usuarioDTO.getApellido());
-                    usuarioPorID.get().setEmail(usuarioDTO.getEmail());
-                    usuarioPorID.get().setNombre(usuarioDTO.getNombre());
-                    retorno =  usuarioServiceImpl.actualizar(usuarioPorID.get());
-                }else {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            if (usuarioPorID.isPresent()) {
+                Usuario u = usuarioPorID.get();
+                u.setApellido(usuarioDTO.getApellido());
+                u.setEmail(usuarioDTO.getEmail());
+                u.setNombre(usuarioDTO.getNombre());
 
+                if (usuarioDTO.getIdRol() != null) {
+                    Optional<Rol> rolOpt = rolServiceImpl.buscarPorId(usuarioDTO.getIdRol());
+                    if (rolOpt.isPresent()) {
+                        u.setRol(rolOpt.get());
+                    } else {
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                .body("Rol no encontrado con id: " + usuarioDTO.getIdRol());
+                    }
                 }
-        }
 
+                retorno = usuarioServiceImpl.actualizar(u);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
+        }
         return ResponseEntity.ok(new UsuarioDTO(retorno));
     }
 

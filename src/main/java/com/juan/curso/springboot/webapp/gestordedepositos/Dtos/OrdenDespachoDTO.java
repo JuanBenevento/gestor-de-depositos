@@ -17,15 +17,15 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class OrdenDespachoDTO {
-    private Long id_despacho;
-    private Date fecha_despacho;
+    private Long idOrdenDespacho;
+    private Date fechaDespacho;
     private EstadosDeOrden estado;
     private Cliente cliente;
     private List<DetalleDespacho> detalle_despacho;
 
     public OrdenDespachoDTO(OrdenDespacho ordenDespacho) {
-        this.id_despacho = ordenDespacho.getIdDespacho();
-        this.fecha_despacho = ordenDespacho.getFecha_despacho();
+        this.idOrdenDespacho = ordenDespacho.getIdOrdenDespacho();
+        this.fechaDespacho = ordenDespacho.getFechaDespacho();
         this.estado = ordenDespacho.getEstado();
         this.cliente = ordenDespacho.getCliente();
         this.detalle_despacho = ordenDespacho.getDetalleDespacho();

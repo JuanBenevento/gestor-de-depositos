@@ -3,6 +3,7 @@ package com.juan.curso.springboot.webapp.gestordedepositos.Controladores;
 import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.ClienteDTO;
 import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.RecursoNoEncontradoException;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Cliente;
+import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Usuario;
 import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.ClienteServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -71,12 +73,12 @@ public class ClienteController {
         }
     }
 
-    @PutMapping("/actualizarCliente")
+    @PutMapping("/actualizarCliente/{id}")
     @Operation(summary = "Este metodo actualiza un cliente")
     public ResponseEntity<?> actualizar(@PathVariable Long id, @RequestBody ClienteDTO dto) {
         try {
             Cliente cliente = clienteService.buscarPorId(id)
-                    .orElseThrow(() -> new RecursoNoEncontradoException("Cliente no encontrado con id: "+ id));
+                    .orElseThrow(() -> new RecursoNoEncontradoException("Cliente no encontrado con id: " + id));
 
             cliente.setNombre(dto.getNombre());
             cliente.setTelefono(dto.getTelefono());
@@ -85,23 +87,30 @@ public class ClienteController {
             clienteService.actualizar(cliente);
 
             return ResponseEntity.ok(new ClienteDTO(cliente));
-        }catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }catch (Exception e) {
+        } catch (Exception e) {
             return new ResponseEntity<>("Error al actualizar cliente", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
     @DeleteMapping("/eliminarCliente")
     @Operation(summary = "Este medoto elimina un cliente de la base de datos por id tipo LONG")
     public ResponseEntity<?> eliminar(@RequestParam Long id) {
         try {
-            clienteService.eliminar(id);
-            return ResponseEntity.ok("Cliente eliminado con éxito");
+            Optional<Cliente> cliente = clienteService.buscarPorId(id);
+            if (cliente.isPresent()) {
+                clienteService.eliminar(cliente.get().getIdCliente());
+            } else {
+                throw new RecursoNoEncontradoException("Cliente no encontrado");
+            }
         }catch (IllegalArgumentException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }catch (Exception e) {
             return new ResponseEntity<>("Error al eliminar cliente", HttpStatus.INTERNAL_SERVER_ERROR);
         }
+
+        return ResponseEntity.ok("Cliente eliminado con éxito");
     }
 }
