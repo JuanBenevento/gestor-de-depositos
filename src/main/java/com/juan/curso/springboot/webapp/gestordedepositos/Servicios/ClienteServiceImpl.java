@@ -56,7 +56,7 @@ public class ClienteServiceImpl implements GenericService<Cliente, Long>{
         try {
             cliente = clienteRepositorio.save(cliente);
         }catch (RecursoNoEncontradoException e) {
-            throw new RecursoNoEncontradoException("Cliente no encontrado con ID: " + cliente.getId_cliente());
+            throw new RecursoNoEncontradoException("Cliente no encontrado con ID: " + cliente.getIdCliente());
         }catch (Exception e) {
             e.printStackTrace();
         }

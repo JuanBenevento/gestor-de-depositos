@@ -111,6 +111,26 @@ public class ProductoController {
         return Optional.ofNullable(dto);
     }
 
+    @GetMapping("/buscarPorNombreOCodigo")
+    @Operation(summary = "Busca productos por nombre o código SKU")
+    public ResponseEntity<?> buscarPorNombreOCodigo(@RequestParam String valor) {
+        try {
+            List<ProductoDTO> productos = productoServiceImpl.buscarTodos()
+                    .orElseThrow(() -> new RuntimeException("No se encontraron productos"))
+                    .stream()
+                    .filter(p -> p.getIsDeleted().equals("N") &&
+                            (p.getNombre().toLowerCase().contains(valor.toLowerCase()) ||
+                                    p.getCodigoSku().toLowerCase().contains(valor.toLowerCase())))
+                    .map(ProductoDTO::new)
+                    .collect(Collectors.toList());
+
+            return new ResponseEntity<>(productos, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error al buscar productos: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
 
     public Producto toEntity(ProductoDTO dto) {
         if (dto == null) return null;

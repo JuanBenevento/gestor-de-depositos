@@ -38,6 +38,20 @@ public class InventarioController {
         this.inventarioService = inventarioService;
     }
 
+    @GetMapping("/stockTotalPorIdProducto/{idProducto}")
+    @Operation(summary = "Calcula el stock total de un producto por su ID, sumando las cantidades de todos los inventarios asociados.")
+    public ResponseEntity<Integer> getStockTotalPorId(@PathVariable Long idProducto) throws RecursoNoEncontradoException {
+        int stockTotal = inventarioService.calcularStockTotalPorIdProducto(idProducto);
+        return ResponseEntity.ok(stockTotal);
+    }
+
+    @GetMapping("/stockTotalPorCodigoSkuProducto/{codigoSku}")
+    @Operation(summary = "Calcula el stock total de un producto por su Codigo SKU, sumando las cantidades de todos los inventarios asociados.")
+    public ResponseEntity<Integer> getStockTotalPorCodigoSku(@PathVariable String codigoSku) throws RecursoNoEncontradoException {
+        int stockTotal = inventarioService.calcularStockTotalPorCodigoSku(codigoSku);
+        return ResponseEntity.ok(stockTotal);
+    }
+
     @GetMapping("/buscarTodos")
     @Operation(summary = "Este metodo busca todos los inventarios")
     public ResponseEntity<?> buscarTodos() {

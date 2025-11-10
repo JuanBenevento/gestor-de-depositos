@@ -22,10 +22,10 @@ public class OrdenDespacho {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name ="id_despacho")
-    private Long IdDespacho;
+    private Long IdOrdenDespacho;
 
     @Column(nullable = false)
-    private Date fecha_despacho;
+    private Date fechaDespacho;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

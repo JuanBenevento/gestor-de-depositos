@@ -12,16 +12,7 @@ import java.util.Map;
 @RestControllerAdvice
 public class ManejadorGlobalDeErrores {
 
-    /*@ExceptionHandler(RecursoNoEncontradoException.class)
-    public ResponseEntity<String> manejarRecursoNoEncontrado(RecursoNoEncontradoException ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
-    }*/
 
-   /* @ExceptionHandler(Exception.class)
-        public ResponseEntity<String> manejarErrorGeneral(Exception ex) {
-            return new ResponseEntity<>("Error interno del servidor: " + ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-*/
     @ExceptionHandler(RecursoNoEncontradoException.class)
     public ResponseEntity<Map<String, String>> handleRecursoNoEncontrado(RecursoNoEncontradoException ex) {
         Map<String, String> error = new HashMap<>();
@@ -30,18 +21,18 @@ public class ManejadorGlobalDeErrores {
     }
 
     @ExceptionHandler(CapacidadExcedida.class)
-    public ResponseEntity<Map<String, String>> handleRecursoNoEncontrado(CapacidadExcedida ex) {
+    public ResponseEntity<Map<String, String>> handleCapacidadExcedida(CapacidadExcedida ex) {
         Map<String, String> error = new HashMap<>();
         error.put("error", ex.getMessage());
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
     }
 
-    /*@ExceptionHandler(ValidacionException.class)
-    public ResponseEntity<Map<String, String>> handleValidacion(ValidacionException ex) {
+    @ExceptionHandler(StockInsuficienteException.class)
+    public ResponseEntity<Map<String, String>> handleStockInsuficiente(StockInsuficienteException ex) {
         Map<String, String> error = new HashMap<>();
         error.put("error", ex.getMessage());
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
-    }*/
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
@@ -61,7 +52,7 @@ public class ManejadorGlobalDeErrores {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleGeneralException(Exception ex) {
         Map<String, String> error = new HashMap<>();
-        error.put("error", "Error interno del servidor");
+        error.put("error", "Error interno del servidor: " + ex.getMessage());
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

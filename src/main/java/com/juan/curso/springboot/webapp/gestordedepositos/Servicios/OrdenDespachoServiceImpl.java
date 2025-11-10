@@ -55,7 +55,7 @@ public class OrdenDespachoServiceImpl implements GenericService<OrdenDespacho, L
         try {
             ordenDespacho = ordenDespachoRepositorio.save(ordenDespacho);
         }catch (RecursoNoEncontradoException e){
-            throw new RecursoNoEncontradoException("Orden de despacho con id " + ordenDespacho.getIdDespacho() + " no encontrado");
+            throw new RecursoNoEncontradoException("Orden de despacho con id " + ordenDespacho.getIdOrdenDespacho() + " no encontrado");
         }catch (Exception e){
             e.printStackTrace();
         }
