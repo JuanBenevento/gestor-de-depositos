@@ -45,7 +45,7 @@ public class InventarioController {
         return ResponseEntity.ok(stockTotal);
     }
 
-    @GetMapping("/stockTotalPorCodigoSkuProducto/{idProducto}")
+    @GetMapping("/stockTotalPorCodigoSkuProducto/{codigoSku}")
     @Operation(summary = "Calcula el stock total de un producto por su Codigo SKU, sumando las cantidades de todos los inventarios asociados.")
     public ResponseEntity<Integer> getStockTotalPorCodigoSku(@PathVariable String codigoSku) throws RecursoNoEncontradoException {
         int stockTotal = inventarioService.calcularStockTotalPorCodigoSku(codigoSku);
