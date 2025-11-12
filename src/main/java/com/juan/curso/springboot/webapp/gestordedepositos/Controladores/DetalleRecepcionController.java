@@ -1,6 +1,8 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Controladores;
 
+import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.DetalleRecepcionBulkRequest;
 import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.DetalleRecepcionDTO;
+import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.DetalleRecepcionItemDTO;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.DetalleRecepcion;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.OrdenRecepcion;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Producto;
@@ -8,13 +10,16 @@ import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.DetalleRecep
 import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.OrdenRecepcionServiceImpl;
 import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.ProductoServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @RestController
@@ -73,24 +78,96 @@ public class DetalleRecepcionController {
 
         try {
             DetalleRecepcion detalleRecepcion = new DetalleRecepcion();
-            Optional<OrdenRecepcion> orden = ordenRecepcionService.buscarPorId(dto.getOrden().getIdOrdenRecepcion());
+            Long idOrden = dto.getIdOrdenRecepcion();
+            if (idOrden == null && dto.getOrden() != null) {
+                idOrden = dto.getOrden().getIdOrdenRecepcion();
+            }
+            if (idOrden == null) {
+                return new ResponseEntity<>("Debe indicar el identificador de la orden asociada", HttpStatus.BAD_REQUEST);
+            }
+            Optional<OrdenRecepcion> orden = ordenRecepcionService.buscarPorId(idOrden);
             if(orden.isPresent()) {
                 detalleRecepcion.setOrdenRecepcion(orden.get());
             }else {
                 return new ResponseEntity<>("Orden asociada al detalle no encontrada", HttpStatus.NOT_FOUND);
             }
-            Producto producto = productoService.buscarPorCodigoSKU(dto.getProducto().getCodigoSku());
+            String codigoSku = dto.getCodigoSku();
+            if (codigoSku == null && dto.getProducto() != null) {
+                codigoSku = dto.getProducto().getCodigoSku();
+            }
+            if (codigoSku == null || codigoSku.isBlank()) {
+                return new ResponseEntity<>("Debe indicar un código SKU válido", HttpStatus.BAD_REQUEST);
+            }
+            Producto producto = productoService.buscarPorCodigoSKU(codigoSku);
             if (producto != null) {
                 detalleRecepcion.setProducto(producto);
             } else {
-                return new ResponseEntity<>("Producto no encontrado para el código SKU: " + dto.getProducto().getCodigoSku(), HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>("Producto no encontrado para el código SKU: " + codigoSku, HttpStatus.BAD_REQUEST);
             }
             detalleRecepcion.setCantidad(dto.getCantidad());
 
             detalleRecepcion = detalleRecepcionService.crear(detalleRecepcion);
-            return new ResponseEntity<>(detalleRecepcion, HttpStatus.CREATED);
+            return new ResponseEntity<>(new DetalleRecepcionDTO(detalleRecepcion), HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>("Error al crear detalle: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping("/crearDetallesRecepcion")
+    @Operation(summary = "Este metodo crea multiples detalles de recepcion para una orden existente")
+    public ResponseEntity<?> crearDetallesRecepcion(@Valid @RequestBody DetalleRecepcionBulkRequest request) {
+        try {
+            Long idOrden = request.getIdOrdenRecepcion();
+            if (idOrden == null) {
+                idOrden = request.getDetalles().stream()
+                        .map(DetalleRecepcionItemDTO::getIdOrdenRecepcion)
+                        .filter(Objects::nonNull)
+                        .findFirst()
+                        .orElse(null);
+            }
+            if (idOrden == null) {
+                return new ResponseEntity<>("Debe indicar el identificador de la orden asociada", HttpStatus.BAD_REQUEST);
+            }
+
+            Optional<OrdenRecepcion> ordenOpt = ordenRecepcionService.buscarPorId(idOrden);
+            if (ordenOpt.isEmpty()) {
+                return new ResponseEntity<>("Orden asociada al detalle no encontrada", HttpStatus.NOT_FOUND);
+            }
+            OrdenRecepcion orden = ordenOpt.get();
+
+            List<DetalleRecepcion> detallesParaGuardar = new ArrayList<>();
+            for (DetalleRecepcionItemDTO item : request.getDetalles()) {
+                if (item.getIdOrdenRecepcion() != null && !Objects.equals(item.getIdOrdenRecepcion(), idOrden)) {
+                    return new ResponseEntity<>("Todos los detalles deben pertenecer a la misma orden", HttpStatus.BAD_REQUEST);
+                }
+
+                String codigoSku = item.getCodigoSku();
+                if (codigoSku == null && item.getProducto() != null) {
+                    codigoSku = item.getProducto().getCodigoSku();
+                }
+                if (codigoSku == null || codigoSku.isBlank()) {
+                    return new ResponseEntity<>("Debe indicar un código SKU válido", HttpStatus.BAD_REQUEST);
+                }
+
+                Producto producto = productoService.buscarPorCodigoSKU(codigoSku);
+                if (producto == null) {
+                    return new ResponseEntity<>("Producto no encontrado para el código SKU: " + codigoSku, HttpStatus.BAD_REQUEST);
+                }
+                DetalleRecepcion detalle = new DetalleRecepcion();
+                detalle.setOrdenRecepcion(orden);
+                detalle.setProducto(producto);
+                detalle.setCantidad(item.getCantidad());
+                detallesParaGuardar.add(detalle);
+            }
+
+            List<DetalleRecepcionDTO> respuesta = detalleRecepcionService.crearTodos(detallesParaGuardar)
+                    .stream()
+                    .map(DetalleRecepcionDTO::new)
+                    .collect(Collectors.toList());
+
+            return new ResponseEntity<>(respuesta, HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error al crear detalles: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -103,7 +180,13 @@ public class DetalleRecepcionController {
             if (detallesEncontrados.isPresent()) {
                 detalle = detallesEncontrados.get();
                 detalle.setCantidad(detalleDTO.getCantidad());
-                detalle.setProducto(productoService.buscarPorCodigoSKU(detalleDTO.getProducto().getCodigoSku()));
+                String codigoSku = detalleDTO.getCodigoSku();
+                if (codigoSku == null && detalleDTO.getProducto() != null) {
+                    codigoSku = detalleDTO.getProducto().getCodigoSku();
+                }
+                if (codigoSku != null && !codigoSku.isBlank()) {
+                    detalle.setProducto(productoService.buscarPorCodigoSKU(codigoSku));
+                }
             }
             detalleRecepcionService.actualizar(detalle);
             return new ResponseEntity<>(detalleDTO, HttpStatus.OK);

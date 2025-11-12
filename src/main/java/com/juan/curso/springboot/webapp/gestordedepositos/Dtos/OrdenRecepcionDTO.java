@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,6 +29,9 @@ public class OrdenRecepcionDTO {
         this.estado = ordenRecepcion.getEstado();
         this.fecha = ordenRecepcion.getFecha();
         this.idProveedor = ordenRecepcion.getProveedor().getId_proveedor();
-        this.detalleRecepcionDTOList = ordenRecepcion.getDetallesRecepcion().stream().map(DetalleRecepcionDTO::new).collect(Collectors.toList());
+        List<DetalleRecepcionDTO> detalles = ordenRecepcion.getDetallesRecepcion() == null
+                ? Collections.emptyList()
+                : ordenRecepcion.getDetallesRecepcion().stream().map(DetalleRecepcionDTO::new).collect(Collectors.toList());
+        this.detalleRecepcionDTOList = detalles;
     }
 }

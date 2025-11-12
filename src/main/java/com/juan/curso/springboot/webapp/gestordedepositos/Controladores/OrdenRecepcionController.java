@@ -1,13 +1,15 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Controladores;
 
 import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.DetalleRecepcionDTO;
-import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.InventarioDTO;
+import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.OrdenRecepcionCabeceraRequest;
+import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.OrdenRecepcionCabeceraResponse;
 import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.OrdenRecepcionDTO;
 import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.RecursoNoEncontradoException;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.*;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Enums.EstadosDeOrden;
 import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.*;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -147,6 +149,33 @@ public class OrdenRecepcionController {
             return new ResponseEntity<>(ordenDTO, HttpStatus.CONFLICT);
         } catch (Exception e) {
             e.printStackTrace();
+            return new ResponseEntity<>("Error al crear orden: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping("/crearOrdenRecepcionCabecera")
+    @Operation(summary = "Crea la cabecera de una orden de recepcion y devuelve su identificador")
+    public ResponseEntity<?> crearOrdenRecepcionCabecera(@Valid @RequestBody OrdenRecepcionCabeceraRequest request) {
+        try {
+            Proveedor proveedor = proveedorServiceImpl.buscarPorId(request.getIdProveedor())
+                    .orElseThrow(() -> new RuntimeException("Proveedor no encontrado"));
+
+            OrdenRecepcion orden = new OrdenRecepcion();
+            orden.setProveedor(proveedor);
+            orden.setFecha(Calendar.getInstance().getTime());
+            orden.setEstado(request.getEstado() != null ? request.getEstado() : EstadosDeOrden.PENDIENTE);
+            orden.setDetallesRecepcion(new ArrayList<>());
+
+            OrdenRecepcion guardada = ordenRecepcionService.crear(orden);
+
+            OrdenRecepcionCabeceraResponse response = new OrdenRecepcionCabeceraResponse(
+                    guardada.getIdOrdenRecepcion(),
+                    guardada.getEstado(),
+                    guardada.getFecha()
+            );
+
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
+        } catch (Exception e) {
             return new ResponseEntity<>("Error al crear orden: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
