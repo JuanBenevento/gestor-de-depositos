@@ -22,7 +22,7 @@ public class InventarioDTO {
     private Date fecha_actualizacion;
 
     public InventarioDTO(Inventario inventario) {
-        this.id_inventario = inventario.getId_inventario();
+        this.id_inventario = inventario.getIdInventario();
         this.producto = inventario.getProducto();
         this.ubicacion = inventario.getUbicacion();
         this.cantidad = inventario.getCantidad();

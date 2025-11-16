@@ -261,6 +261,4 @@ public class InventarioServiceImpl implements GenericService<Inventario, Long> {
             throw new RuntimeException("Error en el movimiento de inventario: " + e.getMessage(), e);
         }
     }
-
-
 }
