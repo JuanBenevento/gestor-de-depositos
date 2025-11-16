@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.lang.reflect.Type;
 import java.util.Date;
 
 @Entity
@@ -18,7 +17,7 @@ import java.util.Date;
 public class Inventario {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id_inventario;
+    private Long idInventario;
     @ManyToOne
     @JoinColumn (name = "id_producto")
     private Producto producto;

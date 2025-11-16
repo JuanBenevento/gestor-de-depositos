@@ -65,6 +65,22 @@ public class InventarioController {
         return ResponseEntity.ok(dtoList);
     }
 
+    @GetMapping("/buscarPorId")
+    @Operation(summary = "Busca un inventario por su ID")
+    public ResponseEntity<InventarioDTO> buscarPorId(@RequestParam Long id) {
+        try {
+            Inventario inventario = inventarioService.buscarPorId(id)
+                    .orElseThrow(() -> new RecursoNoEncontradoException("Inventario no encontrado"));
+
+            return ResponseEntity.ok(new InventarioDTO(inventario));
+
+        } catch (RecursoNoEncontradoException e) {
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     @GetMapping("/buscarPorCodigoSkuProducto")
     @Operation(summary = "Este metodo busca un inventario por codigo sku producto")
     public ResponseEntity<?> buscarPorCodigoSku(@RequestParam String codigoSku) {
@@ -89,46 +105,144 @@ public class InventarioController {
     @PostMapping("/crear")
     @Operation(summary = "Este metodo crea un inventario")
     public ResponseEntity<InventarioDTO> crear(@RequestBody InventarioDTO inventarioDTO) {
-        try{
+        try {
             Inventario inventario = new Inventario();
-            Optional<Ubicacion> ubicacion = ubicacionService.buscarPorId(inventarioDTO.getUbicacion().getIdUbicacion());
-            if(ubicacion.isPresent()){
-                if(ubicacion.get().getCapacidadMaxima() > inventarioDTO.getCantidad()){
-                    if(ubicacion.get().getCapacidadMaxima() >= inventarioDTO.getCantidad()){
-                        inventario.setUbicacion(ubicacion.get());
-                    }else{
-                        throw new CapacidadExcedida("La ubicacion tiene espacio parcial, elija otra");
-                    }
-                }else{
-                    throw new CapacidadExcedida("La ubicacion no tiene capacidad para la cantidad ingresada");
-                }
-            }else{
-                throw new RecursoNoEncontradoException("Ubicacion no encontrada");
+
+            // Buscar ubicación
+            Ubicacion ubicacion = ubicacionService.buscarPorId(inventarioDTO.getUbicacion().getIdUbicacion())
+                    .orElseThrow(() -> new RecursoNoEncontradoException("Ubicación no encontrada"));
+
+            // Validar capacidad real
+            int espacioDisponible = ubicacion.getCapacidadMaxima() - ubicacion.getOcupadoActual();
+            if (inventarioDTO.getCantidad() > espacioDisponible) {
+                throw new CapacidadExcedida("La ubicación no tiene capacidad suficiente");
             }
-            Optional<Producto> producto = productoService.buscarPorId(inventarioDTO.getProducto().getIdProducto());
-            if(producto.isPresent()){
-                inventario.setProducto(producto.get());
-            }
+
+            inventario.setUbicacion(ubicacion);
+
+            // Buscar producto
+            Producto producto = productoService.buscarPorId(inventarioDTO.getProducto().getIdProducto())
+                    .orElseThrow(() -> new RecursoNoEncontradoException("Producto no encontrado"));
+
+            inventario.setProducto(producto);
             inventario.setCantidad(inventarioDTO.getCantidad());
             inventario.setFecha_actualizacion(Calendar.getInstance().getTime());
+
+            // Crear
             inventario = inventarioService.crear(inventario);
+
+            // ACTUALIZAR OCUPADO
+            ubicacion.setOcupadoActual(ubicacion.getOcupadoActual() + inventario.getCantidad());
+            ubicacionService.actualizar(ubicacion);
+
             return new ResponseEntity<>(new InventarioDTO(inventario), HttpStatus.CREATED);
         } catch (RuntimeException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error al crear inventario: " + e.getMessage());
         }
     }
 
-    @DeleteMapping("eliminarInventario")
+    @PutMapping("/actualizar/{id}")
+    @Operation(summary = "Este metodo busca un inventario por id y lo actualiza")
+    public ResponseEntity<InventarioDTO> actualizar(@PathVariable Long id,
+                                                    @RequestBody InventarioDTO inventarioDTO) {
+        try {
+            Inventario inventarioExistente = inventarioService.buscarPorId(id)
+                    .orElseThrow(() -> new RecursoNoEncontradoException("Inventario no encontrado"));
+
+            Ubicacion ubicacionAnterior = inventarioExistente.getUbicacion();
+            int cantidadAnterior = inventarioExistente.getCantidad();
+
+            // Buscar nueva ubicación
+            Ubicacion ubicacionNueva = ubicacionService.buscarPorId(inventarioDTO.getUbicacion().getIdUbicacion())
+                    .orElseThrow(() -> new RecursoNoEncontradoException("Ubicación nueva no encontrada"));
+
+            // Buscar producto
+            Producto producto = productoService.buscarPorId(inventarioDTO.getProducto().getIdProducto())
+                    .orElseThrow(() -> new RecursoNoEncontradoException("Producto no encontrado"));
+
+            int cantidadNueva = inventarioDTO.getCantidad();
+
+            // Si cambia de ubicación
+            if (!ubicacionAnterior.getIdUbicacion().equals(ubicacionNueva.getIdUbicacion())) {
+
+                // Restar de ubicación anterior
+                int ocupadoAnterior = ubicacionAnterior.getOcupadoActual() - cantidadAnterior;
+                if (ocupadoAnterior < 0) ocupadoAnterior = 0;
+                ubicacionAnterior.setOcupadoActual(ocupadoAnterior);
+                ubicacionService.actualizar(ubicacionAnterior);
+
+                // Validar capacidad en la nueva
+                int espacioDisponible = ubicacionNueva.getCapacidadMaxima() - ubicacionNueva.getOcupadoActual();
+                if (cantidadNueva > espacioDisponible) {
+                    throw new CapacidadExcedida("La nueva ubicación no tiene capacidad suficiente");
+                }
+
+                // Sumar en la nueva
+                ubicacionNueva.setOcupadoActual(ubicacionNueva.getOcupadoActual() + cantidadNueva);
+                ubicacionService.actualizar(ubicacionNueva);
+
+            } else {
+                // SI ES LA MISMA UBICACIÓN
+
+                int diferencia = cantidadNueva - cantidadAnterior;
+
+                // Si aumenta cantidad → verificar capacidad
+                if (diferencia > 0) {
+                    int espacioDisponible = ubicacionNueva.getCapacidadMaxima() - ubicacionNueva.getOcupadoActual();
+                    if (diferencia > espacioDisponible) {
+                        throw new CapacidadExcedida("La ubicación no tiene capacidad suficiente para aumentar esta cantidad");
+                    }
+                }
+
+                // Actualizar ocupadoActual
+                ubicacionNueva.setOcupadoActual(ubicacionNueva.getOcupadoActual() + diferencia);
+
+                // Nunca negativo
+                if (ubicacionNueva.getOcupadoActual() < 0) {
+                    ubicacionNueva.setOcupadoActual(0);
+                }
+
+                ubicacionService.actualizar(ubicacionNueva);
+            }
+
+            // Actualizar INV
+            inventarioExistente.setCantidad(cantidadNueva);
+            inventarioExistente.setUbicacion(ubicacionNueva);
+            inventarioExistente.setProducto(producto);
+            inventarioExistente.setFecha_actualizacion(Calendar.getInstance().getTime());
+
+            Inventario actualizado = inventarioService.actualizar(inventarioExistente);
+
+            return ResponseEntity.ok(new InventarioDTO(actualizado));
+
+        } catch (RuntimeException e) {
+            throw new RuntimeException("Error al actualizar inventario: " + e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/eliminarInventario")
     @Operation(summary = "Este metodo elimina un inventario por su id")
     public ResponseEntity<?> eliminar(@RequestParam Long id) {
         try {
+            Inventario inventario = inventarioService.buscarPorId(id)
+                    .orElseThrow(() -> new RecursoNoEncontradoException("Inventario no encontrado"));
+
+            Ubicacion ubicacion = inventario.getUbicacion();
+
+            // Restar al ocupadoActual
+            int nuevoOcupado = ubicacion.getOcupadoActual() - inventario.getCantidad();
+            if (nuevoOcupado < 0) nuevoOcupado = 0;
+
+            ubicacion.setOcupadoActual(nuevoOcupado);
+            ubicacionService.actualizar(ubicacion);
+
             inventarioService.eliminar(id);
+
             return ResponseEntity.ok("Inventario eliminado con éxito");
-        }catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }catch (Exception e) {
+        } catch (Exception e) {
             return new ResponseEntity<>("Error al eliminar inventario", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
 }
