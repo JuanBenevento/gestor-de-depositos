@@ -62,6 +62,15 @@ public class DetalleRecepcionServiceImpl implements GenericService<DetalleRecepc
         return detalle;
     }
 
+    public List<DetalleRecepcion> crearTodos(List<DetalleRecepcion> detalles) {
+        try {
+            return detalleRecepcionRepositorio.saveAll(detalles);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("No se pudieron guardar los detalles de recepción", e);
+        }
+    }
+
     @Override
     public DetalleRecepcion actualizar(DetalleRecepcion detalle) {
         try {
