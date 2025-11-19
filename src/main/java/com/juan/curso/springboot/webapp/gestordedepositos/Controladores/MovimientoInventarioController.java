@@ -1,6 +1,5 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Controladores;
 
-
 import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.MovimientoInventarioDTO;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.MovimientoInventario;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Producto;
@@ -15,8 +14,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
@@ -48,39 +51,54 @@ public class MovimientoInventarioController {
     @Operation(summary = "Este metodo crea un nuevo movimiento de inventario")
     public ResponseEntity<?> crear(@RequestBody MovimientoInventarioDTO dto) {
         try {
-            Optional<Producto> productoElegido = productoServiceImpl.buscarPorId(dto.getProducto().getIdProducto());
-            Optional<Ubicacion> ubicacion_origen = ubicacionServiceImpl.buscarPorId(dto.getUbicacionOrigen().getIdUbicacion());
-            Optional<Ubicacion> ubicacion_destino = ubicacionServiceImpl.buscarPorId(dto.getUbicacionDestino().getIdUbicacion());
-
-            if(ubicacion_origen.isPresent() && ubicacion_destino.isPresent() && productoElegido.isPresent()) {
-                Ubicacion origen = ubicacion_origen.get();
-                Ubicacion destino = ubicacion_destino.get();
-                Producto producto = productoElegido.get();
-
-                MovimientoInventario movInventario = new MovimientoInventario(dto.getId_movimiento(), producto,
-                        origen, destino, dto.getCantidad(), dto.getEstado(), new Date());
-
-                Optional<Ubicacion> ubicacionDestino = ubicacionServiceImpl.buscarPorId(movInventario.getUbicacionDestino().getIdUbicacion());
-                Optional<Ubicacion> ubicacionOrigen = ubicacionServiceImpl.buscarPorId(movInventario.getUbicacionOrigen().getIdUbicacion());
-
-                if(ubicacionDestino.isPresent() && ubicacionOrigen.isPresent()) {
-                    Ubicacion ubiDestino = ubicacionDestino.get();
-                    Ubicacion ubiOrigen = ubicacionOrigen.get();
-
-                    int cantidadActualOrigen =  ubiOrigen.getOcupadoActual();
-                    int cantidadActualDestino =  ubiDestino.getOcupadoActual();
-
-                    ubiDestino.setOcupadoActual( cantidadActualDestino + dto.getCantidad());
-                    ubiOrigen.setOcupadoActual(cantidadActualOrigen - dto.getCantidad());
-                    ubicacionServiceImpl.actualizar(ubiDestino);
-                    ubicacionServiceImpl.actualizar(ubiDestino);
-                }
-                movInventario = movimientoInventarioServiceImpl.crear(movInventario);
-                dto = new MovimientoInventarioDTO(movInventario);
-                return new ResponseEntity<>(dto, HttpStatus.CREATED);
-            } else {
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            if (dto == null || dto.getProducto() == null || dto.getUbicacionOrigen() == null
+                    || dto.getUbicacionDestino() == null || dto.getCantidad() <= 0) {
+                return new ResponseEntity<>("Payload incompleto o cantidad inválida", HttpStatus.BAD_REQUEST);
             }
+
+            if (dto.getFecha() != null && dto.getFecha().after(new Date())) {
+                return new ResponseEntity<>("La fecha del movimiento no puede ser futura", HttpStatus.BAD_REQUEST);
+            }
+
+            Optional<Producto> productoElegido = productoServiceImpl.buscarPorId(dto.getProducto().getIdProducto());
+            Optional<Ubicacion> ubicacionOrigenOpt = ubicacionServiceImpl.buscarPorId(dto.getUbicacionOrigen().getIdUbicacion());
+            Optional<Ubicacion> ubicacionDestinoOpt = ubicacionServiceImpl.buscarPorId(dto.getUbicacionDestino().getIdUbicacion());
+
+            if (productoElegido.isEmpty() || ubicacionOrigenOpt.isEmpty() || ubicacionDestinoOpt.isEmpty()) {
+                return new ResponseEntity<>("Producto o ubicaciones no encontrados", HttpStatus.NOT_FOUND);
+            }
+
+            Ubicacion origen = ubicacionOrigenOpt.get();
+            Ubicacion destino = ubicacionDestinoOpt.get();
+            int cantidad = dto.getCantidad();
+
+            if (origen.getOcupadoActual() < cantidad) {
+                return new ResponseEntity<>("La ubicación de origen no tiene stock suficiente", HttpStatus.BAD_REQUEST);
+            }
+            if (destino.getCapacidadMaxima() - destino.getOcupadoActual() < cantidad) {
+                return new ResponseEntity<>("La ubicación de destino no tiene capacidad disponible", HttpStatus.BAD_REQUEST);
+            }
+
+            int stockInicialOrigen = origen.getOcupadoActual();
+            int stockInicialDestino = destino.getOcupadoActual();
+
+            try {
+                origen.setOcupadoActual(stockInicialOrigen - cantidad);
+                destino.setOcupadoActual(stockInicialDestino + cantidad);
+                ubicacionServiceImpl.actualizar(origen);
+                ubicacionServiceImpl.actualizar(destino);
+            } catch (Exception ex) {
+                origen.setOcupadoActual(stockInicialOrigen);
+                destino.setOcupadoActual(stockInicialDestino);
+                throw ex;
+            }
+
+            Date fechaMovimiento = dto.getFecha() != null ? dto.getFecha() : new Date();
+            MovimientoInventario movInventario = new MovimientoInventario(dto.getId_movimiento(), productoElegido.get(),
+                    origen, destino, cantidad, dto.getEstado(), fechaMovimiento);
+
+            MovimientoInventario creado = movimientoInventarioServiceImpl.crear(movInventario);
+            return new ResponseEntity<>(new MovimientoInventarioDTO(creado), HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>("Error al crear movimiento de inventario", HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -106,30 +124,88 @@ public class MovimientoInventarioController {
     @Operation(summary = "Este metodo edita un movimiento")
     public ResponseEntity<?> editar(@RequestParam Long id, @RequestBody MovimientoInventarioDTO dto) {
         try {
-            Optional<MovimientoInventario> movInventarioSelected = movimientoInventarioServiceImpl.buscarPorId(id);
-            Optional<Ubicacion> ubicacion_origen = ubicacionServiceImpl.buscarPorId(dto.getUbicacionOrigen().getIdUbicacion());
-            Optional<Ubicacion> ubicacion_destino = ubicacionServiceImpl.buscarPorId(dto.getUbicacionDestino().getIdUbicacion());
-            Optional<Producto> reqProducto = productoServiceImpl.buscarPorId(dto.getProducto().getIdProducto());
+            if (dto == null || dto.getProducto() == null || dto.getUbicacionOrigen() == null
+                    || dto.getUbicacionDestino() == null || dto.getCantidad() <= 0) {
+                return new ResponseEntity<>("Payload incompleto o cantidad inválida", HttpStatus.BAD_REQUEST);
+            }
 
-            if(movInventarioSelected.isPresent() && ubicacion_origen.isPresent() && ubicacion_destino.isPresent() && reqProducto.isPresent()) {
-                MovimientoInventario movInventario = movInventarioSelected.get();
-                Ubicacion origen = ubicacion_origen.get();
-                Ubicacion destino = ubicacion_destino.get();
-                Producto producto = reqProducto.get();
+            if (dto.getFecha() != null && dto.getFecha().after(new Date())) {
+                return new ResponseEntity<>("La fecha del movimiento no puede ser futura", HttpStatus.BAD_REQUEST);
+            }
 
-                movInventario.setProducto(producto);
-                movInventario.setUbicacionOrigen(origen);
-                movInventario.setUbicacionDestino(destino);
-                movInventario.setCantidad(dto.getCantidad());
-                movInventario.setEstado(dto.getEstado());
-                movInventario.setFecha(new Date());
-
-                movInventario = movimientoInventarioServiceImpl.actualizar(movInventario);
-                dto = new MovimientoInventarioDTO(movInventario);
-                return new ResponseEntity<>(dto, HttpStatus.OK);
-            } else {
+            Optional<MovimientoInventario> movOpt = movimientoInventarioServiceImpl.buscarPorId(id);
+            if (movOpt.isEmpty()) {
                 return new ResponseEntity<>("Movimiento de inventario no encontrado", HttpStatus.NOT_FOUND);
             }
+
+            MovimientoInventario movimiento = movOpt.get();
+            Ubicacion origenNuevo = ubicacionServiceImpl.buscarPorId(dto.getUbicacionOrigen().getIdUbicacion()).orElse(null);
+            Ubicacion destinoNuevo = ubicacionServiceImpl.buscarPorId(dto.getUbicacionDestino().getIdUbicacion()).orElse(null);
+            Producto producto = productoServiceImpl.buscarPorId(dto.getProducto().getIdProducto()).orElse(null);
+
+            if (origenNuevo == null || destinoNuevo == null || producto == null) {
+                return new ResponseEntity<>("Producto o ubicaciones no encontrados", HttpStatus.NOT_FOUND);
+            }
+
+            Ubicacion origenAnterior = ubicacionServiceImpl.buscarPorId(movimiento.getUbicacionOrigen().getIdUbicacion())
+                    .orElse(origenNuevo);
+            Ubicacion destinoAnterior = ubicacionServiceImpl.buscarPorId(movimiento.getUbicacionDestino().getIdUbicacion())
+                    .orElse(destinoNuevo);
+
+            if (origenNuevo.getIdUbicacion().equals(origenAnterior.getIdUbicacion())) {
+                origenNuevo = origenAnterior;
+            }
+            if (destinoNuevo.getIdUbicacion().equals(destinoAnterior.getIdUbicacion())) {
+                destinoNuevo = destinoAnterior;
+            }
+
+            Map<Ubicacion, Integer> ocupacionesOriginales = new HashMap<>();
+            Set<Ubicacion> ubicacionesAActualizar = new HashSet<>();
+            registrarUbicacion(origenAnterior, ocupacionesOriginales, ubicacionesAActualizar);
+            registrarUbicacion(destinoAnterior, ocupacionesOriginales, ubicacionesAActualizar);
+            registrarUbicacion(origenNuevo, ocupacionesOriginales, ubicacionesAActualizar);
+            registrarUbicacion(destinoNuevo, ocupacionesOriginales, ubicacionesAActualizar);
+
+            int cantidadAnterior = movimiento.getCantidad();
+            int cantidadNueva = dto.getCantidad();
+
+            try {
+                destinoAnterior.setOcupadoActual(destinoAnterior.getOcupadoActual() - cantidadAnterior);
+                if (destinoAnterior.getOcupadoActual() < 0) {
+                    throw new IllegalArgumentException("La ubicación destino original quedaría con stock negativo");
+                }
+                origenAnterior.setOcupadoActual(origenAnterior.getOcupadoActual() + cantidadAnterior);
+
+                if (origenNuevo.getOcupadoActual() < cantidadNueva) {
+                    throw new IllegalArgumentException("La ubicación de origen no tiene stock suficiente");
+                }
+                if (destinoNuevo.getCapacidadMaxima() - destinoNuevo.getOcupadoActual() < cantidadNueva) {
+                    throw new IllegalArgumentException("La ubicación de destino no tiene capacidad disponible");
+                }
+
+                origenNuevo.setOcupadoActual(origenNuevo.getOcupadoActual() - cantidadNueva);
+                destinoNuevo.setOcupadoActual(destinoNuevo.getOcupadoActual() + cantidadNueva);
+
+                for (Ubicacion ubicacion : ubicacionesAActualizar) {
+                    ubicacionServiceImpl.actualizar(ubicacion);
+                }
+            } catch (IllegalArgumentException e) {
+                restaurarOcupaciones(ocupacionesOriginales);
+                return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            } catch (Exception e) {
+                restaurarOcupaciones(ocupacionesOriginales);
+                throw e;
+            }
+
+            movimiento.setProducto(producto);
+            movimiento.setUbicacionOrigen(origenNuevo);
+            movimiento.setUbicacionDestino(destinoNuevo);
+            movimiento.setCantidad(cantidadNueva);
+            movimiento.setEstado(dto.getEstado());
+            movimiento.setFecha(dto.getFecha() != null ? dto.getFecha() : movimiento.getFecha());
+
+            MovimientoInventario actualizado = movimientoInventarioServiceImpl.actualizar(movimiento);
+            return new ResponseEntity<>(new MovimientoInventarioDTO(actualizado), HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>("Error al intentar actualizar movimiento de inventario", HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -145,5 +221,16 @@ public class MovimientoInventarioController {
             return new ResponseEntity<>("Error al intentar eliminar el movimiento de inventario", HttpStatus.INTERNAL_SERVER_ERROR);
 
         }
+    }
+
+    private void registrarUbicacion(Ubicacion ubicacion, Map<Ubicacion, Integer> ocupaciones, Set<Ubicacion> ubicaciones) {
+        if (ubicacion != null) {
+            ocupaciones.putIfAbsent(ubicacion, ubicacion.getOcupadoActual());
+            ubicaciones.add(ubicacion);
+        }
+    }
+
+    private void restaurarOcupaciones(Map<Ubicacion, Integer> ocupaciones) {
+        ocupaciones.forEach(Ubicacion::setOcupadoActual);
     }
 }
