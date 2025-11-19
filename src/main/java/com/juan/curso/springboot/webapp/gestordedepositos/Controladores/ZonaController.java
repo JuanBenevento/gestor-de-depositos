@@ -97,13 +97,7 @@ public class ZonaController {
     @DeleteMapping("/eliminarZona")
     @Operation(summary = "Este metodo elimina una zona")
     public ResponseEntity<?> eliminar(@RequestParam Long id) {
-        try {
-            zonaService.eliminar(id);
-            return ResponseEntity.ok("Zona eliminada con éxito");
-        }catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }catch (Exception e) {
-            return new ResponseEntity<>("Error al eliminar zona", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        zonaService.eliminar(id);
+        return ResponseEntity.ok("Zona eliminada con éxito");
     }
 }

@@ -63,13 +63,15 @@ public class ZonaServiceImpl implements GenericService<Zona, Long>{
     }
 
     @Override
-    public void eliminar(Long id) throws RecursoNoEncontradoException {
-        try {
-            zonaRepositorio.deleteById(id);
-        }catch (RecursoNoEncontradoException e){
-            throw new RecursoNoEncontradoException("Zona no encontrado con ID: " + id);
-        }catch (Exception e) {
-            e.printStackTrace();
+    public void eliminar(Long id) {
+
+        // Verificar que exista antes de eliminar
+        if (!zonaRepositorio.existsById(id)) {
+            throw new RecursoNoEncontradoException("Zona no encontrada con ID: " + id);
         }
+
+        // Si ocurre DataIntegrityViolationException, la dejamos fluir
+        // para que la capture el ManejadorGlobalDeErrores
+        zonaRepositorio.deleteById(id);
     }
 }

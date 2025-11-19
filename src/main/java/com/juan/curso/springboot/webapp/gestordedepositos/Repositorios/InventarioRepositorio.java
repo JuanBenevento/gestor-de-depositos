@@ -12,5 +12,5 @@ public interface InventarioRepositorio extends JpaRepository<Inventario, Long> {
     Inventario findInventarioByProducto_IdProducto(Long idProducto);
     List<Inventario> getInventariosByUbicacion(Ubicacion ubicacion);
     List<Inventario> findAllByProducto_CodigoSku(String codigoSku);
-
+    List<Inventario> findAllByProducto_IdProducto(Long idProducto);
 }

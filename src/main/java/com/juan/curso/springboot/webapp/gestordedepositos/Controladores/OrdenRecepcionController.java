@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -76,82 +77,66 @@ public class OrdenRecepcionController {
     }
 
     @PostMapping("/crearOrdenRecepcion")
-    @Operation(summary = "Este metodo crea una nueva orden de recepcion. Si el producto no existe en la base de datos inserta uno nuevo. Valida el proveedor y busca una ubicacion disponible para crear el inventario")
+    @Operation(summary = "Crea una orden de recepción y actualiza inventario correctamente")
+    @Transactional
     public ResponseEntity<?> crearOrdenRecepcion(@RequestBody OrdenRecepcionDTO dto) {
         try {
+
             OrdenRecepcion orden = new OrdenRecepcion();
 
-            // Buscar proveedor
+            // 1) Validar proveedor
             Proveedor proveedor = proveedorServiceImpl.buscarPorId(dto.getIdProveedor())
                     .orElseThrow(() -> new RuntimeException("Proveedor no encontrado"));
+
             orden.setProveedor(proveedor);
             orden.setFecha(Calendar.getInstance().getTime());
             orden.setEstado(dto.getEstado());
 
-            // Procesar detalles
+
             List<DetalleRecepcion> detalles = new ArrayList<>();
+
             for (DetalleRecepcionDTO detalleDTO : dto.getDetalleRecepcionDTOList()) {
+
                 DetalleRecepcion detalle = new DetalleRecepcion();
-                Optional<Producto> productoExistente = Optional.ofNullable(productoService.buscarPorCodigoSKU(detalleDTO.getProducto().getCodigoSku()));
-                if (productoExistente.isPresent()) {
-                    detalle.setProducto(productoExistente.get());
-                    Optional<Inventario> inventarioEncontrado = inventarioService.buscarPorId(productoExistente.get().getIdProducto());
-                    inventarioService.agregarMercaderia(detalleDTO);
-                } else {
-                    int maximoDisponible = ubicacionService.obtenerCapacidadMaximaDisponibleDeUbicaciones();
 
-                    if (maximoDisponible >= detalleDTO.getCantidad()) {
-                        int cantidadPorAsignar = detalleDTO.getCantidad();
+                // 2) Obtener producto persistido SIEMPRE
+                Producto producto = productoService.buscarPorCodigoSKU(detalleDTO.getProducto().getCodigoSku());
 
-                        detalleDTO.getProducto().setIsDeleted("N");
-                        Producto nuevoProducto = productoService.crear(detalleDTO.getProducto());
-                        detalle.setProducto(nuevoProducto);
-
-                        // Asignar a ubicaciones hasta que no quede cantidad pendiente
-                        while (cantidadPorAsignar > 0) {
-                            Ubicacion ubicacion = ubicacionService.obtenerUbicacionConMayorEspacioDisponible();
-                            int espacioDisponible = ubicacion.getCapacidadMaxima() - ubicacion.getOcupadoActual();
-
-                            int cantidadAColocar = Math.min(espacioDisponible, cantidadPorAsignar);
-                            cantidadPorAsignar -= cantidadAColocar;
-
-                            Inventario inventario = new Inventario();
-                            inventario.setProducto(nuevoProducto);
-                            inventario.setFecha_actualizacion(Calendar.getInstance().getTime());
-                            inventario.setCantidad(cantidadAColocar);
-                            inventario.setUbicacion(ubicacion);
-
-                            inventarioService.crear(inventario);
-
-                            ubicacion.setOcupadoActual(ubicacion.getOcupadoActual() + cantidadAColocar);
-                            ubicacionService.actualizar(ubicacion);
-                        }
-
-                    } else {
-                        throw new RuntimeException("No hay espacio suficiente en las ubicaciones disponibles.");
-                    }
+                if (producto == null) {
+                    // Crear nuevo producto
+                    Producto nuevo = detalleDTO.getProducto();
+                    nuevo.setIsDeleted("N");
+                    producto = productoService.crear(nuevo);
                 }
+
+                // 3) Guardar detalle
+                detalle.setProducto(producto);
                 detalle.setCantidad(detalleDTO.getCantidad());
                 detalle.setOrdenRecepcion(orden);
                 detalles.add(detalle);
 
+                // 4) Actualizar inventario en BD
+                inventarioService.agregarMercaderiaConProductoPersistido(producto, detalleDTO.getCantidad());
             }
 
             orden.setDetallesRecepcion(detalles);
-            OrdenRecepcion ordenCreada = ordenRecepcionService.crear(orden);
-            OrdenRecepcionDTO ordenDTO = new OrdenRecepcionDTO();
-            if(ordenCreada!= null && ordenCreada.getDetallesRecepcion() != null) {
-                ordenDTO = new OrdenRecepcionDTO(ordenCreada);
-                if (ordenDTO != null) {
-                    return new ResponseEntity<>(ordenDTO, HttpStatus.CREATED);
-                }
-            }
-            return new ResponseEntity<>(ordenDTO, HttpStatus.CONFLICT);
+
+            // 5) Guardar la orden COMPLETA
+            OrdenRecepcion creada = ordenRecepcionService.crear(orden);
+
+            return new ResponseEntity<>(new OrdenRecepcionDTO(creada), HttpStatus.CREATED);
+
+
         } catch (Exception e) {
             e.printStackTrace();
-            return new ResponseEntity<>("Error al crear orden: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(
+                    "Error al crear orden: " + e.getMessage(),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
         }
     }
+
+
 
     @PostMapping("/crearOrdenRecepcionCabecera")
     @Operation(summary = "Crea la cabecera de una orden de recepcion y devuelve su identificador")

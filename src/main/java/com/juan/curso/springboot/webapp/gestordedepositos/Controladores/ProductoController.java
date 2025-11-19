@@ -96,20 +96,22 @@ public class ProductoController {
     }
     @GetMapping("/buscarPorCodigoSku")
     @Operation(summary = "Este metodo busca producto por su codigo sku")
-    public Optional<ProductoDTO> buscarPorCodigoSKU(String codigo) {
-        ProductoDTO dto = null;
+    public ResponseEntity<?> buscarPorCodigoSKU(@RequestParam String codigo) {
         try {
-            Optional<Producto> productoEncontrado = Optional.ofNullable(productoServiceImpl.buscarPorCodigoSKU(codigo));
-            if (productoEncontrado.isPresent() && productoEncontrado.get().getIsDeleted().equals("N")) {
-                dto = new ProductoDTO(productoEncontrado.get());
+            Producto producto = productoServiceImpl.buscarPorCodigoSKU(codigo);
+
+            if (producto == null || producto.getIsDeleted().equals("S")) {
+                return new ResponseEntity<>("Producto no encontrado", HttpStatus.NOT_FOUND);
             }
-        } catch (NumberFormatException e) {
-            System.err.println("Código SKU inválido: " + codigo);
+
+            return new ResponseEntity<>(new ProductoDTO(producto), HttpStatus.OK);
+
         } catch (Exception e) {
-            e.printStackTrace();
+            return new ResponseEntity<>("Error al buscar producto: " + e.getMessage(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return Optional.ofNullable(dto);
     }
+
 
     @GetMapping("/buscarPorNombreOCodigo")
     @Operation(summary = "Busca productos por nombre o código SKU")

@@ -74,13 +74,12 @@ public class ProductoServiceImpl implements GenericService<Producto, Long> {
         }
     }
 
-    public Producto buscarPorCodigoSKU(String codigo){
-        Producto retorno = new Producto();
-        try{
-            retorno = productoRepositorio.findProductoByCodigoSkuIs(codigo);
+    public Producto buscarPorCodigoSKU(String codigo) {
+        try {
+            return productoRepositorio.findProductoByCodigoSkuIs(codigo);
         } catch (Exception e) {
-            throw new RuntimeException();
+            throw new RuntimeException("Error al buscar producto por SKU: " + codigo, e);
         }
-        return retorno;
     }
+
 }

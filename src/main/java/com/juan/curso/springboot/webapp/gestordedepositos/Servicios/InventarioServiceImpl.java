@@ -261,4 +261,59 @@ public class InventarioServiceImpl implements GenericService<Inventario, Long> {
             throw new RuntimeException("Error en el movimiento de inventario: " + e.getMessage(), e);
         }
     }
+
+    @Transactional
+    public void agregarMercaderiaConProductoPersistido(Producto producto, int cantidad) {
+
+        // Siempre buscar por ID, no por SKU
+        List<Inventario> inventarios = inventarioRepositorio
+                .findAllByProducto_IdProducto(producto.getIdProducto());
+
+        int restante = cantidad;
+
+        // 1. Completar inventarios existentes
+        for (Inventario inv : inventarios) {
+            Ubicacion ubicacion = inv.getUbicacion();
+            int disponible = ubicacion.getCapacidadMaxima() - ubicacion.getOcupadoActual();
+
+            if (disponible > 0) {
+                int agregar = Math.min(disponible, restante);
+
+                inv.setCantidad(inv.getCantidad() + agregar);
+                inv.setFecha_actualizacion(Calendar.getInstance().getTime());
+                inventarioRepositorio.save(inv);
+
+                ubicacion.setOcupadoActual(ubicacion.getOcupadoActual() + agregar);
+                ubicacionService.actualizar(ubicacion);
+
+                restante -= agregar;
+
+                if (restante == 0) return;
+            }
+        }
+
+        // 2. Crear nuevos inventarios si aún queda cantidad
+        while (restante > 0) {
+            Ubicacion ubicacion = ubicacionService.obtenerUbicacionConMayorEspacioDisponible();
+            int espacio = ubicacion.getCapacidadMaxima() - ubicacion.getOcupadoActual();
+
+            if (espacio <= 0)
+                throw new RuntimeException("Sin espacio disponible en ninguna ubicación.");
+
+            int aColocar = Math.min(espacio, restante);
+            restante -= aColocar;
+
+            Inventario nuevo = new Inventario();
+            nuevo.setProducto(producto); // producto persistido
+            nuevo.setCantidad(aColocar);
+            nuevo.setUbicacion(ubicacion);
+            nuevo.setFecha_actualizacion(Calendar.getInstance().getTime());
+            inventarioRepositorio.save(nuevo);
+
+            ubicacion.setOcupadoActual(ubicacion.getOcupadoActual() + aColocar);
+            ubicacionService.actualizar(ubicacion);
+        }
+    }
+
+
 }

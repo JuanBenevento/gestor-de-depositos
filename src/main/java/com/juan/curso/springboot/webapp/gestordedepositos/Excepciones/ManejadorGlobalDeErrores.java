@@ -42,6 +42,26 @@ public class ManejadorGlobalDeErrores {
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, String>> handleDataIntegrityViolation(org.springframework.dao.DataIntegrityViolationException ex) {
+        Map<String, String> error = new HashMap<>();
+
+        String mensaje = "No se puede eliminar la zona porque tiene ubicaciones asociadas.";
+
+        // Para depurar podés revisar la causa:
+        if (ex.getCause() != null && ex.getCause().getMessage() != null) {
+            String causa = ex.getCause().getMessage().toLowerCase();
+
+            if (causa.contains("foreign key") || causa.contains("referenced")) {
+                mensaje = "La zona está asociada a ubicaciones o inventario y no puede eliminarse.";
+            }
+        }
+
+        error.put("error", mensaje);
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
+
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<Map<String, String>> handleAccessDenied(AccessDeniedException ex) {
         Map<String, String> error = new HashMap<>();
