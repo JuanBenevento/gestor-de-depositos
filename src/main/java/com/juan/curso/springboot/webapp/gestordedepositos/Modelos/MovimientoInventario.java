@@ -19,7 +19,7 @@ public class MovimientoInventario {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id_movimientoInventario;
+    private Long idMovimientoInventario;
 
     @ManyToOne
     @JoinColumn(name = "id_producto", nullable = false)

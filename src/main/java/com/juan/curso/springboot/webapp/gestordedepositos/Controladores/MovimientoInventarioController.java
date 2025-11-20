@@ -1,6 +1,5 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Controladores;
 
-
 import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.MovimientoInventarioDTO;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.MovimientoInventario;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Producto;
@@ -23,127 +22,146 @@ import java.util.stream.Collectors;
 @RequestMapping("GestorDeDepositos/movimientoInventario")
 public class MovimientoInventarioController {
 
-    private final MovimientoInventarioServiceImpl movimientoInventarioServiceImpl;
-    private final UbicacionServiceImpl ubicacionServiceImpl;
-    private final ProductoServiceImpl productoServiceImpl;
+    private final MovimientoInventarioServiceImpl movimientoService;
+    private final UbicacionServiceImpl ubicacionService;
+    private final ProductoServiceImpl productoService;
+
     @Autowired
-    public MovimientoInventarioController( MovimientoInventarioServiceImpl movimientoInventarioServiceImpl,
-    UbicacionServiceImpl ubicacionServiceImpl,
-    ProductoServiceImpl productoServiceImpl){
-        this.movimientoInventarioServiceImpl = movimientoInventarioServiceImpl;
-        this.ubicacionServiceImpl = ubicacionServiceImpl;
-        this.productoServiceImpl = productoServiceImpl;
+    public MovimientoInventarioController(
+            MovimientoInventarioServiceImpl movimientoService,
+            UbicacionServiceImpl ubicacionService,
+            ProductoServiceImpl productoService
+    ) {
+        this.movimientoService = movimientoService;
+        this.ubicacionService = ubicacionService;
+        this.productoService = productoService;
     }
 
     @GetMapping("/todos")
-    @Operation(summary = "Este metodo busca todos los movimientos del inventario")
+    @Operation(summary = "Lista todos los movimientos de inventario")
     public ResponseEntity<?> buscarTodos() {
-        List<MovimientoInventarioDTO> movimientosInventario = movimientoInventarioServiceImpl.buscarTodos().orElseThrow().stream().
-                map(MovimientoInventarioDTO::new)
+        List<MovimientoInventarioDTO> movimientos = movimientoService.buscarTodos()
+                .orElse(List.of())
+                .stream()
+                .map(MovimientoInventarioDTO::new)
                 .collect(Collectors.toList());
-        return new ResponseEntity<>(movimientosInventario, HttpStatus.OK);
+
+        return new ResponseEntity<>(movimientos, HttpStatus.OK);
     }
 
     @PostMapping("/crearMovimiento")
-    @Operation(summary = "Este metodo crea un nuevo movimiento de inventario")
+    @Operation(summary = "Crea un nuevo movimiento de inventario")
     public ResponseEntity<?> crear(@RequestBody MovimientoInventarioDTO dto) {
+
         try {
-            Optional<Producto> productoElegido = productoServiceImpl.buscarPorId(dto.getProducto().getIdProducto());
-            Optional<Ubicacion> ubicacion_origen = ubicacionServiceImpl.buscarPorId(dto.getUbicacionOrigen().getIdUbicacion());
-            Optional<Ubicacion> ubicacion_destino = ubicacionServiceImpl.buscarPorId(dto.getUbicacionDestino().getIdUbicacion());
+            if (dto == null || dto.getProducto() == null ||
+                    dto.getUbicacionOrigen() == null || dto.getUbicacionDestino() == null ||
+                    dto.getCantidad() <= 0) {
 
-            if(ubicacion_origen.isPresent() && ubicacion_destino.isPresent() && productoElegido.isPresent()) {
-                Ubicacion origen = ubicacion_origen.get();
-                Ubicacion destino = ubicacion_destino.get();
-                Producto producto = productoElegido.get();
-
-                MovimientoInventario movInventario = new MovimientoInventario(dto.getId_movimiento(), producto,
-                        origen, destino, dto.getCantidad(), dto.getEstado(), new Date());
-
-                Optional<Ubicacion> ubicacionDestino = ubicacionServiceImpl.buscarPorId(movInventario.getUbicacionDestino().getIdUbicacion());
-                Optional<Ubicacion> ubicacionOrigen = ubicacionServiceImpl.buscarPorId(movInventario.getUbicacionOrigen().getIdUbicacion());
-
-                if(ubicacionDestino.isPresent() && ubicacionOrigen.isPresent()) {
-                    Ubicacion ubiDestino = ubicacionDestino.get();
-                    Ubicacion ubiOrigen = ubicacionOrigen.get();
-
-                    int cantidadActualOrigen =  ubiOrigen.getOcupadoActual();
-                    int cantidadActualDestino =  ubiDestino.getOcupadoActual();
-
-                    ubiDestino.setOcupadoActual( cantidadActualDestino + dto.getCantidad());
-                    ubiOrigen.setOcupadoActual(cantidadActualOrigen - dto.getCantidad());
-                    ubicacionServiceImpl.actualizar(ubiDestino);
-                    ubicacionServiceImpl.actualizar(ubiDestino);
-                }
-                movInventario = movimientoInventarioServiceImpl.crear(movInventario);
-                dto = new MovimientoInventarioDTO(movInventario);
-                return new ResponseEntity<>(dto, HttpStatus.CREATED);
-            } else {
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>("Datos incompletos.", HttpStatus.BAD_REQUEST);
             }
-        } catch (Exception e) {
-            return new ResponseEntity<>("Error al crear movimiento de inventario", HttpStatus.INTERNAL_SERVER_ERROR);
+
+            // Validación fecha futura
+            if (dto.getFecha() != null && dto.getFecha().after(new Date())) {
+                return new ResponseEntity<>("La fecha no puede ser futura.", HttpStatus.BAD_REQUEST);
+            }
+
+            Optional<Producto> productoOpt = productoService.buscarPorId(dto.getProducto().getIdProducto());
+            Optional<Ubicacion> origenOpt = ubicacionService.buscarPorId(dto.getUbicacionOrigen().getIdUbicacion());
+            Optional<Ubicacion> destinoOpt = ubicacionService.buscarPorId(dto.getUbicacionDestino().getIdUbicacion());
+
+            if (productoOpt.isEmpty() || origenOpt.isEmpty() || destinoOpt.isEmpty()) {
+                return new ResponseEntity<>("Producto o ubicaciones no encontrados.", HttpStatus.NOT_FOUND);
+            }
+
+            Producto producto = productoOpt.get();
+            Ubicacion origen = origenOpt.get();
+            Ubicacion destino = destinoOpt.get();
+
+            // Validaciones de capacidad / stock
+            if (origen.getOcupadoActual() < dto.getCantidad()) {
+                return new ResponseEntity<>("Stock insuficiente en ubicación de origen.", HttpStatus.BAD_REQUEST);
+            }
+            if (destino.getCapacidadMaxima() - destino.getOcupadoActual() < dto.getCantidad()) {
+                return new ResponseEntity<>("Capacidad insuficiente en destino.", HttpStatus.BAD_REQUEST);
+            }
+
+            // Actualizar stock origen/destino
+            origen.setOcupadoActual(origen.getOcupadoActual() - dto.getCantidad());
+            destino.setOcupadoActual(destino.getOcupadoActual() + dto.getCantidad());
+
+            ubicacionService.actualizar(origen);
+            ubicacionService.actualizar(destino);
+
+            // Crear movimiento SIN ID → Hibernate lo genera
+            MovimientoInventario movimiento = new MovimientoInventario();
+            movimiento.setProducto(producto);
+            movimiento.setUbicacionOrigen(origen);
+            movimiento.setUbicacionDestino(destino);
+            movimiento.setCantidad(dto.getCantidad());
+            movimiento.setEstado(dto.getEstado());
+            movimiento.setFecha(dto.getFecha() != null ? dto.getFecha() : new Date());
+
+            MovimientoInventario guardado = movimientoService.crear(movimiento);
+
+            return new ResponseEntity<>(new MovimientoInventarioDTO(guardado), HttpStatus.CREATED);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>("Error al crear el movimiento", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @GetMapping("/buscar")
-    @Operation(summary = "Este metodo busca un movimiento inventario por su id")
+    @Operation(summary = "Busca un movimiento por ID")
     public ResponseEntity<?> buscar(@RequestParam Long id) {
-        try {
-            Optional<MovimientoInventario> movInventarioSelected = movimientoInventarioServiceImpl.buscarPorId(id);
-            if (movInventarioSelected.isPresent()) {
-                MovimientoInventario movimInvent = movInventarioSelected.get();
-                return new ResponseEntity<>(new MovimientoInventarioDTO(movimInvent), HttpStatus.OK);
-            } else {
-                return new ResponseEntity<>("Movimiento de inventario no encontrado", HttpStatus.NOT_FOUND);
-            }
-        } catch (Exception e) {
-            return new ResponseEntity<>("Error al buscar movimiento de inventario", HttpStatus.INTERNAL_SERVER_ERROR);
+
+        Optional<MovimientoInventario> movOpt = movimientoService.buscarPorId(id);
+
+        if (movOpt.isEmpty()) {
+            return new ResponseEntity<>("Movimiento no encontrado", HttpStatus.NOT_FOUND);
         }
+
+        return new ResponseEntity<>(new MovimientoInventarioDTO(movOpt.get()), HttpStatus.OK);
     }
 
     @PutMapping("/editar")
-    @Operation(summary = "Este metodo edita un movimiento")
+    @Operation(summary = "Edita un movimiento de inventario")
     public ResponseEntity<?> editar(@RequestParam Long id, @RequestBody MovimientoInventarioDTO dto) {
-        try {
-            Optional<MovimientoInventario> movInventarioSelected = movimientoInventarioServiceImpl.buscarPorId(id);
-            Optional<Ubicacion> ubicacion_origen = ubicacionServiceImpl.buscarPorId(dto.getUbicacionOrigen().getIdUbicacion());
-            Optional<Ubicacion> ubicacion_destino = ubicacionServiceImpl.buscarPorId(dto.getUbicacionDestino().getIdUbicacion());
-            Optional<Producto> reqProducto = productoServiceImpl.buscarPorId(dto.getProducto().getIdProducto());
 
-            if(movInventarioSelected.isPresent() && ubicacion_origen.isPresent() && ubicacion_destino.isPresent() && reqProducto.isPresent()) {
-                MovimientoInventario movInventario = movInventarioSelected.get();
-                Ubicacion origen = ubicacion_origen.get();
-                Ubicacion destino = ubicacion_destino.get();
-                Producto producto = reqProducto.get();
+        Optional<MovimientoInventario> movOpt = movimientoService.buscarPorId(id);
 
-                movInventario.setProducto(producto);
-                movInventario.setUbicacionOrigen(origen);
-                movInventario.setUbicacionDestino(destino);
-                movInventario.setCantidad(dto.getCantidad());
-                movInventario.setEstado(dto.getEstado());
-                movInventario.setFecha(new Date());
-
-                movInventario = movimientoInventarioServiceImpl.actualizar(movInventario);
-                dto = new MovimientoInventarioDTO(movInventario);
-                return new ResponseEntity<>(dto, HttpStatus.OK);
-            } else {
-                return new ResponseEntity<>("Movimiento de inventario no encontrado", HttpStatus.NOT_FOUND);
-            }
-        } catch (Exception e) {
-            return new ResponseEntity<>("Error al intentar actualizar movimiento de inventario", HttpStatus.INTERNAL_SERVER_ERROR);
+        if (movOpt.isEmpty()) {
+            return new ResponseEntity<>("Movimiento no encontrado", HttpStatus.NOT_FOUND);
         }
+
+        MovimientoInventario movimiento = movOpt.get();
+
+        Optional<Producto> productoOpt = productoService.buscarPorId(dto.getProducto().getIdProducto());
+        Optional<Ubicacion> origenOpt = ubicacionService.buscarPorId(dto.getUbicacionOrigen().getIdUbicacion());
+        Optional<Ubicacion> destinoOpt = ubicacionService.buscarPorId(dto.getUbicacionDestino().getIdUbicacion());
+
+        if (productoOpt.isEmpty() || origenOpt.isEmpty() || destinoOpt.isEmpty()) {
+            return new ResponseEntity<>("Producto o ubicaciones no encontrados", HttpStatus.NOT_FOUND);
+        }
+
+        movimiento.setProducto(productoOpt.get());
+        movimiento.setUbicacionOrigen(origenOpt.get());
+        movimiento.setUbicacionDestino(destinoOpt.get());
+        movimiento.setCantidad(dto.getCantidad());
+        movimiento.setEstado(dto.getEstado());
+        movimiento.setFecha(dto.getFecha() != null ? dto.getFecha() : movimiento.getFecha());
+
+        MovimientoInventario actualizado = movimientoService.actualizar(movimiento);
+
+        return new ResponseEntity<>(new MovimientoInventarioDTO(actualizado), HttpStatus.OK);
     }
 
-    @DeleteMapping ("/eliminar")
-    @Operation(summary = "Este metodo elimina un movimiento de inventario")
+    @DeleteMapping("/eliminar")
+    @Operation(summary = "Elimina un movimiento de inventario")
     public ResponseEntity<?> eliminar(@RequestParam Long id) {
-        try {
-            movimientoInventarioServiceImpl.eliminar(id);
-            return new ResponseEntity<>("Movimiento de inventario eliminado", HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>("Error al intentar eliminar el movimiento de inventario", HttpStatus.INTERNAL_SERVER_ERROR);
 
-        }
+        movimientoService.eliminar(id);
+        return new ResponseEntity<>("Movimiento eliminado correctamente", HttpStatus.OK);
     }
 }

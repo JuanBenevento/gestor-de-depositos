@@ -2,11 +2,15 @@ package com.juan.curso.springboot.webapp.gestordedepositos.Servicios;
 
 
 import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.RecursoNoEncontradoException;
+import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Enums.EstadoMovimientoInventario;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.MovimientoInventario;
+import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Producto;
+import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Ubicacion;
 import com.juan.curso.springboot.webapp.gestordedepositos.Repositorios.MovimientoInventarioRepositorio;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Calendar;
 import java.util.List;
 import java.util.Optional;
 
@@ -57,7 +61,7 @@ public class MovimientoInventarioServiceImpl implements GenericService<Movimient
         try {
             movimientoInventario = movimientoInventarioRepositorio.save(movimientoInventario);
         }catch (RecursoNoEncontradoException e){
-            throw new RecursoNoEncontradoException("Movimiento de Inventario no encontrado con ID: " + movimientoInventario.getId_movimientoInventario());
+            throw new RecursoNoEncontradoException("Movimiento de Inventario no encontrado con ID: " + movimientoInventario.getIdMovimientoInventario());
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -75,4 +79,23 @@ public class MovimientoInventarioServiceImpl implements GenericService<Movimient
             e.printStackTrace();
         }
     }
+
+    public MovimientoInventario registrarMovimiento(
+            Producto producto,
+            Ubicacion origen,
+            Ubicacion destino,
+            int cantidad,
+            EstadoMovimientoInventario estado
+    ) {
+        MovimientoInventario mov = new MovimientoInventario();
+        mov.setProducto(producto);
+        mov.setUbicacionOrigen(origen);
+        mov.setUbicacionDestino(destino);
+        mov.setCantidad(cantidad);
+        mov.setEstado(estado);
+        mov.setFecha(Calendar.getInstance().getTime());
+
+        return movimientoInventarioRepositorio.save(mov);
+    }
+
 }
