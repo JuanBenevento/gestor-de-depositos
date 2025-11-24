@@ -2,6 +2,7 @@ package com.juan.curso.springboot.webapp.gestordedepositos.Controladores;
 
 import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.OrdenDespachoDTO;
 import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.RecursoNoEncontradoException;
+import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.StockInsuficienteException;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.*;
 import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -65,58 +66,27 @@ public class OrdenDespachoController {
     }
 
     @PostMapping("/crearOrden")
-    @Operation(summary = "Este metodo crea una orden de despacho")
+    @Operation(summary = "Crea una orden de despacho validando stock y descontando inventario")
     public ResponseEntity<?> crear(@RequestBody OrdenDespachoDTO dto) {
-        OrdenDespacho orden = new OrdenDespacho();
         try {
-            Optional<Cliente> cliente = clienteServiceImpl.buscarPorId(dto.getCliente().getIdCliente());
+            OrdenDespacho creada = ordenDespachoService.procesarSalidaMercaderia(dto);
 
-            if(cliente.isPresent()) {
-                orden.setCliente(cliente.get());
-            }else {
-                throw new RecursoNoEncontradoException("Cliente no encontrado");
-            }
+            OrdenDespachoDTO respuesta = new OrdenDespachoDTO(
+                    creada.getIdOrdenDespacho(),
+                    creada.getFechaDespacho(),
+                    creada.getEstado(),
+                    creada.getCliente(),
+                    creada.getDetalleDespacho()
+            );
+            return new ResponseEntity<>(respuesta, HttpStatus.CREATED);
 
-            orden.setFechaDespacho(dto.getFechaDespacho());
-            orden.setEstado(dto.getEstado());
-
-            List<DetalleDespacho> detalles = dto.getDetalle_despacho().stream()
-                    .map(detalleDto -> {
-                        Optional<Producto> producto = productoServiceImpl.buscarPorId(detalleDto.getProducto().getIdProducto());
-                        if(producto.isPresent()) {
-                            DetalleDespacho detalle = new DetalleDespacho();
-                            detalle.setProducto(producto.get());
-
-                            List<Inventario> inventario = inventarioServiceImpl.buscarInventariosPorIdProducto(producto.get().getIdProducto());
-                            if(inventario.isEmpty()){
-                                new RecursoNoEncontradoException("Inventario no encontrado");
-                            }
-                            int cantidad = 0;
-                            for(Inventario i : inventario) {
-                                cantidad = cantidad + i.getCantidad();
-                            }
-                            if (detalleDto.getCantidad() > cantidad) {
-                                throw new RecursoNoEncontradoException("Cantidad insuficiente en inventario");
-                            }
-
-                            detalle.setCantidad(detalleDto.getCantidad());
-                            detalle.setOrdenDespacho(orden);
-
-                            inventarioServiceImpl.disminuirCantidad(detalle);
-                            return detalle;
-                        }else {
-                            throw new RecursoNoEncontradoException("Producto no encontrado");
-                        }
-                    })
-                    .collect(Collectors.toList());
-
-            orden.setDetalleDespacho(detalles);
-
-            OrdenDespacho retorno = ordenDespachoService.crear(orden);
-
-            return new ResponseEntity<>(new OrdenDespachoDTO(retorno), HttpStatus.CREATED);
+        } catch (StockInsuficienteException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT); // 409 Conflict
+        } catch (RecursoNoEncontradoException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND); // 404 Not Found
         } catch (Exception e) {
-            return new ResponseEntity<>("Error al crear orden", HttpStatus.INTERNAL_SERVER_ERROR);
+            e.printStackTrace();
+            return new ResponseEntity<>("Error interno al procesar despacho: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

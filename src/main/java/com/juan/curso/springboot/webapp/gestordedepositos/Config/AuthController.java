@@ -43,7 +43,12 @@ public class AuthController {
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         try {
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginRequest.getNombre(), loginRequest.getContrasenia()));
+                    new UsernamePasswordAuthenticationToken(
+                            loginRequest.getEmail(),
+                            loginRequest.getContrasenia()
+                    )
+            );
+
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
             UserDetails usuario = (UserDetails) authentication.getPrincipal();
@@ -51,17 +56,14 @@ public class AuthController {
 
             LoginResponse response = new LoginResponse();
             response.setToken(token);
-            response.setNombre(usuario.getUsername());
+            response.setNombre(usuario.getUsername()); // es email ahora
             response.setRol(usuario.getAuthorities().iterator().next().getAuthority());
 
             return ResponseEntity.ok(response);
 
         } catch (org.springframework.security.authentication.BadCredentialsException ex) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "Usuario o contraseña incorrectos"));
-        } catch (Exception ex) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Error interno del servidor"));
+                    .body(Map.of("error", "Email o contraseña incorrectos"));
         }
     }
 

@@ -27,16 +27,10 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void initializeData() {
-        // Verificar si ya existe un usuario administrador
         if (usuarioRepositorio.count() == 0) {
             System.out.println("=== INICIALIZANDO DATOS DEL SISTEMA ===");
-            
-            // Crear roles si no existen
             createRolesIfNotExist();
-            
-            // Crear usuario administrador por defecto
             createDefaultAdminUser();
-            
             System.out.println("=== DATOS INICIALES CREADOS EXITOSAMENTE ===");
         } else {
             System.out.println("=== SISTEMA YA INICIALIZADO ===");
@@ -44,15 +38,14 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void createRolesIfNotExist() {
-        // Verificar si el rol ADMIN existe
+
         if (rolRepositorio.findByNombre("ADMIN") == null) {
             Rol adminRole = new Rol();
             adminRole.setNombre("ADMIN");
             rolRepositorio.save(adminRole);
             System.out.println("Rol ADMIN creado");
         }
-        
-        // Verificar si el rol OPERATIVO existe
+
         if (rolRepositorio.findByNombre("OPERATIVO") == null) {
             Rol operativoRole = new Rol();
             operativoRole.setNombre("OPERATIVO");
@@ -62,14 +55,12 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void createDefaultAdminUser() {
-        // Buscar el rol ADMIN
         Rol adminRole = rolRepositorio.findByNombre("ADMIN");
         
         if (adminRole != null) {
-            // Crear usuario administrador por defecto
             Usuario adminUser = new Usuario();
             adminUser.setNombre("admin");
-            adminUser.setContrasenia(passwordEncoder.encode("admin123")); // Contraseña por defecto
+            adminUser.setContrasenia(passwordEncoder.encode("admin123"));
             adminUser.setApellido("Administrador");
             adminUser.setEmail("admin@gestordepositos.com");
             adminUser.setRol(adminRole);

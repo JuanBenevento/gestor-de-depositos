@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class AuthServicio  implements UserDetailsService {
-
     @Autowired
     UsuarioServiceImpl usuarioRepository;
     @Autowired
@@ -21,33 +20,24 @@ public class AuthServicio  implements UserDetailsService {
     @Autowired
     RolRepositorio rolRepositorio;
 
-    public AuthServicio() {
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        Usuario usuario = usuarioRepository.getByEmailEquals(email);
 
+        if(usuario == null){
+            throw new UsernameNotFoundException("Usuario no encontrado: " + email);
+        }
+
+        Rol rol = usuario.getRol();
+
+        return org.springframework.security.core.userdetails.User
+                .withUsername(usuario.getEmail())
+                .password(usuario.getContrasenia())
+                .authorities(new SimpleGrantedAuthority("ROLE_" + rol.getNombre()))
+                .build();
     }
 
-
-
-        @Override
-        public UserDetails loadUserByUsername(String nombre) throws UsernameNotFoundException {
-            Usuario usuario = usuarioRepository.getByNombreEquals(nombre);
-            if(usuario.getIdUsuario() == null){
-                throw new UsernameNotFoundException("Usuario no encontrado: " + nombre);
-
-            }
-            Rol rol = usuario.getRol();
-            return org.springframework.security.core.userdetails.User
-                    .withUsername(usuario.getNombre())
-                    .password(usuario.getContrasenia())
-                    .authorities(
-                             new SimpleGrantedAuthority("ROLE_"+rol.getNombre())
-                    )
-                    .build();
-        }
-
-        public String generateToken(String nombre){
-            return jwtUtil.generateToken(nombre);
-        }
-
-
+    public String generateToken(String email){
+        return jwtUtil.generateToken(email);
+    }
 }
-

@@ -41,45 +41,58 @@ public class ProductoServiceImpl implements GenericService<Producto, Long> {
     }
 
     @Override
+    @Transactional
     public Producto crear(Producto producto) {
+        if (productoRepositorio.existsByCodigoSku(producto.getCodigoSku())) {
+            throw new RuntimeException("El código SKU '" + producto.getCodigoSku() + "' ya existe en el sistema.");
+        }
+
         try {
-            producto = productoRepositorio.save(producto);
+            return productoRepositorio.save(producto);
         } catch (Exception e) {
             e.printStackTrace();
+            throw new RuntimeException("Error al crear el producto en base de datos");
         }
-        return producto;
     }
 
     @Override
-    public Producto actualizar(Producto producto) {
+    @Transactional
+    public Producto actualizar(Producto productoEditado) {
+        // 💡 VALIDACIÓN DE SKU DUPLICADO AL ACTUALIZAR
+        Producto productoActual = productoRepositorio.findById(productoEditado.getIdProducto())
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+
+        // Verificamos si el SKU cambió. Si cambió, chequeamos que el nuevo no esté ocupado.
+        if (!productoActual.getCodigoSku().equalsIgnoreCase(productoEditado.getCodigoSku())) {
+            if (productoRepositorio.existsByCodigoSku(productoEditado.getCodigoSku())) {
+                throw new RuntimeException("El código SKU '" + productoEditado.getCodigoSku() + "' ya existe.");
+            }
+        }
+
         try {
-          producto=   productoRepositorio.save(producto);
+            return productoRepositorio.save(productoEditado);
         } catch (Exception e) {
             e.printStackTrace();
+            throw new RuntimeException("Error al actualizar el producto");
         }
-        return producto;
     }
 
+    @Transactional
     public void eliminar(Long id) {
         try {
             Optional<Producto> producto = buscarPorId(id);
             if (producto.isPresent()) {
                 producto.get().setIsDeleted("S");
                 productoRepositorio.save(producto.get());
-            }else{
-                throw new RuntimeException("No se pudo eliminar el producto");
+            } else {
+                throw new RuntimeException("No se pudo eliminar: Producto no encontrado");
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Error al eliminar producto");
         }
     }
 
     public Producto buscarPorCodigoSKU(String codigo) {
-        try {
-            return productoRepositorio.findProductoByCodigoSkuIs(codigo);
-        } catch (Exception e) {
-            throw new RuntimeException("Error al buscar producto por SKU: " + codigo, e);
-        }
+        return productoRepositorio.findProductoByCodigoSkuIs(codigo);
     }
-
 }

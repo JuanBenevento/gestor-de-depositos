@@ -2,6 +2,7 @@ package com.juan.curso.springboot.webapp.gestordedepositos.Servicios;
 
 import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.ReporteUbicacionDTO;
 import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.RecursoNoEncontradoException;
+import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Enums.CategoriasProducto;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Ubicacion;
 import com.juan.curso.springboot.webapp.gestordedepositos.Repositorios.UbicacionRepositorio;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,6 +89,16 @@ public class UbicacionServiceImpl implements GenericService<Ubicacion, Long> {
             throw new RuntimeException(e);
         }
         return null;
+    }
+
+    public Ubicacion buscarMejorUbicacion(CategoriasProducto categoria, int cantidad) {
+        List<Ubicacion> candidatos = ubicacionRepositorio.buscarUbicacionesPorCategoriaYEspacio(categoria, cantidad);
+
+        if (candidatos.isEmpty()) {
+            throw new RuntimeException("No hay espacio disponible en ninguna Zona habilitada para " + categoria);
+        }
+
+        return candidatos.get(0);
     }
 
     public List<ReporteUbicacionDTO> obtenerEspacioDeUbicaciones() {

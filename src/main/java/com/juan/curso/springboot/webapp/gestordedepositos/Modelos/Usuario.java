@@ -20,7 +20,7 @@ public class Usuario {
     @Column(name = "id_usuario")
     private Long idUsuario;
     @NotBlank
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false)
     private String nombre;
     @NotBlank
     @Column(nullable = false)
@@ -29,7 +29,7 @@ public class Usuario {
     @Column(nullable = false)
     private String apellido;
     @Email
-    @Column(nullable = false)
+    @Column(unique = true, nullable = false)
     private String email;
     @ManyToOne
     @JoinColumn(name = "id_rol", nullable = false)

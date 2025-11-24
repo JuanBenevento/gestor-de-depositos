@@ -12,7 +12,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class LoginRequest {
     @NotBlank
-    private String nombre;
+    private String email;
     @NotBlank
     private String contrasenia;
 }

@@ -1,19 +1,15 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Modelos;
 
-import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Enums.EstadoMovimientoInventario;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
+import lombok.*;
 import java.util.Date;
+import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Enums.EstadoMovimientoInventario;
 
 @Entity
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "movimiento_inventario")
 public class MovimientoInventario {
 
@@ -26,17 +22,17 @@ public class MovimientoInventario {
     private Producto producto;
 
     @ManyToOne
-    @JoinColumn(name = "id_ubicacion_origen", nullable = false)
+    @JoinColumn(name = "id_ubicacion_origen", nullable = true)
     private Ubicacion ubicacionOrigen;
 
     @ManyToOne
-    @JoinColumn(name = "id_ubicacion_destino", nullable = false)
+    @JoinColumn(name = "id_ubicacion_destino", nullable = true)
     private Ubicacion ubicacionDestino;
 
     private int cantidad;
 
+    private Date fecha;
+
     @Enumerated(EnumType.STRING)
     private EstadoMovimientoInventario estado;
-
-    private Date fecha;
 }

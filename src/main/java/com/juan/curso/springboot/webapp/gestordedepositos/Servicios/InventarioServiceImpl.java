@@ -1,6 +1,7 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Servicios;
 
 import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.DetalleRecepcionDTO;
+import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.CapacidadExcedida;
 import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.RecursoNoEncontradoException;
 import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.StockInsuficienteException;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.*;
@@ -17,6 +18,7 @@ import java.util.Optional;
 
 @Service
 public class InventarioServiceImpl implements GenericService<Inventario, Long> {
+
     @Autowired
     InventarioRepositorio inventarioRepositorio;
     @Autowired
@@ -25,6 +27,8 @@ public class InventarioServiceImpl implements GenericService<Inventario, Long> {
     UbicacionServiceImpl ubicacionService;
     @Autowired
     ProductoServiceImpl productoService;
+
+    // Inyectamos el repositorio para usar la Query personalizada
     @Autowired
     private UbicacionRepositorio ubicacionRepositorio;
 
@@ -44,11 +48,7 @@ public class InventarioServiceImpl implements GenericService<Inventario, Long> {
     @Override
     public Optional<Inventario> buscarPorId(Long id) throws RecursoNoEncontradoException {
         try {
-            Optional<Inventario> inventario = inventarioRepositorio.findById(id);
-            if (inventario.isEmpty()) {
-                throw new RecursoNoEncontradoException("Inventario de despacho con id " + id + " no encontrado");
-            }
-            return inventario;
+            return inventarioRepositorio.findById(id);
         }catch (Exception e){
             e.printStackTrace();
             return Optional.empty();
@@ -61,7 +61,7 @@ public class InventarioServiceImpl implements GenericService<Inventario, Long> {
             inventario.setFecha_actualizacion(Calendar.getInstance().getTime());
             return inventarioRepositorio.save(inventario);
         } catch (RuntimeException e) {
-            throw new RuntimeException("Error al crear el registro de inventario: " + e.getMessage(), e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -72,7 +72,7 @@ public class InventarioServiceImpl implements GenericService<Inventario, Long> {
             return inventarioRepositorio.save(inventario);
         }
         catch (RuntimeException e) {
-            throw new RuntimeException("Error al actualizar el registro de inventario: " + e.getMessage(), e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -81,123 +81,50 @@ public class InventarioServiceImpl implements GenericService<Inventario, Long> {
         try{
             inventarioRepositorio.deleteById(id);
         }catch (RuntimeException e) {
-            throw new RuntimeException("Error al eliminar el registro de inventario: " + e.getMessage(), e);
+            throw new RuntimeException(e);
         }
     }
 
-    public List<Inventario> buscarInventariosPorIdProducto(Long idProducto) throws RecursoNoEncontradoException {
-        Optional<Producto> producto = productoService.buscarPorId(idProducto);
-        if (producto.isEmpty() || producto.get().getIsDeleted().equals("S")) {
-            throw new RecursoNoEncontradoException("Producto inexistente o eliminado");
-        }
-        String sku = producto.get().getCodigoSku();
+    public List<Inventario> buscarInventariosPorIdProducto(Long idProducto) {
+        String sku = productoService.buscarPorId(idProducto).get().getCodigoSku();
         return inventarioRepositorio.findAllByProducto_CodigoSku(sku);
     }
 
-    public List<Inventario> buscarPorCodigoSku(String codigoSku) throws RecursoNoEncontradoException {
-        Producto producto = productoService.buscarPorCodigoSKU(codigoSku);
-        if (producto.getIsDeleted().equals("S")) {
-            throw new RecursoNoEncontradoException("Producto no encontrado o eliminado");
-        }
-        List<Inventario> inventarios = inventarioRepositorio.findAllByProducto_CodigoSku(codigoSku);
-        if (inventarios.isEmpty()) {
-            throw new RecursoNoEncontradoException("Inventario de producto no encontrado con ese codigo");
-        }
-        return inventarios;
+    public List<Inventario> buscarPorCodigoSku(String codigoSku) {
+        return inventarioRepositorio.findAllByProducto_CodigoSku(codigoSku);
     }
 
     public int calcularStockTotalPorIdProducto(Long idProducto) {
+
         try {
             List<Inventario> inventarios = buscarInventariosPorIdProducto(idProducto);
-
-            int stockTotal = inventarios.stream()
-                    .mapToInt(Inventario::getCantidad)
-                    .sum();
-
-            return stockTotal;
-
-        } catch (RecursoNoEncontradoException e) {
-            return 0;
-        } catch (Exception e) {
-            System.err.println("Error al calcular stock total para el producto " + idProducto + ": " + e.getMessage());
-            return 0;
-        }
+            return inventarios.stream().mapToInt(Inventario::getCantidad).sum();
+        } catch (Exception e) { return 0; }
     }
 
     public int calcularStockTotalPorCodigoSku(String codigoSku) {
         try {
             List<Inventario> inventarios = buscarPorCodigoSku(codigoSku);
-
-            int stockTotal = inventarios.stream().mapToInt(Inventario::getCantidad).sum();
-            return stockTotal;
-        } catch (RecursoNoEncontradoException e) {
-            return 0;
-        } catch (Exception e) {
-            System.err.println("Error al calcular stock total para el product" + codigoSku + ": " + e.getMessage());
-            return 0;
-        }
+            return inventarios.stream().mapToInt(Inventario::getCantidad).sum();
+        } catch (Exception e) { return 0; }
     }
 
-    @Transactional
-    public void agregarMercaderia(DetalleRecepcionDTO detalle) {
-        List<Inventario> inventarios = inventarioRepositorio.findAllByProducto_CodigoSku(detalle.getProducto().getCodigoSku());
-        int cantidadRestante = detalle.getCantidad();
-
-        for (Inventario inventario : inventarios) {
-            Ubicacion ubicacion = inventario.getUbicacion();
-            int espacioDisponible = ubicacion.getCapacidadMaxima() - ubicacion.getOcupadoActual();
-
-            if (espacioDisponible > 0) {
-                int cantidadAAgregar = Math.min(espacioDisponible, cantidadRestante);
-                inventario.setCantidad(inventario.getCantidad() + cantidadAAgregar);
-                inventario.setFecha_actualizacion(Calendar.getInstance().getTime());
-                inventarioRepositorio.save(inventario);
-
-                ubicacion.setOcupadoActual(ubicacion.getOcupadoActual() + cantidadAAgregar);
-                ubicacionService.actualizar(ubicacion);
-
-                cantidadRestante -= cantidadAAgregar;
-
-                if (cantidadRestante == 0) break;
-            }
-        }
-
-        if (cantidadRestante > 0) {
-            Ubicacion nuevaUbicacion = ubicacionService.buscarUbicacionSegunCantidad(cantidadRestante);
-
-            if (nuevaUbicacion != null) {
-                Producto productoPersistido = productoService.buscarPorCodigoSKU(detalle.getProducto().getCodigoSku());
-
-                Inventario nuevoInventario = new Inventario();
-                nuevoInventario.setProducto(productoPersistido);
-                nuevoInventario.setCantidad(cantidadRestante);
-                nuevoInventario.setUbicacion(nuevaUbicacion);
-                nuevoInventario.setFecha_actualizacion(Calendar.getInstance().getTime());
-                inventarioRepositorio.save(nuevoInventario);
-
-                nuevaUbicacion.setOcupadoActual(nuevaUbicacion.getOcupadoActual() + cantidadRestante);
-                ubicacionService.actualizar(nuevaUbicacion);
-            } else {
-                throw new RuntimeException("No hay ubicación con capacidad suficiente para la cantidad restante: " + cantidadRestante);
-            }
-        }
-    }
 
     @Transactional
-    public List<Inventario> disminuirCantidad(DetalleDespacho detalleDespacho) throws RecursoNoEncontradoException {
+    public List<Inventario> disminuirCantidad(DetalleDespacho detalleDespacho) {
 
         Long idProducto = detalleDespacho.getProducto().getIdProducto();
         int cantidadADescontar = detalleDespacho.getCantidad();
-
         List<Inventario> inventarios = buscarInventariosPorIdProducto(idProducto);
+
         int cantidadPendiente = cantidadADescontar;
 
         for (Inventario inventario : inventarios) {
-            if (cantidadPendiente <= 0) break;
+            if (cantidadPendiente <= 0) break; // Ya terminamos
 
             int stock = inventario.getCantidad();
-            if (stock > 0) {
 
+            if (stock > 0) {
                 int aRestar = Math.min(stock, cantidadPendiente);
 
                 inventario.setCantidad(stock - aRestar);
@@ -206,13 +133,14 @@ public class InventarioServiceImpl implements GenericService<Inventario, Long> {
 
                 Ubicacion origen = inventario.getUbicacion();
                 origen.setOcupadoActual(origen.getOcupadoActual() - aRestar);
+                if (origen.getOcupadoActual() < 0) origen.setOcupadoActual(0);
                 ubicacionRepositorio.save(origen);
 
-                // REGISTRO DE MOVIMIENTO
+                // 3. Registrar Movimiento
                 movimientoInventarioService.registrarMovimiento(
                         detalleDespacho.getProducto(),
                         origen,
-                        null,  // sale del depósito
+                        null,
                         aRestar,
                         EstadoMovimientoInventario.SALIDA
                 );
@@ -221,60 +149,24 @@ public class InventarioServiceImpl implements GenericService<Inventario, Long> {
             }
         }
 
-        return inventarios;
-    }
-
-
-    @Transactional
-    public Inventario cambiarUbicacionDeInventario(Long idInventario, Long idNuevaUbicacion){
-        try{
-            Optional<Inventario> inventarioOpt = inventarioRepositorio.findById(idInventario);
-            if (inventarioOpt.isEmpty()){
-                throw new RecursoNoEncontradoException("No se encontro el inventario con id: " + idInventario);
-            }
-
-            Inventario inventario = inventarioOpt.get();
-            Optional<Ubicacion> nuevaUbicacionOpt = ubicacionService.buscarPorId(idNuevaUbicacion);
-
-            if(nuevaUbicacionOpt.isEmpty()){
-                throw new RecursoNoEncontradoException("No se encontró ubicación con id: " + idNuevaUbicacion);
-            }
-
-            Ubicacion nuevaUbicacion = nuevaUbicacionOpt.get();
-            Ubicacion ubicacionAnterior = inventario.getUbicacion();
-            int cantidadMovida = inventario.getCantidad();
-
-            int espacioDisponible = nuevaUbicacion.getCapacidadMaxima() - nuevaUbicacion.getOcupadoActual();
-            if (espacioDisponible < cantidadMovida) {
-                throw new RuntimeException("La nueva ubicación no tiene capacidad suficiente. Requiere: " + cantidadMovida + ", Disponible: " + espacioDisponible);
-            }
-
-            inventario.setUbicacion(nuevaUbicacion);
-            inventario.setFecha_actualizacion(Calendar.getInstance().getTime());
-            inventarioRepositorio.save(inventario);
-
-            ubicacionAnterior.setOcupadoActual(ubicacionAnterior.getOcupadoActual() - cantidadMovida);
-            ubicacionRepositorio.save(ubicacionAnterior);
-
-            nuevaUbicacion.setOcupadoActual(nuevaUbicacion.getOcupadoActual() + cantidadMovida);
-            ubicacionRepositorio.save(nuevaUbicacion);
-
-            return inventario;
-
-        } catch (RecursoNoEncontradoException e) {
-            throw e;
-        } catch (RuntimeException e) {
-            throw new RuntimeException("Error en el movimiento de inventario: " + e.getMessage(), e);
+        if (cantidadPendiente > 0) {
+            throw new StockInsuficienteException(
+                    "Inconsistencia de inventario detectada durante el despacho. " +
+                            "Faltaron " + cantidadPendiente + " unidades del producto " + detalleDespacho.getProducto().getNombre()
+            );
         }
+
+        return inventarios;
     }
 
     @Transactional
     public void agregarMercaderiaConProductoPersistido(Producto producto, int cantidad) {
 
-        List<Inventario> inventarios = inventarioRepositorio.findAllByProducto_IdProducto(producto.getIdProducto());
         int restante = cantidad;
 
-        for (Inventario inv : inventarios) {
+        List<Inventario> inventariosExistentes = inventarioRepositorio.findAllByProducto_IdProducto(producto.getIdProducto());
+
+        for (Inventario inv : inventariosExistentes) {
             Ubicacion ubicacion = inv.getUbicacion();
             int espacio = ubicacion.getCapacidadMaxima() - ubicacion.getOcupadoActual();
 
@@ -288,7 +180,6 @@ public class InventarioServiceImpl implements GenericService<Inventario, Long> {
                 ubicacion.setOcupadoActual(ubicacion.getOcupadoActual() + agregar);
                 ubicacionService.actualizar(ubicacion);
 
-                // REGISTRO DE MOVIMIENTO
                 movimientoInventarioService.registrarMovimiento(
                         producto,
                         null,
@@ -298,38 +189,43 @@ public class InventarioServiceImpl implements GenericService<Inventario, Long> {
                 );
 
                 restante -= agregar;
-                if (restante == 0) return;
+                if (restante == 0) return; // Terminamos
             }
         }
 
         while (restante > 0) {
-            Ubicacion ubicacion = ubicacionService.obtenerUbicacionConMayorEspacioDisponible();
-            int espacio = ubicacion.getCapacidadMaxima() - ubicacion.getOcupadoActual();
+
+            List<Ubicacion> ubicacionesDisponibles = ubicacionRepositorio.buscarUbicacionesPorCategoriaYEspacio(producto.getCategoria(), 1);
+
+            if (ubicacionesDisponibles.isEmpty()) {
+                throw new CapacidadExcedida("No hay suficiente espacio en las Zonas de categoría: " + producto.getCategoria() + " para completar la carga.");
+            }
+
+            Ubicacion ubicacionDestino = ubicacionesDisponibles.get(0);
+
+            int espacio = ubicacionDestino.getCapacidadMaxima() - ubicacionDestino.getOcupadoActual();
 
             int agregar = Math.min(espacio, restante);
-            restante -= agregar;
 
             Inventario nuevo = new Inventario();
             nuevo.setProducto(producto);
             nuevo.setCantidad(agregar);
-            nuevo.setUbicacion(ubicacion);
+            nuevo.setUbicacion(ubicacionDestino);
             nuevo.setFecha_actualizacion(Calendar.getInstance().getTime());
             inventarioRepositorio.save(nuevo);
 
-            ubicacion.setOcupadoActual(ubicacion.getOcupadoActual() + agregar);
-            ubicacionService.actualizar(ubicacion);
+            ubicacionDestino.setOcupadoActual(ubicacionDestino.getOcupadoActual() + agregar);
+            ubicacionService.actualizar(ubicacionDestino);
 
-            // REGISTRO DE MOVIMIENTO
             movimientoInventarioService.registrarMovimiento(
                     producto,
                     null,
-                    ubicacion,
+                    ubicacionDestino,
                     agregar,
                     EstadoMovimientoInventario.ENTRADA
             );
+
+            restante -= agregar;
         }
     }
-
-
-
 }
