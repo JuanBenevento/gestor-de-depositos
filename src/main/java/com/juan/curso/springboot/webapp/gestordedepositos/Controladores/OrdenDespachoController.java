@@ -3,159 +3,81 @@ package com.juan.curso.springboot.webapp.gestordedepositos.Controladores;
 import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.OrdenDespachoDTO;
 import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.RecursoNoEncontradoException;
 import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.StockInsuficienteException;
-import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.*;
-import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.*;
+import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.OrdenDespacho;
+import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.OrdenDespachoServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Calendar;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("GestorDeDepositos/ordenesDeDespacho")
 public class OrdenDespachoController {
+
     private final OrdenDespachoServiceImpl ordenDespachoService;
-    private final ClienteServiceImpl clienteServiceImpl;
-    private final ProductoServiceImpl productoServiceImpl;
-    private final InventarioServiceImpl inventarioServiceImpl;
-    private final UbicacionServiceImpl ubicacionServiceImpl;
+
     @Autowired
-    public OrdenDespachoController(OrdenDespachoServiceImpl ordenDespachoService, ClienteServiceImpl clienteServiceImpl, ProductoServiceImpl productoServiceImpl, InventarioServiceImpl inventarioServiceImpl, UbicacionServiceImpl ubicacionServiceImpl) {
+    public OrdenDespachoController(OrdenDespachoServiceImpl ordenDespachoService) {
         this.ordenDespachoService = ordenDespachoService;
-        this.clienteServiceImpl = clienteServiceImpl;
-        this.productoServiceImpl = productoServiceImpl;
-        this.inventarioServiceImpl = inventarioServiceImpl;
-        this.ubicacionServiceImpl = ubicacionServiceImpl;
     }
 
     @GetMapping("/buscarTodos")
-    @Operation(summary = "Este metodo busca todas las ordenes de despacho")
     public ResponseEntity<?> buscarTodos() {
         List<OrdenDespacho> ordenes = ordenDespachoService.buscarTodos()
-                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontraron ordenes de despacho"));
-
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontraron órdenes"));
         List<OrdenDespachoDTO> dtoList = ordenes.stream()
-                .map(orden -> new OrdenDespachoDTO(
-                        orden.getIdOrdenDespacho(),
-                        orden.getFechaDespacho(),
-                        orden.getEstado(),
-                        orden.getCliente(),
-                        orden.getDetalleDespacho()))
+                .map(OrdenDespachoDTO::new)
                 .collect(Collectors.toList());
-
         return ResponseEntity.ok(dtoList);
     }
 
     @GetMapping("/buscarPorId/{id}")
-    @Operation(summary = "Este metodo busca una orden de despacho por su id")
     public ResponseEntity<?> buscar(@PathVariable Long id) {
-        try {
-            OrdenDespacho orden = ordenDespachoService.buscarPorId(id)
-                    .orElseThrow(() -> new RecursoNoEncontradoException("Orden no encontrada con ID: " + id));
-            return new ResponseEntity<>(new OrdenDespachoDTO(orden), HttpStatus.OK);
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        } catch (Exception e) {
-            return new ResponseEntity<>("Error al buscar orden", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        return ordenDespachoService.buscarPorId(id)
+                .map(o -> new ResponseEntity<>(new OrdenDespachoDTO(o), HttpStatus.OK))
+                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @PostMapping("/crearOrden")
-    @Operation(summary = "Crea una orden de despacho validando stock y descontando inventario")
+    @Operation(summary = "Crea una orden de despacho y descuenta stock")
     public ResponseEntity<?> crear(@RequestBody OrdenDespachoDTO dto) {
         try {
             OrdenDespacho creada = ordenDespachoService.procesarSalidaMercaderia(dto);
-
-            OrdenDespachoDTO respuesta = new OrdenDespachoDTO(
-                    creada.getIdOrdenDespacho(),
-                    creada.getFechaDespacho(),
-                    creada.getEstado(),
-                    creada.getCliente(),
-                    creada.getDetalleDespacho()
-            );
-            return new ResponseEntity<>(respuesta, HttpStatus.CREATED);
-
+            return new ResponseEntity<>(new OrdenDespachoDTO(creada), HttpStatus.CREATED);
         } catch (StockInsuficienteException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT); // 409 Conflict
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
         } catch (RecursoNoEncontradoException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND); // 404 Not Found
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
         } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>("Error interno al procesar despacho: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Error interno: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    @PutMapping("/actualizar/{id}")
-    @Operation(summary = "Este metodo actualiza una orden de despacho")
-    public ResponseEntity<?> actualizar(@PathVariable Long id, @RequestBody OrdenDespachoDTO ordenDTO) {
+    @PutMapping("/actualizarOrdenCompleta")
+    @Operation(summary = "Actualiza una orden de despacho completa, revirtiendo stock anterior y aplicando el nuevo")
+    public ResponseEntity<?> actualizarOrdenCompleta(@RequestParam Long id, @RequestBody OrdenDespachoDTO dto) {
         try {
-            OrdenDespacho orden = ordenDespachoService.buscarPorId(id)
-                    .orElseThrow(() -> new RecursoNoEncontradoException("Orden no encontrada con ID: " + id));
-
-            orden.setEstado(ordenDTO.getEstado());
-
-            orden = ordenDespachoService.actualizar(orden);
-
-            return new ResponseEntity<>(new OrdenDespachoDTO(orden), HttpStatus.OK);
+            OrdenDespacho actualizada = ordenDespachoService.procesarModificacionOrden(id, dto);
+            return new ResponseEntity<>(new OrdenDespachoDTO(actualizada), HttpStatus.OK);
+        } catch (StockInsuficienteException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
         } catch (Exception e) {
-            return new ResponseEntity<>("Error al actualizar orden", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Error al actualizar: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @DeleteMapping("/eliminarOrden")
-    @Operation(summary = "Este metodo elimina una orden de despacho por su id")
+    @Operation(summary = "Elimina una orden y devuelve el stock")
     public ResponseEntity<?> eliminar(@RequestParam Long id) {
         try {
-            if (!ordenDespachoService.ExistePorId(id)) {
-                return new ResponseEntity<>("Orden de despacho con id " + id + " no encontrada", HttpStatus.NOT_FOUND);
-            }
-
-            Optional<OrdenDespacho> ordenDespacho = ordenDespachoService.buscarPorId(id);
-            OrdenDespacho ordenAEliminar = ordenDespacho.get();
-
-            // Reponer productos al inventario
-            List<DetalleDespacho> detalles = ordenAEliminar.getDetalleDespacho();
-            for (DetalleDespacho detalle : detalles) {
-                Producto producto = detalle.getProducto();
-                int cantidadAReponer = detalle.getCantidad();
-
-                while (cantidadAReponer > 0) {
-                    Ubicacion ubicacionDisponible = ubicacionServiceImpl.obtenerUbicacionConMayorEspacioDisponible();
-                    int espacioDisponible = ubicacionDisponible.getCapacidadMaxima() - ubicacionDisponible.getOcupadoActual();
-
-                    if (espacioDisponible <= 0) {
-                        throw new RuntimeException("No hay suficiente espacio para reponer los productos.");
-                    }
-
-                    int cantidadAColocar = Math.min(espacioDisponible, cantidadAReponer);
-
-                    Inventario inventario = new Inventario();
-                    inventario.setProducto(producto);
-                    inventario.setCantidad(cantidadAColocar);
-                    inventario.setFecha_actualizacion(Calendar.getInstance().getTime());
-                    inventario.setUbicacion(ubicacionDisponible);
-                    inventarioServiceImpl.crear(inventario);
-
-                    ubicacionDisponible.setOcupadoActual(ubicacionDisponible.getOcupadoActual() + cantidadAColocar);
-                    ubicacionServiceImpl.actualizar(ubicacionDisponible);
-
-                    cantidadAReponer -= cantidadAColocar;
-                }
-            }
-
-            ordenDespachoService.eliminar(id);
-            return new ResponseEntity<>("Orden eliminada con exito", HttpStatus.OK);
-        } catch (RecursoNoEncontradoException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+            ordenDespachoService.eliminarConReversion(id);
+            return ResponseEntity.ok("Orden eliminada y stock repuesto con éxito");
         } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>("Error al eliminar orden: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Error al eliminar: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
 }

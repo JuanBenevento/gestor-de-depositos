@@ -4,13 +4,15 @@ import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.DetalleRecepcionD
 import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.OrdenRecepcionDTO;
 import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.RecursoNoEncontradoException;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.DetalleRecepcion;
+import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Enums.EstadosDeOrden;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.OrdenRecepcion;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Producto;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Proveedor;
 import com.juan.curso.springboot.webapp.gestordedepositos.Repositorios.OrdenRecepcionRepositorio;
-import jakarta.transaction.Transactional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -115,5 +117,72 @@ public class OrdenRecepcionServiceImpl implements GenericService<OrdenRecepcion,
         orden.setDetallesRecepcion(detalles);
 
         return ordenRecepcionRepositorio.save(orden);
+    }
+
+    @Transactional
+    public OrdenRecepcion procesarModificacionOrden(Long idOrden, OrdenRecepcionDTO dto) {
+        OrdenRecepcion ordenActual = ordenRecepcionRepositorio.findById(idOrden)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Orden no encontrada"));
+
+        if (ordenActual.getEstado() == EstadosDeOrden.COMPLETADA) {
+            throw new RuntimeException("No se puede editar una orden COMPLETADA.");
+        }
+
+        for (DetalleRecepcion detalleViejo : ordenActual.getDetallesRecepcion()) {
+            inventarioService.deshacerIngreso(detalleViejo.getProducto(), detalleViejo.getCantidad());
+        }
+
+        Proveedor proveedor = proveedorService.buscarPorId(dto.getProveedor().getId_proveedor())
+                .orElseThrow(() -> new RecursoNoEncontradoException("Proveedor no encontrado"));
+        ordenActual.setProveedor(proveedor);
+        ordenActual.setFecha(dto.getFecha());
+        ordenActual.setEstado(dto.getEstado());
+
+        ordenActual.getDetallesRecepcion().clear();
+
+        ordenRecepcionRepositorio.saveAndFlush(ordenActual);
+        List<DetalleRecepcion> nuevosDetalles = new ArrayList<>();
+        for (DetalleRecepcionDTO detalleDTO : dto.getDetalleRecepcionDTOList()) {
+            DetalleRecepcion detalle = new DetalleRecepcion();
+
+            Producto producto = productoService.buscarPorCodigoSKU(detalleDTO.getProducto().getCodigoSku());
+            if (producto == null) {
+                Producto nuevo = detalleDTO.getProducto();
+                nuevo.setIsDeleted("N");
+                producto = productoService.crear(nuevo);
+            }
+
+            detalle.setProducto(producto);
+            detalle.setCantidad(detalleDTO.getCantidad());
+            detalle.setOrdenRecepcion(ordenActual);
+            nuevosDetalles.add(detalle);
+
+            inventarioService.agregarMercaderiaConProductoPersistido(producto, detalleDTO.getCantidad());
+        }
+
+        ordenActual.getDetallesRecepcion().addAll(nuevosDetalles);
+
+        return ordenRecepcionRepositorio.save(ordenActual);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void eliminarConReversion(Long id) {
+        OrdenRecepcion orden = ordenRecepcionRepositorio.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Orden no encontrada con ID: " + id));
+
+        // Si la orden ya estaba completada o había impactado stock:
+        // Debemos retirar la mercadería que esta orden trajo.
+        for (DetalleRecepcion detalle : orden.getDetallesRecepcion()) {
+
+            // Usamos el método que creamos para la edición.
+            // Esto busca inventarios de ese producto y los descuenta.
+            inventarioService.deshacerIngreso(
+                    detalle.getProducto(),
+                    detalle.getCantidad()
+            );
+        }
+
+        // Ahora sí, borramos el registro administrativo
+        ordenRecepcionRepositorio.delete(orden);
     }
 }

@@ -1,6 +1,5 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Servicios;
 
-import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.DetalleRecepcionDTO;
 import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.CapacidadExcedida;
 import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.RecursoNoEncontradoException;
 import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.StockInsuficienteException;
@@ -27,8 +26,6 @@ public class InventarioServiceImpl implements GenericService<Inventario, Long> {
     UbicacionServiceImpl ubicacionService;
     @Autowired
     ProductoServiceImpl productoService;
-
-    // Inyectamos el repositorio para usar la Query personalizada
     @Autowired
     private UbicacionRepositorio ubicacionRepositorio;
 
@@ -37,22 +34,12 @@ public class InventarioServiceImpl implements GenericService<Inventario, Long> {
 
     @Override
     public Optional<List<Inventario>> buscarTodos() {
-        try{
-            return Optional.of(inventarioRepositorio.findAll());
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-        return Optional.empty();
+        try{ return Optional.of(inventarioRepositorio.findAll()); } catch (Exception e){ e.printStackTrace(); } return Optional.empty();
     }
 
     @Override
     public Optional<Inventario> buscarPorId(Long id) throws RecursoNoEncontradoException {
-        try {
-            return inventarioRepositorio.findById(id);
-        }catch (Exception e){
-            e.printStackTrace();
-            return Optional.empty();
-        }
+        try { return inventarioRepositorio.findById(id); } catch (Exception e){ e.printStackTrace(); return Optional.empty(); }
     }
 
     @Override
@@ -60,9 +47,7 @@ public class InventarioServiceImpl implements GenericService<Inventario, Long> {
         try{
             inventario.setFecha_actualizacion(Calendar.getInstance().getTime());
             return inventarioRepositorio.save(inventario);
-        } catch (RuntimeException e) {
-            throw new RuntimeException(e);
-        }
+        } catch (RuntimeException e) { throw new RuntimeException(e); }
     }
 
     @Override
@@ -70,19 +55,12 @@ public class InventarioServiceImpl implements GenericService<Inventario, Long> {
         try{
             inventario.setFecha_actualizacion(Calendar.getInstance().getTime());
             return inventarioRepositorio.save(inventario);
-        }
-        catch (RuntimeException e) {
-            throw new RuntimeException(e);
-        }
+        } catch (RuntimeException e) { throw new RuntimeException(e); }
     }
 
     @Override
     public void eliminar(Long id) {
-        try{
-            inventarioRepositorio.deleteById(id);
-        }catch (RuntimeException e) {
-            throw new RuntimeException(e);
-        }
+        try{ inventarioRepositorio.deleteById(id); } catch (RuntimeException e) { throw new RuntimeException(e); }
     }
 
     public List<Inventario> buscarInventariosPorIdProducto(Long idProducto) {
@@ -95,7 +73,6 @@ public class InventarioServiceImpl implements GenericService<Inventario, Long> {
     }
 
     public int calcularStockTotalPorIdProducto(Long idProducto) {
-
         try {
             List<Inventario> inventarios = buscarInventariosPorIdProducto(idProducto);
             return inventarios.stream().mapToInt(Inventario::getCantidad).sum();
@@ -109,36 +86,43 @@ public class InventarioServiceImpl implements GenericService<Inventario, Long> {
         } catch (Exception e) { return 0; }
     }
 
-
     @Transactional
     public List<Inventario> disminuirCantidad(DetalleDespacho detalleDespacho) {
+        restarStockGenerico(detalleDespacho.getProducto(), detalleDespacho.getCantidad());
 
-        Long idProducto = detalleDespacho.getProducto().getIdProducto();
-        int cantidadADescontar = detalleDespacho.getCantidad();
-        List<Inventario> inventarios = buscarInventariosPorIdProducto(idProducto);
+        return buscarInventariosPorIdProducto(detalleDespacho.getProducto().getIdProducto());
+    }
 
-        int cantidadPendiente = cantidadADescontar;
+    @Transactional
+    public void deshacerIngreso(Producto producto, int cantidad) {
+        restarStockGenerico(producto, cantidad);
+    }
+
+    private void restarStockGenerico(Producto producto, int cantidadTotalADescontar) {
+
+        List<Inventario> inventarios = buscarInventariosPorIdProducto(producto.getIdProducto());
+        int cantidadPendiente = cantidadTotalADescontar;
 
         for (Inventario inventario : inventarios) {
-            if (cantidadPendiente <= 0) break; // Ya terminamos
+            if (cantidadPendiente <= 0) break;
 
-            int stock = inventario.getCantidad();
+            int stockActual = inventario.getCantidad();
 
-            if (stock > 0) {
-                int aRestar = Math.min(stock, cantidadPendiente);
+            if (stockActual > 0) {
+                int aRestar = Math.min(stockActual, cantidadPendiente);
 
-                inventario.setCantidad(stock - aRestar);
+                inventario.setCantidad(stockActual - aRestar);
                 inventario.setFecha_actualizacion(Calendar.getInstance().getTime());
                 inventarioRepositorio.save(inventario);
 
                 Ubicacion origen = inventario.getUbicacion();
-                origen.setOcupadoActual(origen.getOcupadoActual() - aRestar);
-                if (origen.getOcupadoActual() < 0) origen.setOcupadoActual(0);
+                int nuevoOcupado = origen.getOcupadoActual() - aRestar;
+                origen.setOcupadoActual(Math.max(0, nuevoOcupado));
                 ubicacionRepositorio.save(origen);
 
-                // 3. Registrar Movimiento
+                // C. Registrar Movimiento (Salida)
                 movimientoInventarioService.registrarMovimiento(
-                        detalleDespacho.getProducto(),
+                        producto,
                         origen,
                         null,
                         aRestar,
@@ -151,17 +135,15 @@ public class InventarioServiceImpl implements GenericService<Inventario, Long> {
 
         if (cantidadPendiente > 0) {
             throw new StockInsuficienteException(
-                    "Inconsistencia de inventario detectada durante el despacho. " +
-                            "Faltaron " + cantidadPendiente + " unidades del producto " + detalleDespacho.getProducto().getNombre()
+                    "No se puede completar la operación. Faltan " + cantidadPendiente +
+                            " unidades del producto '" + producto.getNombre() + "' en el inventario."
             );
         }
-
-        return inventarios;
     }
 
+    // 3. MÉTODO PARA RECEPCIONES (Usa Categorías)
     @Transactional
     public void agregarMercaderiaConProductoPersistido(Producto producto, int cantidad) {
-
         int restante = cantidad;
 
         List<Inventario> inventariosExistentes = inventarioRepositorio.findAllByProducto_IdProducto(producto.getIdProducto());
@@ -189,7 +171,7 @@ public class InventarioServiceImpl implements GenericService<Inventario, Long> {
                 );
 
                 restante -= agregar;
-                if (restante == 0) return; // Terminamos
+                if (restante == 0) return;
             }
         }
 
@@ -198,13 +180,12 @@ public class InventarioServiceImpl implements GenericService<Inventario, Long> {
             List<Ubicacion> ubicacionesDisponibles = ubicacionRepositorio.buscarUbicacionesPorCategoriaYEspacio(producto.getCategoria(), 1);
 
             if (ubicacionesDisponibles.isEmpty()) {
-                throw new CapacidadExcedida("No hay suficiente espacio en las Zonas de categoría: " + producto.getCategoria() + " para completar la carga.");
+                throw new CapacidadExcedida("No hay suficiente espacio en las Zonas de categoría: " + producto.getCategoria());
             }
 
             Ubicacion ubicacionDestino = ubicacionesDisponibles.get(0);
 
             int espacio = ubicacionDestino.getCapacidadMaxima() - ubicacionDestino.getOcupadoActual();
-
             int agregar = Math.min(espacio, restante);
 
             Inventario nuevo = new Inventario();
