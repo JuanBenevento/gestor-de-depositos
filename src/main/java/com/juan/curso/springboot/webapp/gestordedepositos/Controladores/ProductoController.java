@@ -59,14 +59,18 @@ public class ProductoController {
 
     @PostMapping("/crearProducto")
     @Operation(summary = "Este metodo crea un nuevo producto")
-    public ResponseEntity<?> crearProducto(@RequestBody ProductoDTO producto) {
+    public ResponseEntity<?> crearProducto(@RequestBody ProductoDTO productoDTO) {
         try {
-            Producto producto1 = toEntity(producto);
-            producto1.setFecha_creacion(Calendar.getInstance().getTime());
-            producto1 = productoServiceImpl.crear(producto1);
-            return new ResponseEntity<>(producto1, HttpStatus.CREATED);
+            Producto productoEntity = toEntity(productoDTO);
+            productoEntity.setFecha_creacion(Calendar.getInstance().getTime());
+
+            productoEntity = productoServiceImpl.crear(productoEntity);
+            return new ResponseEntity<>(productoEntity, HttpStatus.CREATED);
+
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
-            return new ResponseEntity<>("Error al crear producto: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Error interno: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -77,11 +81,35 @@ public class ProductoController {
         try {
             Producto producto = toEntity(dto);
             producto.setFecha_creacion(dto.getFecha_creacion() != null ? dto.getFecha_creacion() : Calendar.getInstance().getTime());
+
             producto = productoServiceImpl.actualizar(producto);
             return new ResponseEntity<>(producto, HttpStatus.OK);
+
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
-            return new ResponseEntity<>("Error al actualizar producto: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Error interno: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    public Producto toEntity(ProductoDTO dto) {
+        if (dto == null) return null;
+
+        Producto producto = new Producto();
+        producto.setIdProducto(dto.getIdProducto());
+        producto.setNombre(dto.getNombre());
+        producto.setDescripcion(dto.getDescripcion());
+        producto.setCategoria(dto.getCategoria());
+
+        try {
+            producto.setCodigoSku(dto.getCodigoSku());
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Código SKU inválido: " + dto.getCodigoSku());
+        }
+        producto.setUnidad_medida(dto.getUnidad_medida());
+        producto.setFecha_creacion(dto.getFecha_creacion());
+        producto.setIsDeleted("N");
+        return producto;
     }
 
     @DeleteMapping("/eliminarProducto")
@@ -132,23 +160,4 @@ public class ProductoController {
         }
     }
 
-
-
-    public Producto toEntity(ProductoDTO dto) {
-        if (dto == null) return null;
-
-        Producto producto = new Producto();
-        producto.setIdProducto(dto.getIdProducto());
-        producto.setNombre(dto.getNombre());
-        producto.setDescripcion(dto.getDescripcion());
-        try {
-            producto.setCodigoSku(dto.getCodigoSku());
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Código SKU inválido: " + dto.getCodigoSku());
-        }
-        producto.setUnidad_medida(dto.getUnidad_medida());
-        producto.setFecha_creacion(dto.getFecha_creacion());
-        producto.setIsDeleted("N");
-        return producto;
-    }
 }

@@ -1,12 +1,10 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Controladores;
 
 import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.MovimientoInventarioDTO;
+import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.RecursoNoEncontradoException;
+import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.StockInsuficienteException;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.MovimientoInventario;
-import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Producto;
-import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Ubicacion;
 import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.MovimientoInventarioServiceImpl;
-import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.ProductoServiceImpl;
-import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.UbicacionServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -26,29 +24,26 @@ import java.util.stream.Collectors;
 @RequestMapping("GestorDeDepositos/movimientoInventario")
 public class MovimientoInventarioController {
 
-    private final MovimientoInventarioServiceImpl movimientoInventarioServiceImpl;
-    private final UbicacionServiceImpl ubicacionServiceImpl;
-    private final ProductoServiceImpl productoServiceImpl;
+    private final MovimientoInventarioServiceImpl movimientoService;
+
     @Autowired
-    public MovimientoInventarioController( MovimientoInventarioServiceImpl movimientoInventarioServiceImpl,
-    UbicacionServiceImpl ubicacionServiceImpl,
-    ProductoServiceImpl productoServiceImpl){
-        this.movimientoInventarioServiceImpl = movimientoInventarioServiceImpl;
-        this.ubicacionServiceImpl = ubicacionServiceImpl;
-        this.productoServiceImpl = productoServiceImpl;
+    public MovimientoInventarioController(MovimientoInventarioServiceImpl movimientoService) {
+        this.movimientoService = movimientoService;
     }
 
     @GetMapping("/todos")
-    @Operation(summary = "Este metodo busca todos los movimientos del inventario")
+    @Operation(summary = "Lista todos los movimientos de inventario")
     public ResponseEntity<?> buscarTodos() {
-        List<MovimientoInventarioDTO> movimientosInventario = movimientoInventarioServiceImpl.buscarTodos().orElseThrow().stream().
-                map(MovimientoInventarioDTO::new)
+        List<MovimientoInventarioDTO> movimientos = movimientoService.buscarTodos()
+                .orElse(List.of())
+                .stream()
+                .map(MovimientoInventarioDTO::new)
                 .collect(Collectors.toList());
-        return new ResponseEntity<>(movimientosInventario, HttpStatus.OK);
+        return new ResponseEntity<>(movimientos, HttpStatus.OK);
     }
 
     @PostMapping("/crearMovimiento")
-    @Operation(summary = "Este metodo crea un nuevo movimiento de inventario")
+    @Operation(summary = "Crea un movimiento y actualiza el stock en origen y destino")
     public ResponseEntity<?> crear(@RequestBody MovimientoInventarioDTO dto) {
         try {
             if (dto == null || dto.getProducto() == null || dto.getUbicacionOrigen() == null
@@ -100,12 +95,12 @@ public class MovimientoInventarioController {
             MovimientoInventario creado = movimientoInventarioServiceImpl.crear(movInventario);
             return new ResponseEntity<>(new MovimientoInventarioDTO(creado), HttpStatus.CREATED);
         } catch (Exception e) {
-            return new ResponseEntity<>("Error al crear movimiento de inventario", HttpStatus.INTERNAL_SERVER_ERROR);
+            e.printStackTrace();
+            return new ResponseEntity<>("Error interno al procesar el movimiento: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @GetMapping("/buscar")
-    @Operation(summary = "Este metodo busca un movimiento inventario por su id")
     public ResponseEntity<?> buscar(@RequestParam Long id) {
         try {
             Optional<MovimientoInventario> movInventarioSelected = movimientoInventarioServiceImpl.buscarPorId(id);
@@ -211,15 +206,14 @@ public class MovimientoInventarioController {
         }
     }
 
-    @DeleteMapping ("/eliminar")
-    @Operation(summary = "Este metodo elimina un movimiento de inventario")
+    @DeleteMapping("/eliminar")
+    @Operation(summary = "Elimina un movimiento y revierte los cambios de stock")
     public ResponseEntity<?> eliminar(@RequestParam Long id) {
         try {
-            movimientoInventarioServiceImpl.eliminar(id);
-            return new ResponseEntity<>("Movimiento de inventario eliminado", HttpStatus.OK);
+            movimientoService.revertirYEliminar(id);
+            return new ResponseEntity<>("Movimiento eliminado y stock revertido correctamente.", HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>("Error al intentar eliminar el movimiento de inventario", HttpStatus.INTERNAL_SERVER_ERROR);
-
+            return new ResponseEntity<>("Error al eliminar: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

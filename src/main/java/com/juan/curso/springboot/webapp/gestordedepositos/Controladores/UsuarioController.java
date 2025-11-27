@@ -1,11 +1,7 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Controladores;
 
-import com.juan.curso.springboot.webapp.gestordedepositos.Config.AuthServicio;
-import com.juan.curso.springboot.webapp.gestordedepositos.Config.DTOs.LoginRequest;
-import com.juan.curso.springboot.webapp.gestordedepositos.Config.DTOs.LoginResponse;
 import com.juan.curso.springboot.webapp.gestordedepositos.Config.PasswordEncoderConfig;
 import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.UsuarioDTO;
-import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.RecursoNoEncontradoException;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Rol;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Usuario;
 import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.RolServiceImpl;
@@ -14,10 +10,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -32,141 +26,141 @@ public class UsuarioController {
 
     @Autowired
     public UsuarioController(UsuarioServiceImpl usuarioServiceImpl, RolServiceImpl rolServiceImpl, PasswordEncoderConfig passwordEncoderConfig) {
-
-    this.usuarioServiceImpl = usuarioServiceImpl;
-    this.rolServiceImpl = rolServiceImpl;
-    this.passwordEncoderConfig = passwordEncoderConfig;
-
+        this.usuarioServiceImpl = usuarioServiceImpl;
+        this.rolServiceImpl = rolServiceImpl;
+        this.passwordEncoderConfig = passwordEncoderConfig;
     }
 
     @PostMapping("/crearUsuario")
     @Operation(summary = "Este metodo crea un usuario")
     public ResponseEntity<?> crearUsuario(@RequestBody UsuarioDTO usuarioDTO) {
-        String contrasenia = passwordEncoderConfig.passwordEncoder().encode(usuarioDTO.getContrasenia());
-        Usuario usuario = new Usuario();
+        try {
 
-        try{
             Rol rol = rolServiceImpl.buscarPorId(usuarioDTO.getIdRol())
-                    .orElseThrow(() -> new RuntimeException("Rol no encontrado"));
+                    .orElseThrow(() -> new RuntimeException("El Rol seleccionado no existe."));
+
+            Usuario usuario = new Usuario();
+            String contraseniaEncriptada = passwordEncoderConfig.passwordEncoder().encode(usuarioDTO.getContrasenia());
 
             usuario.setNombre(usuarioDTO.getNombre());
-            usuario.setContrasenia(contrasenia);
+            usuario.setContrasenia(contraseniaEncriptada);
             usuario.setApellido(usuarioDTO.getApellido());
             usuario.setEmail(usuarioDTO.getEmail());
             usuario.setRol(rol);
 
-            usuario = usuarioServiceImpl.crear(usuario);
-            return ResponseEntity.ok(usuario);
-        }catch(Exception e){
-            e.printStackTrace();
+            Usuario nuevoUsuario = usuarioServiceImpl.crear(usuario);
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(new UsuarioDTO(nuevoUsuario));
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error interno al crear el usuario.");
         }
-        return new ResponseEntity<>(usuario, HttpStatus.CREATED);
     }
 
     @PutMapping("modificarUsuario")
     @Operation(summary = "Este metodo modifica un usuario (apellido, email, nombre y opcionalmente rol)")
     public ResponseEntity<?> modificarUsuario(@RequestBody UsuarioDTO usuarioDTO) {
-        Usuario retorno = new Usuario();
-        if (usuarioDTO.getIdUsuario() != null) {
-            Optional<Usuario> usuarioPorID = usuarioServiceImpl.buscarPorId(usuarioDTO.getIdUsuario());
-            if (usuarioPorID.isPresent()) {
-                Usuario u = usuarioPorID.get();
-                u.setApellido(usuarioDTO.getApellido());
-                u.setEmail(usuarioDTO.getEmail());
-                u.setNombre(usuarioDTO.getNombre());
-
-                if (usuarioDTO.getIdRol() != null) {
-                    Optional<Rol> rolOpt = rolServiceImpl.buscarPorId(usuarioDTO.getIdRol());
-                    if (rolOpt.isPresent()) {
-                        u.setRol(rolOpt.get());
-                    } else {
-                        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                                .body("Rol no encontrado con id: " + usuarioDTO.getIdRol());
-                    }
-                }
-
-                retorno = usuarioServiceImpl.actualizar(u);
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        try {
+            if (usuarioDTO.getIdUsuario() == null) {
+                return ResponseEntity.badRequest().body("El ID del usuario es obligatorio.");
             }
+
+            Optional<Usuario> usuarioOpt = usuarioServiceImpl.buscarPorId(usuarioDTO.getIdUsuario());
+            if (!usuarioOpt.isPresent()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado.");
+            }
+
+            Usuario u = usuarioOpt.get();
+
+            u.setNombre(usuarioDTO.getNombre());
+            u.setApellido(usuarioDTO.getApellido());
+            u.setEmail(usuarioDTO.getEmail());
+
+            if (usuarioDTO.getIdRol() != null) {
+                Rol rol = rolServiceImpl.buscarPorId(usuarioDTO.getIdRol())
+                        .orElseThrow(() -> new RuntimeException("El Rol especificado no existe."));
+                u.setRol(rol);
+            }
+
+            Usuario usuarioActualizado = usuarioServiceImpl.actualizar(u);
+
+            return ResponseEntity.ok(new UsuarioDTO(usuarioActualizado));
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error interno al modificar usuario.");
         }
-        return ResponseEntity.ok(new UsuarioDTO(retorno));
     }
 
     @DeleteMapping("/eliminarUsuario")
     @Operation(summary = "Este metodo elimina un usuario")
     public ResponseEntity<?> eliminarUsuario(@RequestParam Long idUsuario) {
-
-            try {
-                Optional<Usuario> usuarioPorID = usuarioServiceImpl.buscarPorId(idUsuario);
-                if (usuarioPorID.isPresent()) {
-                    usuarioServiceImpl.eliminar(usuarioPorID.get().getIdUsuario());
-                } else {
-                    throw new RecursoNoEncontradoException("El usuario no ha sido encontrado");
-                }
-            }catch (Exception e){
-                e.printStackTrace();
-            }
-
-        return ResponseEntity.ok().build();
+        try {
+            usuarioServiceImpl.eliminar(idUsuario);
+            return ResponseEntity.ok().body("Usuario eliminado correctamente.");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @GetMapping("/buscarUsuario")
     @Operation(summary = "Este metodo busca un usuario")
-    public ResponseEntity<UsuarioDTO> buscarUsuario(@RequestParam Long idUsuario) {
-        try{
-            Optional<Usuario> usuarioPorID = usuarioServiceImpl.buscarPorId(idUsuario);
-            if (usuarioPorID.isPresent()) {
-                return ResponseEntity.ok(new UsuarioDTO(usuarioPorID.get()));
-            }else{
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    public ResponseEntity<?> buscarUsuario(@RequestParam Long idUsuario) {
+        try {
+            Optional<Usuario> usuario = usuarioServiceImpl.buscarPorId(idUsuario);
+            if (usuario.isPresent()) {
+                return ResponseEntity.ok(new UsuarioDTO(usuario.get()));
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado.");
             }
-        }catch (Exception e){
-            e.printStackTrace();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/buscarTodosLosUsuarios")
     @Operation(summary = "Este metodo busca todos los usuarios")
-    public ResponseEntity<List<UsuarioDTO>> buscarUsuarios(){
-        List<UsuarioDTO> usuariosDTO = new ArrayList<>();
-        try{
+    public ResponseEntity<List<UsuarioDTO>> buscarUsuarios() {
+        try {
             Optional<List<Usuario>> usuarios = usuarioServiceImpl.buscarTodos();
-            if(usuarios.isPresent()){
-                for(Usuario usuario : usuarios.get()){
-                    usuariosDTO.add(new UsuarioDTO(usuario));
-                }
-            }else{
-                throw new RecursoNoEncontradoException("No se encontraron usuarios");
+            if (usuarios.isPresent()) {
+                List<UsuarioDTO> dtos = usuarios.get().stream()
+                        .map(UsuarioDTO::new)
+                        .collect(Collectors.toList());
+                return ResponseEntity.ok(dtos);
+            } else {
+                return ResponseEntity.noContent().build();
             }
-        }catch (Exception e){
-            e.printStackTrace();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-        return ResponseEntity.ok(usuariosDTO);
     }
 
     @GetMapping("/buscarPorRol")
     @Operation(summary = "Este metodo busca usuarios por rol")
-    public ResponseEntity<List<UsuarioDTO>> buscarPorRol(@RequestParam Long idRol){
-        try{
+    public ResponseEntity<?> buscarPorRol(@RequestParam Long idRol) {
+        try {
             Optional<Rol> rol = rolServiceImpl.buscarPorId(idRol);
-            if(rol.isPresent()){
-                Optional<List<Usuario>> usuariosPorRol = usuarioServiceImpl.buscarPorRol(rol.get());
-                if(usuariosPorRol.isPresent()){
-                    List<UsuarioDTO> usuariosDTO = usuariosPorRol.get().stream().map(u -> new UsuarioDTO(u)).collect(Collectors.toList());
-                    return ResponseEntity.ok(usuariosDTO);
-                }else {
-                    throw new RecursoNoEncontradoException("No se encontraron usuarios para ese rol");
+            if (rol.isPresent()) {
+                Optional<List<Usuario>> usuarios = usuarioServiceImpl.buscarPorRol(rol.get());
+                if (usuarios.isPresent() && !usuarios.get().isEmpty()) {
+                    List<UsuarioDTO> dtos = usuarios.get().stream()
+                            .map(UsuarioDTO::new)
+                            .collect(Collectors.toList());
+                    return ResponseEntity.ok(dtos);
+                } else {
+                    return ResponseEntity.ok(List.of()); // Retorna lista vacía en vez de error si no hay usuarios
                 }
-            }else{
-                throw new RecursoNoEncontradoException("No se encontró el rol especificado");
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Rol no encontrado.");
             }
-
-        }catch (Exception e){
-            e.printStackTrace();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-        return null;
     }
-
 }

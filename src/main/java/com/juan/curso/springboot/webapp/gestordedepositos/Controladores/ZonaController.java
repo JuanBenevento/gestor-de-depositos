@@ -63,9 +63,9 @@ public class ZonaController {
             Zona zona = new Zona();
             zona.setNombre(dto.getNombre());
             zona.setDescripcion(dto.getDescripcion());
+            zona.setCategoriasAdmitidas(dto.getCategoriasAdmitidas());
 
             zonaService.crear(zona);
-
             return new ResponseEntity<>(new ZonaDTO(zona), HttpStatus.CREATED);
         }catch (IllegalArgumentException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
@@ -83,6 +83,7 @@ public class ZonaController {
 
             zona.setNombre(dto.getNombre());
             zona.setDescripcion(dto.getDescripcion());
+            zona.setCategoriasAdmitidas(dto.getCategoriasAdmitidas());
 
             zonaService.actualizar(zona);
 

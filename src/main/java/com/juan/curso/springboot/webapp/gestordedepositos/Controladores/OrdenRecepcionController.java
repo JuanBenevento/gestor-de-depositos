@@ -1,23 +1,15 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Controladores;
 
-import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.DetalleRecepcionDTO;
-import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.OrdenRecepcionCabeceraRequest;
-import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.OrdenRecepcionCabeceraResponse;
 import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.OrdenRecepcionDTO;
 import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.RecursoNoEncontradoException;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.*;
-import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Enums.EstadosDeOrden;
 import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.*;
 import io.swagger.v3.oas.annotations.Operation;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -77,130 +69,49 @@ public class OrdenRecepcionController {
     }
 
     @PostMapping("/crearOrdenRecepcion")
-    @Operation(summary = "Crea una orden de recepción y actualiza inventario correctamente")
-    @Transactional
+    @Operation(summary = "Crea una orden de recepción y actualiza inventario automáticamente")
     public ResponseEntity<?> crearOrdenRecepcion(@RequestBody OrdenRecepcionDTO dto) {
         try {
-
-            OrdenRecepcion orden = new OrdenRecepcion();
-
-            // 1) Validar proveedor
-            Proveedor proveedor = proveedorServiceImpl.buscarPorId(dto.getIdProveedor())
-                    .orElseThrow(() -> new RuntimeException("Proveedor no encontrado"));
-
-            orden.setProveedor(proveedor);
-            orden.setFecha(Calendar.getInstance().getTime());
-            orden.setEstado(dto.getEstado());
-
-
-            List<DetalleRecepcion> detalles = new ArrayList<>();
-
-            for (DetalleRecepcionDTO detalleDTO : dto.getDetalleRecepcionDTOList()) {
-
-                DetalleRecepcion detalle = new DetalleRecepcion();
-
-                // 2) Obtener producto persistido SIEMPRE
-                Producto producto = productoService.buscarPorCodigoSKU(detalleDTO.getProducto().getCodigoSku());
-
-                if (producto == null) {
-                    // Crear nuevo producto
-                    Producto nuevo = detalleDTO.getProducto();
-                    nuevo.setIsDeleted("N");
-                    producto = productoService.crear(nuevo);
-                }
-
-                // 3) Guardar detalle
-                detalle.setProducto(producto);
-                detalle.setCantidad(detalleDTO.getCantidad());
-                detalle.setOrdenRecepcion(orden);
-                detalles.add(detalle);
-
-                // 4) Actualizar inventario en BD
-                inventarioService.agregarMercaderiaConProductoPersistido(producto, detalleDTO.getCantidad());
-            }
-
-            orden.setDetallesRecepcion(detalles);
-
-            // 5) Guardar la orden COMPLETA
-            OrdenRecepcion creada = ordenRecepcionService.crear(orden);
-
+            OrdenRecepcion creada = ordenRecepcionService.procesarEntradaMercaderia(dto);
             return new ResponseEntity<>(new OrdenRecepcionDTO(creada), HttpStatus.CREATED);
-
-
+        } catch (RecursoNoEncontradoException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
         } catch (Exception e) {
             e.printStackTrace();
-            return new ResponseEntity<>(
-                    "Error al crear orden: " + e.getMessage(),
-                    HttpStatus.INTERNAL_SERVER_ERROR
-            );
+            return new ResponseEntity<>("Error al procesar la orden: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-
-
-    @PostMapping("/crearOrdenRecepcionCabecera")
-    @Operation(summary = "Crea la cabecera de una orden de recepcion y devuelve su identificador")
-    public ResponseEntity<?> crearOrdenRecepcionCabecera(@Valid @RequestBody OrdenRecepcionCabeceraRequest request) {
+    @PutMapping("/actualizarOrdenCompleta")
+    @Operation(summary = "Actualiza una orden de recepción completa (cabecera y detalles), ajustando el stock automáticamente.")
+    public ResponseEntity<?> actualizarOrdenCompleta(@RequestParam Long id, @RequestBody OrdenRecepcionDTO dto) {
         try {
-            Proveedor proveedor = proveedorServiceImpl.buscarPorId(request.getIdProveedor())
-                    .orElseThrow(() -> new RuntimeException("Proveedor no encontrado"));
-
-            OrdenRecepcion orden = new OrdenRecepcion();
-            orden.setProveedor(proveedor);
-            orden.setFecha(Calendar.getInstance().getTime());
-            orden.setEstado(request.getEstado() != null ? request.getEstado() : EstadosDeOrden.PENDIENTE);
-            orden.setDetallesRecepcion(new ArrayList<>());
-
-            OrdenRecepcion guardada = ordenRecepcionService.crear(orden);
-
-            OrdenRecepcionCabeceraResponse response = new OrdenRecepcionCabeceraResponse(
-                    guardada.getIdOrdenRecepcion(),
-                    guardada.getEstado(),
-                    guardada.getFecha()
-            );
-
-            return new ResponseEntity<>(response, HttpStatus.CREATED);
+            OrdenRecepcion actualizada = ordenRecepcionService.procesarModificacionOrden(id, dto);
+            return new ResponseEntity<>(new OrdenRecepcionDTO(actualizada), HttpStatus.OK);
+        } catch (RecursoNoEncontradoException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
         } catch (Exception e) {
-            return new ResponseEntity<>("Error al crear orden: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    @PutMapping("/actualizarEstadoOrden")
-    @Operation(summary = "Este metodo actualiza el estado de una orden de despacho")
-    public ResponseEntity<?> actualizarEstadoOrden(@RequestParam Long idOrden, @RequestParam String estado) {
-        try {
-            Optional<OrdenRecepcion> existingOrden = ordenRecepcionService.buscarPorId(idOrden);
-            if (existingOrden.isEmpty()) {
-                return new ResponseEntity<>("Orden no encontrada", HttpStatus.NOT_FOUND);
-            }
-
-            OrdenRecepcion orden = existingOrden.get();
-            if(EstadosDeOrden.valueOf(estado) != null) {
-                orden.setEstado(EstadosDeOrden.valueOf(estado));
-            }else{
-                throw new RecursoNoEncontradoException("El estado no es valido");
-            }
-            orden = ordenRecepcionService.actualizar(orden);
-
-            return new ResponseEntity<>(new OrdenRecepcionDTO(orden), HttpStatus.OK);
-
-        } catch (Exception e) {
-            return new ResponseEntity<>("Error al actualizar orden: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            e.printStackTrace();
+            return new ResponseEntity<>("Error al actualizar: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @DeleteMapping("/eliminarOrden")
-    @Operation(summary = "Este metodo elimina una orden de recepcion")
+    @Operation(summary = "Elimina una orden de recepción y revierte el stock ingresado")
     public ResponseEntity<?> eliminar(@RequestParam Long idOrden) {
         try {
-            OrdenRecepcion orden = ordenRecepcionService.buscarPorId(idOrden)
-                    .orElseThrow(() -> new RuntimeException("Orden no encontrada"));
+            ordenRecepcionService.eliminarConReversion(idOrden);
+            return ResponseEntity.ok("Orden eliminada y stock revertido correctamente.");
 
-            orden.getDetallesRecepcion().clear();
-            ordenRecepcionService.eliminar(orden.getIdOrdenRecepcion());
-            return new ResponseEntity<>("Orden eliminada", HttpStatus.OK);
+        } catch (RecursoNoEncontradoException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>("No se puede eliminar: " + e.getMessage(), HttpStatus.CONFLICT);
+
         } catch (Exception e) {
-            return new ResponseEntity<>("Error al eliminar orden: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            e.printStackTrace();
+            return new ResponseEntity<>("Error interno al eliminar: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

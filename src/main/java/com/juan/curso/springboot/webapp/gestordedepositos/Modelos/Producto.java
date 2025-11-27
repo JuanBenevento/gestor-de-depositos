@@ -1,5 +1,6 @@
 package com.juan.curso.springboot.webapp.gestordedepositos.Modelos;
 
+import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Enums.CategoriasProducto;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -21,11 +22,15 @@ public class Producto {
     @NotBlank
     @Column(nullable = false)
     private String nombre;
+    @NotNull(message = "La categoría es obligatoria")
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private CategoriasProducto categoria;
     @NotBlank
     @Column(nullable = false)
     private String descripcion;
     @NotNull
-    @Column(nullable = false, name = "codigo_sku")
+    @Column(nullable = false, name = "codigo_sku", unique = true)
     private String codigoSku;
     @NotBlank
     @Column(nullable = false)

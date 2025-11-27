@@ -17,7 +17,7 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MovimientoInventarioDTO {
-    private Long id_movimiento;
+    private Long idMovimientoInventario;
     private Producto producto;
     private Ubicacion ubicacionOrigen;
     private Ubicacion ubicacionDestino;
@@ -26,7 +26,7 @@ public class MovimientoInventarioDTO {
     private Date fecha;
 
     public MovimientoInventarioDTO(MovimientoInventario movimientoInventario) {
-        this.id_movimiento = movimientoInventario.getId_movimientoInventario();
+        this.idMovimientoInventario = movimientoInventario.getIdMovimientoInventario();
         this.producto = movimientoInventario.getProducto();
         this.ubicacionOrigen = movimientoInventario.getUbicacionOrigen();
         this.ubicacionDestino = movimientoInventario.getUbicacionDestino();

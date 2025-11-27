@@ -5,6 +5,7 @@ import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Usuario;
 import com.juan.curso.springboot.webapp.gestordedepositos.Repositorios.UsuarioRepositorio;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,73 +20,61 @@ public class UsuarioServiceImpl implements GenericService<Usuario, Long> {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<List<Usuario>> buscarTodos() {
-        try {
-            return Optional.of(usuarioRepositorio.findAll());
-        }catch (Exception e) {
-            e.printStackTrace();
-        }
-        return Optional.empty();
+        return Optional.of(usuarioRepositorio.findAll());
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<Usuario> buscarPorId(Long id) {
-        Optional<Usuario> usuario = null;
-       try {
-          usuario = Optional.ofNullable(usuarioRepositorio.getUsuarioByIdUsuarioEquals(id));
-       }catch (Exception e){
-           e.printStackTrace();
-       }
-        return usuario;
+        return usuarioRepositorio.findById(id);
     }
 
     @Override
+    @Transactional
     public Usuario crear(Usuario usuario) {
-        try{
-            usuario = usuarioRepositorio.save(usuario);
-        }catch (Exception e){
-            e.printStackTrace();
+        if (usuarioRepositorio.existsByEmail(usuario.getEmail())) {
+            throw new RuntimeException("El email '" + usuario.getEmail() + "' ya está registrado.");
         }
-        return usuario;
-    }
-
-
-    @Override
-    public Usuario actualizar(Usuario usuario) {
-        try {
-            usuario = usuarioRepositorio.save(usuario);
-            return usuario;
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-        return null;
+        return usuarioRepositorio.save(usuario);
     }
 
     @Override
+    @Transactional
+    public Usuario actualizar(Usuario usuarioEditado) {
+        Usuario usuarioActual = usuarioRepositorio.findById(usuarioEditado.getIdUsuario())
+                .orElseThrow(() -> new RuntimeException("No se encontró el usuario con ID: " + usuarioEditado.getIdUsuario()));
+
+        if (!usuarioActual.getEmail().equalsIgnoreCase(usuarioEditado.getEmail())) {
+            if (usuarioRepositorio.existsByEmail(usuarioEditado.getEmail())) {
+                throw new RuntimeException("El email '" + usuarioEditado.getEmail() + "' ya está registrado.");
+            }
+        }
+        return usuarioRepositorio.save(usuarioEditado);
+    }
+
+    @Override
+    @Transactional
     public void eliminar(Long id) {
-        try {
-            usuarioRepositorio.deleteById(id);
-        }catch (Exception e){
-            e.printStackTrace();
+        if (!usuarioRepositorio.existsById(id)) {
+            throw new RuntimeException("No se puede eliminar. Usuario no encontrado.");
         }
+        usuarioRepositorio.deleteById(id);
     }
 
+    @Transactional(readOnly = true)
     public Usuario getByNombreEquals(String nombre){
-        try {
-            return usuarioRepositorio.getByNombreEquals(nombre);
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-        return null;
+        return usuarioRepositorio.getByNombreEquals(nombre);
     }
 
-    public Optional<List<Usuario>> buscarPorRol(Rol rol) {
-        try{
-        return Optional.ofNullable(usuarioRepositorio.getByRolEquals(rol));
+    @Transactional(readOnly = true)
+    public Usuario getByEmailEquals(String email){
+        return usuarioRepositorio.getByEmailEquals(email);
+    }
 
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-        return Optional.empty();
+    @Transactional(readOnly = true)
+    public Optional<List<Usuario>> buscarPorRol(Rol rol) {
+        return Optional.ofNullable(usuarioRepositorio.getByRolEquals(rol));
     }
 }
