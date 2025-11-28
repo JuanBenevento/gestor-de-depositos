@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static java.lang.Long.parseLong;
+
 @RestController
 @RequestMapping("GestorDeDepositos/inventario")
 public class InventarioController {
@@ -38,21 +40,21 @@ public class InventarioController {
         this.inventarioService = inventarioService;
     }
 
-    @GetMapping("/stockTotalPorIdProducto/{idProducto}")
+    @GetMapping("/stockTotalPorIdProducto")
     @Operation(summary = "Calcula el stock total de un producto por su ID, sumando las cantidades de todos los inventarios asociados.")
-    public ResponseEntity<Integer> getStockTotalPorId(@PathVariable Long idProducto) throws RecursoNoEncontradoException {
-        int stockTotal = inventarioService.calcularStockTotalPorIdProducto(idProducto);
+    public ResponseEntity<Integer> getStockTotalPorId(@RequestParam String id) throws RecursoNoEncontradoException {
+        int stockTotal = inventarioService.calcularStockTotalPorIdProducto(parseLong(id));
         return ResponseEntity.ok(stockTotal);
     }
 
-    @GetMapping("/stockTotalPorCodigoSkuProducto/{codigoSku}")
+    @GetMapping("/stockTotalPorCodigoSku")
     @Operation(summary = "Calcula el stock total de un producto por su Codigo SKU, sumando las cantidades de todos los inventarios asociados.")
-    public ResponseEntity<Integer> getStockTotalPorCodigoSku(@PathVariable String codigoSku) throws RecursoNoEncontradoException {
+    public ResponseEntity<Integer> getStockTotalPorCodigoSku(@RequestParam String codigoSku) throws RecursoNoEncontradoException {
         int stockTotal = inventarioService.calcularStockTotalPorCodigoSku(codigoSku);
         return ResponseEntity.ok(stockTotal);
     }
 
-    @GetMapping("/buscarTodos")
+    @GetMapping("/todos")
     @Operation(summary = "Este metodo busca todos los inventarios")
     public ResponseEntity<?> buscarTodos() {
         List<Inventario> inventarios = inventarioService.buscarTodos()
@@ -141,9 +143,9 @@ public class InventarioController {
         }
     }
 
-    @PutMapping("/actualizar/{id}")
+    @PutMapping("/actualizar")
     @Operation(summary = "Este metodo busca un inventario por id y lo actualiza")
-    public ResponseEntity<InventarioDTO> actualizar(@PathVariable Long id,
+    public ResponseEntity<InventarioDTO> actualizar(@RequestParam Long id,
                                                     @RequestBody InventarioDTO inventarioDTO) {
         try {
             Inventario inventarioExistente = inventarioService.buscarPorId(id)
@@ -220,7 +222,7 @@ public class InventarioController {
         }
     }
 
-    @DeleteMapping("/eliminarInventario")
+    @DeleteMapping("/eliminar")
     @Operation(summary = "Este metodo elimina un inventario por su id")
     public ResponseEntity<?> eliminar(@RequestParam Long id) {
         try {
