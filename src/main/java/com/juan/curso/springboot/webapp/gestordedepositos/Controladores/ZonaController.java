@@ -28,7 +28,7 @@ public class ZonaController {
         this.zonaService = zonaService;
     }
 
-    @GetMapping("/buscarTodos")
+    @GetMapping("/todos")
     @Operation(summary = "Este metodo busca todas las zonas")
     public ResponseEntity<?> buscarTodos() {
         List<Zona> zonas = zonaService.buscarTodos()
@@ -56,7 +56,7 @@ public class ZonaController {
         }
     }
 
-    @PostMapping("/crearZona")
+    @PostMapping("/crear")
     @Operation(summary = "Este metodo crea una nueva zona")
     public ResponseEntity<?> crear(@RequestBody ZonaDTO dto) {
         try {
@@ -74,9 +74,9 @@ public class ZonaController {
         }
     }
 
-    @PutMapping("/actualizarZona/{id}")
+    @PutMapping("/actualizar")
     @Operation(summary = "Este metodo actualiza una zona")
-    public ResponseEntity<?> actualizar(@PathVariable Long id, @RequestBody ZonaDTO dto) {
+    public ResponseEntity<?> actualizar(@RequestParam Long id, @RequestBody ZonaDTO dto) {
         try {
             Zona zona = zonaService.buscarPorId(id)
                     .orElseThrow(() -> new RecursoNoEncontradoException("Zona no encontrada con id: "+ id));
@@ -95,7 +95,7 @@ public class ZonaController {
         }
     }
 
-    @DeleteMapping("/eliminarZona")
+    @DeleteMapping("/eliminar")
     @Operation(summary = "Este metodo elimina una zona")
     public ResponseEntity<?> eliminar(@RequestParam Long id) {
         zonaService.eliminar(id);
