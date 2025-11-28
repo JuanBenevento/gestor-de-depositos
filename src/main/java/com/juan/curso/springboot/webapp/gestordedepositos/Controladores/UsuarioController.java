@@ -31,7 +31,7 @@ public class UsuarioController {
         this.passwordEncoderConfig = passwordEncoderConfig;
     }
 
-    @PostMapping("/crearUsuario")
+    @PostMapping("/crear")
     @Operation(summary = "Este metodo crea un usuario")
     public ResponseEntity<?> crearUsuario(@RequestBody UsuarioDTO usuarioDTO) {
         try {
@@ -59,15 +59,15 @@ public class UsuarioController {
         }
     }
 
-    @PutMapping("modificarUsuario")
+    @PutMapping("actualizar")
     @Operation(summary = "Este metodo modifica un usuario (apellido, email, nombre y opcionalmente rol)")
-    public ResponseEntity<?> modificarUsuario(@RequestBody UsuarioDTO usuarioDTO) {
+    public ResponseEntity<?> modificarUsuario(@RequestParam Long id, @RequestBody UsuarioDTO usuarioDTO) {
         try {
-            if (usuarioDTO.getIdUsuario() == null) {
+            if (id == null) {
                 return ResponseEntity.badRequest().body("El ID del usuario es obligatorio.");
             }
 
-            Optional<Usuario> usuarioOpt = usuarioServiceImpl.buscarPorId(usuarioDTO.getIdUsuario());
+            Optional<Usuario> usuarioOpt = usuarioServiceImpl.buscarPorId(id);
             if (!usuarioOpt.isPresent()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado.");
             }
@@ -95,11 +95,11 @@ public class UsuarioController {
         }
     }
 
-    @DeleteMapping("/eliminarUsuario")
+    @DeleteMapping("/eliminar")
     @Operation(summary = "Este metodo elimina un usuario")
-    public ResponseEntity<?> eliminarUsuario(@RequestParam Long idUsuario) {
+    public ResponseEntity<?> eliminarUsuario(@RequestParam Long id) {
         try {
-            usuarioServiceImpl.eliminar(idUsuario);
+            usuarioServiceImpl.eliminar(id);
             return ResponseEntity.ok().body("Usuario eliminado correctamente.");
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
@@ -108,11 +108,11 @@ public class UsuarioController {
         }
     }
 
-    @GetMapping("/buscarUsuario")
+    @GetMapping("/buscarPorId")
     @Operation(summary = "Este metodo busca un usuario")
-    public ResponseEntity<?> buscarUsuario(@RequestParam Long idUsuario) {
+    public ResponseEntity<?> buscarUsuario(@RequestParam Long id) {
         try {
-            Optional<Usuario> usuario = usuarioServiceImpl.buscarPorId(idUsuario);
+            Optional<Usuario> usuario = usuarioServiceImpl.buscarPorId(id);
             if (usuario.isPresent()) {
                 return ResponseEntity.ok(new UsuarioDTO(usuario.get()));
             } else {
@@ -123,7 +123,7 @@ public class UsuarioController {
         }
     }
 
-    @GetMapping("/buscarTodosLosUsuarios")
+    @GetMapping("/todos")
     @Operation(summary = "Este metodo busca todos los usuarios")
     public ResponseEntity<List<UsuarioDTO>> buscarUsuarios() {
         try {
