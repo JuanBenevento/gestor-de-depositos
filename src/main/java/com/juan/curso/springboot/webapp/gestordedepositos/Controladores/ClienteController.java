@@ -26,7 +26,7 @@ public class ClienteController {
         this.clienteService = clienteService;
     }
 
-    @GetMapping("/buscarTodos")
+    @GetMapping("/todos")
     @Operation(summary = "Este metodo busca todos los clientes guardados en la base de datos")
     public ResponseEntity<?> buscarTodos() {
         List<Cliente> clientes = clienteService.buscarTodos()
@@ -54,7 +54,7 @@ public class ClienteController {
         }
     }
 
-    @PostMapping("/crearCliente")
+    @PostMapping("/crear")
     @Operation(summary = "Este metodo crea un nuevo cliente")
     public ResponseEntity<?> crear(@RequestBody ClienteDTO dto) {
         try {
@@ -73,9 +73,9 @@ public class ClienteController {
         }
     }
 
-    @PutMapping("/actualizarCliente/{id}")
+    @PutMapping("/actualizar")
     @Operation(summary = "Este metodo actualiza un cliente")
-    public ResponseEntity<?> actualizar(@PathVariable Long id, @RequestBody ClienteDTO dto) {
+    public ResponseEntity<?> actualizar(@RequestParam Long id, @RequestBody ClienteDTO dto) {
         try {
             Cliente cliente = clienteService.buscarPorId(id)
                     .orElseThrow(() -> new RecursoNoEncontradoException("Cliente no encontrado con id: " + id));
@@ -95,7 +95,7 @@ public class ClienteController {
     }
 
 
-    @DeleteMapping("/eliminarCliente")
+    @DeleteMapping("/eliminar")
     @Operation(summary = "Este medoto elimina un cliente de la base de datos por id tipo LONG")
     public ResponseEntity<?> eliminar(@RequestParam Long id) {
         try {

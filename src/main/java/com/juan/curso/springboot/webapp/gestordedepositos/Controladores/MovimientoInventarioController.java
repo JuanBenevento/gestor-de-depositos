@@ -4,7 +4,11 @@ import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.MovimientoInventa
 import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.RecursoNoEncontradoException;
 import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.StockInsuficienteException;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.MovimientoInventario;
+import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Producto;
+import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Ubicacion;
 import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.MovimientoInventarioServiceImpl;
+import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.ProductoServiceImpl;
+import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.UbicacionServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,10 +29,14 @@ import java.util.stream.Collectors;
 public class MovimientoInventarioController {
 
     private final MovimientoInventarioServiceImpl movimientoService;
+    private final ProductoServiceImpl productoServiceImpl;
+    private final UbicacionServiceImpl ubicacionServiceImpl;
 
     @Autowired
-    public MovimientoInventarioController(MovimientoInventarioServiceImpl movimientoService) {
+    public MovimientoInventarioController(MovimientoInventarioServiceImpl movimientoService, ProductoServiceImpl productoServiceImpl, UbicacionServiceImpl ubicacionServiceImpl ) {
         this.movimientoService = movimientoService;
+        this.productoServiceImpl = productoServiceImpl;
+        this.ubicacionServiceImpl = ubicacionServiceImpl;
     }
 
     @GetMapping("/todos")
@@ -89,10 +97,10 @@ public class MovimientoInventarioController {
             }
 
             Date fechaMovimiento = dto.getFecha() != null ? dto.getFecha() : new Date();
-            MovimientoInventario movInventario = new MovimientoInventario(dto.getId_movimiento(), productoElegido.get(),
-                    origen, destino, cantidad, dto.getEstado(), fechaMovimiento);
+            MovimientoInventario movInventario = new MovimientoInventario(dto.getIdMovimientoInventario(), productoElegido.get(),
+                    origen, destino, cantidad, fechaMovimiento, dto.getEstado() );
 
-            MovimientoInventario creado = movimientoInventarioServiceImpl.crear(movInventario);
+            MovimientoInventario creado = movimientoService.crear(movInventario);
             return new ResponseEntity<>(new MovimientoInventarioDTO(creado), HttpStatus.CREATED);
         } catch (Exception e) {
             e.printStackTrace();
@@ -103,7 +111,7 @@ public class MovimientoInventarioController {
     @GetMapping("/buscar")
     public ResponseEntity<?> buscar(@RequestParam Long id) {
         try {
-            Optional<MovimientoInventario> movInventarioSelected = movimientoInventarioServiceImpl.buscarPorId(id);
+            Optional<MovimientoInventario> movInventarioSelected = movimientoService.buscarPorId(id);
             if (movInventarioSelected.isPresent()) {
                 MovimientoInventario movimInvent = movInventarioSelected.get();
                 return new ResponseEntity<>(new MovimientoInventarioDTO(movimInvent), HttpStatus.OK);
@@ -128,7 +136,7 @@ public class MovimientoInventarioController {
                 return new ResponseEntity<>("La fecha del movimiento no puede ser futura", HttpStatus.BAD_REQUEST);
             }
 
-            Optional<MovimientoInventario> movOpt = movimientoInventarioServiceImpl.buscarPorId(id);
+            Optional<MovimientoInventario> movOpt = movimientoService.buscarPorId(id);
             if (movOpt.isEmpty()) {
                 return new ResponseEntity<>("Movimiento de inventario no encontrado", HttpStatus.NOT_FOUND);
             }
@@ -199,7 +207,7 @@ public class MovimientoInventarioController {
             movimiento.setEstado(dto.getEstado());
             movimiento.setFecha(dto.getFecha() != null ? dto.getFecha() : movimiento.getFecha());
 
-            MovimientoInventario actualizado = movimientoInventarioServiceImpl.actualizar(movimiento);
+            MovimientoInventario actualizado = movimientoService.actualizar(movimiento);
             return new ResponseEntity<>(new MovimientoInventarioDTO(actualizado), HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>("Error al intentar actualizar movimiento de inventario", HttpStatus.INTERNAL_SERVER_ERROR);
