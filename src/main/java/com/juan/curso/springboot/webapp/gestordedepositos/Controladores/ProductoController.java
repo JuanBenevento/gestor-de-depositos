@@ -57,7 +57,7 @@ public class ProductoController {
         }
     }
 
-    @PostMapping("/crearProducto")
+    @PostMapping("/crear")
     @Operation(summary = "Este metodo crea un nuevo producto")
     public ResponseEntity<?> crearProducto(@RequestBody ProductoDTO productoDTO) {
         try {
@@ -75,9 +75,9 @@ public class ProductoController {
     }
 
 
-    @PutMapping("/actualizarProducto")
+    @PutMapping("/actualizar")
     @Operation(summary = "Este metodo actualiza un producto")
-    public ResponseEntity<?> actualizar(@RequestBody ProductoDTO dto) {
+    public ResponseEntity<?> actualizar(@RequestParam Long id, @RequestBody ProductoDTO dto) {
         try {
             Producto producto = toEntity(dto);
             producto.setFecha_creacion(dto.getFecha_creacion() != null ? dto.getFecha_creacion() : Calendar.getInstance().getTime());
@@ -112,7 +112,7 @@ public class ProductoController {
         return producto;
     }
 
-    @DeleteMapping("/eliminarProducto")
+    @DeleteMapping("/eliminar")
     @Operation(summary = "Este metodo elimina un producto")
     public ResponseEntity<?> eliminar(@RequestParam Long id) {
         try {
