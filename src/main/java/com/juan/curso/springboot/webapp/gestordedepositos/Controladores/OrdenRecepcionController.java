@@ -3,6 +3,7 @@ package com.juan.curso.springboot.webapp.gestordedepositos.Controladores;
 import com.juan.curso.springboot.webapp.gestordedepositos.Dtos.OrdenRecepcionDTO;
 import com.juan.curso.springboot.webapp.gestordedepositos.Excepciones.RecursoNoEncontradoException;
 import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.*;
+import com.juan.curso.springboot.webapp.gestordedepositos.Modelos.Enums.EstadosDeOrden;
 import com.juan.curso.springboot.webapp.gestordedepositos.Servicios.*;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +16,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("GestorDeDepositos/ordenes")
+@RequestMapping("GestorDeDepositos/ordenes-recepcion")
 public class OrdenRecepcionController {
 
     private final OrdenRecepcionServiceImpl ordenRecepcionService;
@@ -68,7 +69,7 @@ public class OrdenRecepcionController {
         }
     }
 
-    @PostMapping("/crearOrdenRecepcion")
+    @PostMapping("/crear")
     @Operation(summary = "Crea una orden de recepción y actualiza inventario automáticamente")
     public ResponseEntity<?> crearOrdenRecepcion(@RequestBody OrdenRecepcionDTO dto) {
         try {
@@ -82,7 +83,7 @@ public class OrdenRecepcionController {
         }
     }
 
-    @PutMapping("/actualizarOrdenCompleta")
+    @PutMapping("/actualizar")
     @Operation(summary = "Actualiza una orden de recepción completa (cabecera y detalles), ajustando el stock automáticamente.")
     public ResponseEntity<?> actualizarOrdenCompleta(@RequestParam Long id, @RequestBody OrdenRecepcionDTO dto) {
         try {
@@ -96,11 +97,11 @@ public class OrdenRecepcionController {
         }
     }
 
-    @DeleteMapping("/eliminarOrden")
+    @DeleteMapping("/eliminar")
     @Operation(summary = "Elimina una orden de recepción y revierte el stock ingresado")
-    public ResponseEntity<?> eliminar(@RequestParam Long idOrden) {
+    public ResponseEntity<?> eliminar(@RequestParam Long id) {
         try {
-            ordenRecepcionService.eliminarConReversion(idOrden);
+            ordenRecepcionService.eliminarConReversion(id);
             return ResponseEntity.ok("Orden eliminada y stock revertido correctamente.");
 
         } catch (RecursoNoEncontradoException e) {
@@ -115,6 +116,16 @@ public class OrdenRecepcionController {
         }
     }
 
-
-
+    @PutMapping("/actualizar-estado")
+    @Operation(summary = "Actualiza el estado de la orden")
+    public ResponseEntity<?> actualizarEstado(@RequestParam Long id, @RequestParam EstadosDeOrden estado) {
+        try {
+            ordenRecepcionService.updateOrderState(id, estado);
+            return ResponseEntity.ok("Estado actualizado correctamente.");
+        } catch (RuntimeException e){
+            return new ResponseEntity<>("Error al actualizar el estado: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

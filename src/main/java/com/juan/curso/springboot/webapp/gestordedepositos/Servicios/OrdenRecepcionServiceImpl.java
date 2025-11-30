@@ -185,4 +185,14 @@ public class OrdenRecepcionServiceImpl implements GenericService<OrdenRecepcion,
         // Ahora sí, borramos el registro administrativo
         ordenRecepcionRepositorio.delete(orden);
     }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void updateOrderState(Long id, EstadosDeOrden estado) {
+        OrdenRecepcion orden = ordenRecepcionRepositorio.findById(id).orElseThrow(()->new RecursoNoEncontradoException("Orden no encontrado"));
+        if(orden.getEstado() == EstadosDeOrden.PENDIENTE && estado == EstadosDeOrden.COMPLETADA) {
+            orden.setEstado(estado);
+        } else {
+            throw new RuntimeException("No se puede editar una orden COMPLETADA.");
+        }
+    }
 }

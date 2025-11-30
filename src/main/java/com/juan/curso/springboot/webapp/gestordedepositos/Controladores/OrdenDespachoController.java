@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("GestorDeDepositos/ordenesDeDespacho")
+@RequestMapping("GestorDeDepositos/ordenes-despacho")
 public class OrdenDespachoController {
 
     private final OrdenDespachoServiceImpl ordenDespachoService;
@@ -25,7 +25,7 @@ public class OrdenDespachoController {
         this.ordenDespachoService = ordenDespachoService;
     }
 
-    @GetMapping("/buscarTodos")
+    @GetMapping("/todos")
     public ResponseEntity<?> buscarTodos() {
         List<OrdenDespacho> ordenes = ordenDespachoService.buscarTodos()
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontraron órdenes"));
@@ -35,14 +35,14 @@ public class OrdenDespachoController {
         return ResponseEntity.ok(dtoList);
     }
 
-    @GetMapping("/buscarPorId/{id}")
-    public ResponseEntity<?> buscar(@PathVariable Long id) {
+    @GetMapping("/buscarPorId")
+    public ResponseEntity<?> buscar(@RequestParam Long id) {
         return ordenDespachoService.buscarPorId(id)
                 .map(o -> new ResponseEntity<>(new OrdenDespachoDTO(o), HttpStatus.OK))
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    @PostMapping("/crearOrden")
+    @PostMapping("/crear")
     @Operation(summary = "Crea una orden de despacho y descuenta stock")
     public ResponseEntity<?> crear(@RequestBody OrdenDespachoDTO dto) {
         try {
@@ -57,7 +57,7 @@ public class OrdenDespachoController {
         }
     }
 
-    @PutMapping("/actualizarOrdenCompleta")
+    @PutMapping("/actualizar")
     @Operation(summary = "Actualiza una orden de despacho completa, revirtiendo stock anterior y aplicando el nuevo")
     public ResponseEntity<?> actualizarOrdenCompleta(@RequestParam Long id, @RequestBody OrdenDespachoDTO dto) {
         try {
@@ -70,7 +70,7 @@ public class OrdenDespachoController {
         }
     }
 
-    @DeleteMapping("/eliminarOrden")
+    @DeleteMapping("/eliminar")
     @Operation(summary = "Elimina una orden y devuelve el stock")
     public ResponseEntity<?> eliminar(@RequestParam Long id) {
         try {
